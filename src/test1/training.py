@@ -11,14 +11,24 @@ def train(model, train_loader, optimizer, epoch):
     criterion = nn.CrossEntropyLoss()
     device = get_device()
     for batch_idx, (data, target) in enumerate(train_loader):
+        accumulated_loss = torch.tensor(0.0).to(device)
+
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
+
         loss = criterion(output, target)
-        loss.backward()
+        loss_masks = model.get_masked_percentage_tensor()
+
+        accumulated_loss += loss
+        accumulated_loss += loss_masks
+
+        accumulated_loss.backward()
         optimizer.step()
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
+            percent = model.get_masked_percentage_tensor()
+            print(f'Masked weights percentage: {percent*100:.2f}%')
 
 
 def test(model, test_loader):
@@ -56,11 +66,11 @@ def run():
     test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
     # Instantiate the network, optimizer, etc.
-    model = Net(mask_enabled=True).to(get_device())
-    # optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    model = Net(mask_enabled=True, freeze_weights=False, signs_enabled=False).to(get_device())
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
-    num_epochs = 10
+    num_epochs = 20
     for epoch in range(1, num_epochs + 1):
         # Toggle mask as needed
         train(model, train_loader, optimizer, epoch)
