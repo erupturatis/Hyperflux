@@ -1,0 +1,3 @@
+# install torch manually from https://pytorch.org/get-started/locally/
+matplotlib
+scikit-learn
