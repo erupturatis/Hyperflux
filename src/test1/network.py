@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-
+import numpy as np
 from src.utils import get_device
 
 class SignMaskFunction(torch.autograd.Function):
@@ -58,18 +58,19 @@ class MaskedLinear(nn.Module):
 
         if freeze_weights:
             self.weight.requires_grad = False
-            # self.bias.requires_grad = False
+            self.bias.requires_grad = False
 
-        # Initialize mask parameters (unconstrained)
+
         self.mask_param = nn.Parameter(torch.Tensor(out_features, in_features))
         self.signs_mask_param = nn.Parameter(torch.Tensor(out_features, in_features))
 
-        self.reset_parameters()
+        self.init_parameters()
 
-    def reset_parameters(self):
+    def init_parameters(self):
         nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-        nn.init.uniform_(self.mask_param, a=2, b=2)  # Initialize mask_param, starts with all connections
-        nn.init.uniform_(self.signs_mask_param, a=2, b=2)  # Initialize mask_param
+        #nn.init.uniform_(self.weight, a=-0.01, b=0.01)
+        nn.init.uniform_(self.mask_param, a=1, b=2)  # Initialize mask_param, starts with all connections
+        nn.init.uniform_(self.signs_mask_param, a=1, b=2)  # Initialize mask_param
         if self.bias is not None:
             fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
             bound = 1 / math.sqrt(fan_in)
@@ -117,14 +118,92 @@ class Net(nn.Module):
         self.fc1.mask_enabled = enabled
         self.fc2.mask_enabled = enabled
         self.fc3.mask_enabled = enabled
-
+        
+    def get_layerwise_weights(self):
+        weights = {}
+        for i, layer in enumerate([self.fc1, self.fc2, self.fc3]):
+            weight = layer.weight.detach().cpu().numpy()
+            weights[f'fc{i}_weights'] = np.where(weight < 0, -1, 1)
+        return weights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    
+    def get_layerwise_masks(self):
+        masks = {}
+        for i, layer in enumerate([self.fc1, self.fc2, self.fc3]):
+            if layer.mask_enabled:
+                binary_mask = BinaryMaskFunction.apply(layer.mask_param).detach().cpu().numpy()
+                print(binary_mask)
+            if layer.signs_enabled:
+                masks[f'fc{i}_weights'] = SignMaskFunction.apply(layer.signs_mask_param).detach().cpu().numpy()
+        return masks
+      
     def get_masked_percentage_tensor(self) -> torch.Tensor:
         total = 0
         masked = torch.tensor(0, device=get_device(), dtype=torch.float)
         for layer in [self.fc1, self.fc2, self.fc3]:
             total += layer.weight.numel()
             mask = BinaryMaskFunction.apply(layer.mask_param)
+            
             masked += mask.sum()
 
         return masked / total
+    def save_weights(self):
+        # Apply masks to weights before saving
+        masked_fc1_weight = self.fc1.weight * BinaryMaskFunction.apply(self.fc1.mask_param)
+        masked_fc2_weight = self.fc2.weight * BinaryMaskFunction.apply(self.fc2.mask_param)
+        masked_fc3_weight = self.fc3.weight * BinaryMaskFunction.apply(self.fc3.mask_param)
+        
+        if self.fc1.signs_enabled:
+            masked_fc1_weight = masked_fc1_weight * SignMaskFunction.apply(self.fc1.signs_mask_param)
+        if self.fc2.signs_enabled:
+            masked_fc2_weight = masked_fc2_weight * SignMaskFunction.apply(self.fc2.signs_mask_param)
+        if self.fc3.signs_enabled:
+            masked_fc3_weight = masked_fc3_weight * SignMaskFunction.apply(self.fc3.signs_mask_param)
 
+        # Save the masked weights
+        weights_to_save = {
+            'fc1_weight': masked_fc1_weight.detach().cpu(),
+            'fc2_weight': masked_fc2_weight.detach().cpu(),
+            'fc3_weight': masked_fc3_weight.detach().cpu()
+        }
+
+        if self.fc1.bias is not None:
+            weights_to_save['fc1_bias'] = self.fc1.bias.detach().cpu()
+        if self.fc2.bias is not None:
+            weights_to_save['fc2_bias'] = self.fc2.bias.detach().cpu()
+        if self.fc3.bias is not None:
+            weights_to_save['fc3_bias'] = self.fc3.bias.detach().cpu()
+
+        torch.save(weights_to_save, r"XAI_paper\nn_weights\model_v1_with_mask.pth")
+        print(f"Weights with masks applied saved!")
+
+
+class NetSimple(nn.Module):
+    def __init__(self):
+        super(NetSimple, self).__init__()
+        self.fc1 = nn.Linear(28*28, 300)
+        self.fc2 = nn.Linear(300, 100)
+        self.fc3 = nn.Linear(100, 10)
+        
+    def forward(self, x):
+        x = x.view(-1, 28 * 28)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x 
+    
+    def load_weights(self, path, map_location=None):
+        weights = torch.load(path, map_location=map_location)
+
+        self.fc1.weight.data.copy_(weights['fc1_weight'])
+        self.fc2.weight.data.copy_(weights['fc2_weight'])
+        self.fc3.weight.data.copy_(weights['fc3_weight'])
+
+        if 'fc1_bias' in weights:
+            self.fc1.bias.data.copy_(weights['fc1_bias'])
+        if 'fc2_bias' in weights:
+            self.fc2.bias.data.copy_(weights['fc2_bias'])
+        if 'fc3_bias' in weights:
+            self.fc3.bias.data.copy_(weights['fc3_bias'])
+
+        print(f"Weights loaded from {path}")
+    
