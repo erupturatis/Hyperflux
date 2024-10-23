@@ -31,7 +31,7 @@ def train(model, train_loader, optimizer, epoch):
             print(f'Masked weights percentage: {percent*100:.2f}%')
 
 
-def test(model, test_loader):
+def test(model, test_loader, save):
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction='sum')
     test_loss = 0
@@ -44,8 +44,8 @@ def test(model, test_loader):
             pred = output.argmax(dim=1, keepdim=True)      # Get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
     test_loss /= len(test_loader.dataset)
-
-    model.save_weights()
+    if save == True:
+        model.save_weights()
     print(f'\nTest set: Average loss: {test_loss:.4f}, '
           f'Accuracy: {correct}/{len(test_loader.dataset)}'
           f' ({100. * correct / len(test_loader.dataset):.0f}%)\n')
@@ -69,14 +69,14 @@ def run():
 
     # Instantiate the network, optimizer, etc.
     model = Net(mask_enabled=True, freeze_weights=False, signs_enabled=True).to(get_device())
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.008)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
-    num_epochs = 35
+    num_epochs = 40
     for epoch in range(1, num_epochs + 1):
         # Toggle mask as needed
         train(model, train_loader, optimizer, epoch)
-        test(model, test_loader)
+        test(model, test_loader, save= True)
     
     print("Training complete")
-    model.save_weights()
+  

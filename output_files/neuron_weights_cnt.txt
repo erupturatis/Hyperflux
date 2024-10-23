@@ -1,0 +1,1236 @@
+
+Processing layer: fc1.weight
+Neuron 0:
+  2 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 1:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 2:
+  35 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 3:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 4:
+  8 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 5:
+  15 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 6:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 7:
+  27 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 8:
+  22 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 9:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 10:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 11:
+  57 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 12:
+  44 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 13:
+  46 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 14:
+  7 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 15:
+  44 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 16:
+  25 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 17:
+  19 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 18:
+  55 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 19:
+  2 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 20:
+  26 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 21:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 22:
+  3 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 23:
+  9 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 24:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 25:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 26:
+  32 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 27:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 28:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 29:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 30:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 31:
+  10 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 32:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 33:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 34:
+  4 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 35:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 36:
+  39 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 37:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 38:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 39:
+  42 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 40:
+  44 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 41:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 42:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 43:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 44:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 45:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 46:
+  18 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 47:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 48:
+  12 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 49:
+  39 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 50:
+  18 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 51:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 52:
+  23 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 53:
+  9 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 54:
+  2 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 55:
+  8 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 56:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 57:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 58:
+  42 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 59:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 60:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 61:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 62:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 63:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 64:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 65:
+  13 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 66:
+  10 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 67:
+  6 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 68:
+  7 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 69:
+  6 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 70:
+  22 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 71:
+  7 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 72:
+  15 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 73:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 74:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 75:
+  11 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 76:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 77:
+  17 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 78:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 79:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 80:
+  2 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 81:
+  41 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 82:
+  33 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 83:
+  36 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 84:
+  31 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 85:
+  19 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 86:
+  71 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 87:
+  22 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 88:
+  52 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 89:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 90:
+  50 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 91:
+  7 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 92:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 93:
+  13 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 94:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 95:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 96:
+  53 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 97:
+  51 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 98:
+  35 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 99:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 100:
+  56 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 101:
+  31 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 102:
+  43 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 103:
+  45 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 104:
+  16 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 105:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 106:
+  4 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 107:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 108:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 109:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 110:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 111:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 112:
+  10 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 113:
+  11 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 114:
+  1 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 115:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 116:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 117:
+  1 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 118:
+  33 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 119:
+  2 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 120:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 121:
+  30 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 122:
+  0 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 123:
+  13 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 124:
+  0 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 125:
+  10 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 126:
+  9 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 127:
+  0 outgoing connections are not zero
+  9 incoming connections are not zero
+Neuron 128:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 129:
+  69 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 130:
+  40 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 131:
+  15 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 132:
+  3 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 133:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 134:
+  34 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 135:
+  9 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 136:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 137:
+  16 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 138:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 139:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 140:
+  42 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 141:
+  36 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 142:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 143:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 144:
+  39 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 145:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 146:
+  27 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 147:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 148:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 149:
+  16 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 150:
+  6 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 151:
+  0 outgoing connections are not zero
+  9 incoming connections are not zero
+Neuron 152:
+  12 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 153:
+  19 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 154:
+  26 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 155:
+  0 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 156:
+  12 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 157:
+  47 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 158:
+  46 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 159:
+  0 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 160:
+  0 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 161:
+  50 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 162:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 163:
+  31 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 164:
+  37 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 165:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 166:
+  1 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 167:
+  43 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 168:
+  38 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 169:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 170:
+  22 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 171:
+  14 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 172:
+  1 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 173:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 174:
+  6 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 175:
+  32 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 176:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 177:
+  6 outgoing connections are not zero
+  14 incoming connections are not zero
+Neuron 178:
+  6 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 179:
+  35 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 180:
+  0 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 181:
+  52 outgoing connections are not zero
+  14 incoming connections are not zero
+Neuron 182:
+  0 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 183:
+  17 outgoing connections are not zero
+  14 incoming connections are not zero
+Neuron 184:
+  20 outgoing connections are not zero
+  14 incoming connections are not zero
+Neuron 185:
+  0 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 186:
+  34 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 187:
+  27 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 188:
+  53 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 189:
+  5 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 190:
+  2 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 191:
+  13 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 192:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 193:
+  45 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 194:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 195:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 196:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 197:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 198:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 199:
+  11 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 200:
+  32 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 201:
+  38 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 202:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 203:
+  0 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 204:
+  0 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 205:
+  19 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 206:
+  1 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 207:
+  22 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 208:
+  35 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 209:
+  0 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 210:
+  0 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 211:
+  34 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 212:
+  10 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 213:
+  6 outgoing connections are not zero
+  19 incoming connections are not zero
+Neuron 214:
+  0 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 215:
+  0 outgoing connections are not zero
+  19 incoming connections are not zero
+Neuron 216:
+  55 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 217:
+  10 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 218:
+  24 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 219:
+  0 outgoing connections are not zero
+  9 incoming connections are not zero
+Neuron 220:
+  12 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 221:
+  22 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 222:
+  25 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 223:
+  3 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 224:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 225:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 226:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 227:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 228:
+  36 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 229:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 230:
+  18 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 231:
+  5 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 232:
+  2 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 233:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 234:
+  0 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 235:
+  0 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 236:
+  0 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 237:
+  9 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 238:
+  30 outgoing connections are not zero
+  16 incoming connections are not zero
+Neuron 239:
+  0 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 240:
+  0 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 241:
+  0 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 242:
+  6 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 243:
+  32 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 244:
+  21 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 245:
+  69 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 246:
+  11 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 247:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 248:
+  34 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 249:
+  52 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 250:
+  25 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 251:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 252:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 253:
+  4 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 254:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 255:
+  69 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 256:
+  4 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 257:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 258:
+  10 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 259:
+  0 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 260:
+  34 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 261:
+  0 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 262:
+  54 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 263:
+  0 outgoing connections are not zero
+  16 incoming connections are not zero
+Neuron 264:
+  16 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 265:
+  0 outgoing connections are not zero
+  14 incoming connections are not zero
+Neuron 266:
+  26 outgoing connections are not zero
+  17 incoming connections are not zero
+Neuron 267:
+  15 outgoing connections are not zero
+  22 incoming connections are not zero
+Neuron 268:
+  1 outgoing connections are not zero
+  16 incoming connections are not zero
+Neuron 269:
+  0 outgoing connections are not zero
+  20 incoming connections are not zero
+Neuron 270:
+  0 outgoing connections are not zero
+  17 incoming connections are not zero
+Neuron 271:
+  3 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 272:
+  23 outgoing connections are not zero
+  14 incoming connections are not zero
+Neuron 273:
+  43 outgoing connections are not zero
+  9 incoming connections are not zero
+Neuron 274:
+  41 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 275:
+  13 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 276:
+  6 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 277:
+  0 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 278:
+  23 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 279:
+  6 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 280:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 281:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 282:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 283:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 284:
+  21 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 285:
+  9 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 286:
+  0 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 287:
+  11 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 288:
+  24 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 289:
+  48 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 290:
+  0 outgoing connections are not zero
+  16 incoming connections are not zero
+Neuron 291:
+  36 outgoing connections are not zero
+  12 incoming connections are not zero
+Neuron 292:
+  0 outgoing connections are not zero
+  18 incoming connections are not zero
+Neuron 293:
+  25 outgoing connections are not zero
+  23 incoming connections are not zero
+Neuron 294:
+  0 outgoing connections are not zero
+  16 incoming connections are not zero
+Neuron 295:
+  17 outgoing connections are not zero
+  19 incoming connections are not zero
+Neuron 296:
+  25 outgoing connections are not zero
+  19 incoming connections are not zero
+Neuron 297:
+  26 outgoing connections are not zero
+  15 incoming connections are not zero
+Neuron 298:
+  0 outgoing connections are not zero
+  13 incoming connections are not zero
+Neuron 299:
+  8 outgoing connections are not zero
+  15 incoming connections are not zero
+
+Processing layer: fc2.weight
+Neuron 0:
+  13 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 1:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 2:
+  29 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 3:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 4:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 5:
+  12 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 6:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 7:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 8:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 9:
+  43 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 10:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 11:
+  0 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 12:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 13:
+  0 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 14:
+  2 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 15:
+  0 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 16:
+  12 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 17:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 18:
+  0 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 19:
+  4 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 20:
+  0 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 21:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 22:
+  4 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 23:
+  17 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 24:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 25:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 26:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 27:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 28:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 29:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 30:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 31:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 32:
+  0 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 33:
+  4 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 34:
+  12 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 35:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 36:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 37:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 38:
+  7 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 39:
+  0 outgoing connections are not zero
+  7 incoming connections are not zero
+Neuron 40:
+  3 outgoing connections are not zero
+  11 incoming connections are not zero
+Neuron 41:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 42:
+  8 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 43:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 44:
+  22 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 45:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 46:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 47:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 48:
+  14 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 49:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 50:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 51:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 52:
+  4 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 53:
+  36 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 54:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 55:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 56:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 57:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 58:
+  2 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 59:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 60:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 61:
+  2 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 62:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 63:
+  36 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 64:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 65:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 66:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 67:
+  52 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 68:
+  2 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 69:
+  23 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 70:
+  0 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 71:
+  21 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 72:
+  1 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 73:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 74:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 75:
+  21 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 76:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 77:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 78:
+  17 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 79:
+  26 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 80:
+  0 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 81:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 82:
+  0 outgoing connections are not zero
+  6 incoming connections are not zero
+Neuron 83:
+  0 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 84:
+  40 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 85:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 86:
+  16 outgoing connections are not zero
+  10 incoming connections are not zero
+Neuron 87:
+  47 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 88:
+  0 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 89:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 90:
+  45 outgoing connections are not zero
+  5 incoming connections are not zero
+Neuron 91:
+  22 outgoing connections are not zero
+  3 incoming connections are not zero
+Neuron 92:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 93:
+  0 outgoing connections are not zero
+  2 incoming connections are not zero
+Neuron 94:
+  33 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 95:
+  15 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 96:
+  0 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 97:
+  20 outgoing connections are not zero
+  8 incoming connections are not zero
+Neuron 98:
+  7 outgoing connections are not zero
+  4 incoming connections are not zero
+Neuron 99:
+  0 outgoing connections are not zero
+  0 incoming connections are not zero
+
+Processing layer: fc3.weight
+Neuron 0:
+  5 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 1:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 2:
+  4 outgoing connections are not zero
+  1 incoming connections are not zero
+Neuron 3:
+  3 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 4:
+  3 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 5:
+  4 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 6:
+  8 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 7:
+  3 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 8:
+  6 outgoing connections are not zero
+  0 incoming connections are not zero
+Neuron 9:
+  2 outgoing connections are not zero
+  1 incoming connections are not zero
