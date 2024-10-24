@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
-from .network import Net
+from src.test2.conv2_masked import Conv2
 import numpy as np
 
 def train(model, train_loader, optimizer, epoch):
@@ -29,8 +29,7 @@ def train(model, train_loader, optimizer, epoch):
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
             percent = model.get_masked_percentage_tensor()
             print(f'Masked weights percentage: {percent*100:.2f}%')
-
-
+            
 def test(model, test_loader, save):
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction='sum')
@@ -50,33 +49,26 @@ def test(model, test_loader, save):
           f'Accuracy: {correct}/{len(test_loader.dataset)}'
           f' ({100. * correct / len(test_loader.dataset):.0f}%)\n')
 
-def run():
-    # Define transformations for the training and testing data
+def run_conv2():
+
     transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
-    ])
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize with mean and std for RGB channels
+])
 
-    # Download and load the training data
-    train_dataset = datasets.MNIST(root='./data', train=True,
-                                   download=True, transform=transform)
-    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    # Load CIFAR-10 dataset
+    trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 
-    # Download and load the test data
-    test_dataset = datasets.MNIST(root='./data', train=False,
-                                  download=True, transform=transform)
-    test_loader = DataLoader(test_dataset, batch_size=100, shuffle=False)
-
-    # Instantiate the network, optimizer, etc.
-    model = Net(mask_enabled=True, freeze_weights=False, signs_enabled=True).to(get_device())
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.01)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-
+    testset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False, num_workers=2)
+    
+    model = Conv2(mask_enabled= False, freeze_weights= False, signs_enabled= False).to(get_device())
+    optimizer = torch.optim.AdamW(model.parameters(), lr = 0.01)
+    
     num_epochs = 30
     for epoch in range(1, num_epochs + 1):
-        # Toggle mask as needed
         train(model, train_loader, optimizer, epoch)
-        test(model, test_loader, save= True)
+        test(model, test_loader, save= False)
     
     print("Training complete")
-  
