@@ -121,7 +121,7 @@ class ModelCifar10Conv2(nn.Module):
         masked = torch.tensor(0, device=get_device(), dtype=torch.float)
         for layer in [self.fc1, self.fc2, self.fc3, self.conv2D_1, self.conv2D_2]:
             total += layer.weights.numel()
-            mask = torch.sigmoid(layer.mask_pruning)
+            mask = torch.sigmoid(getattr(layer, MASK_PRUNING_ATTR))
             # Apply threshold at 0.5 to get binary mask
             masked += mask.sum()
 
@@ -132,7 +132,7 @@ class ModelCifar10Conv2(nn.Module):
         masked = torch.tensor(0, device=get_device(), dtype=torch.float)
         for layer in [self.fc1, self.fc2, self.fc3, self.conv2D_1, self.conv2D_2]:
             total += layer.weights.numel()
-            mask = torch.sigmoid(layer.mask_pruning)
+            mask = torch.sigmoid(getattr(layer, MASK_PRUNING_ATTR))
             # Apply threshold at 0.5 to get binary mask
             mask_thresholded = (mask >= 0.5).float()
             masked += mask_thresholded.sum()

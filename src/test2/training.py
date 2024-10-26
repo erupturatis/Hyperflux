@@ -39,6 +39,7 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
 
         accumulated_loss.backward()
         optimizer.step()
+
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
             percent = model.get_masked_percentage()
@@ -106,9 +107,6 @@ def run_conv2():
 
     weight_bias_params = []
     custom_params = []
-    names_params = []
-    for name, param in model.named_parameters():
-        names_params.append(name)
 
     for name, param in model.named_parameters():
         if WEIGHTS_ATTR in name or BIAS_ATTR in name:
