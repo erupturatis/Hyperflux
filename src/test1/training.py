@@ -18,7 +18,7 @@ def train(model, train_loader, optimizer, epoch):
         output = model(data)
 
         loss = criterion(output, target)
-        loss_masks = model.get_masked_percentage_tensor()
+        loss_masks = model.get_masked_percentage()
 
         accumulated_loss += loss
         accumulated_loss += loss_masks
@@ -27,7 +27,7 @@ def train(model, train_loader, optimizer, epoch):
         optimizer.step()
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
-            percent = model.get_masked_percentage_tensor()
+            percent = model.get_masked_percentage()
             print(f'Masked weights percentage: {percent*100:.2f}%')
 
 

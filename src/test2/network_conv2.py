@@ -35,9 +35,9 @@ class LayerConv2(nn.Module):
 
         # defining parameters
         setattr(self, WEIGHTS_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
+        setattr(self, MASK_PRUNING_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
+        setattr(self, MASK_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
         setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_channels)))
-        setattr(self, MASK_PRUNING_ATTR, nn.Parameter(torch.Tensor(self.out_channels)))
-        setattr(self, MASK_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_channels)))
 
         # turning on and off params
         getattr(self, WEIGHTS_ATTR).requires_grad = self.weights_training_enabled
@@ -116,7 +116,18 @@ class ModelCifar10Conv2(nn.Module):
 
 
 
-    def get_masked_percentage_tensor(self) -> torch.Tensor:
+    def get_masked_loss(self) -> torch.Tensor:
+        total = 0
+        masked = torch.tensor(0, device=get_device(), dtype=torch.float)
+        for layer in [self.fc1, self.fc2, self.fc3, self.conv2D_1, self.conv2D_2]:
+            total += layer.weights.numel()
+            mask = torch.sigmoid(layer.mask_pruning)
+            # Apply threshold at 0.5 to get binary mask
+            masked += mask.sum()
+
+        return masked / total
+
+    def get_masked_percentage(self) -> float:
         total = 0
         masked = torch.tensor(0, device=get_device(), dtype=torch.float)
         for layer in [self.fc1, self.fc2, self.fc3, self.conv2D_1, self.conv2D_2]:
@@ -124,11 +135,10 @@ class ModelCifar10Conv2(nn.Module):
             mask = torch.sigmoid(layer.mask_pruning)
             # Apply threshold at 0.5 to get binary mask
             mask_thresholded = (mask >= 0.5).float()
+            masked += mask_thresholded.sum()
 
-            masked += mask.sum()
+        return masked.item() / total
 
-        return masked / total
-    
     def forward(self, x):
 
         x = F.relu(self.conv2D_1(x))
