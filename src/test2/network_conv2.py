@@ -64,12 +64,10 @@ class LayerConv2(nn.Module):
 
         if self.mask_pruning_enabled:
             mask_changes = MaskPruningFunction.apply(getattr(self, MASK_PRUNING_ATTR))
-            mask_changes = mask_changes.view(-1, 1, 1, 1)
             masked_weights = masked_weights * mask_changes
 
         if self.mask_flipping_enabled:
             mask_changes = MaskFlipFunction.apply(getattr(self, MASK_FLIPPING_ATTR))
-            mask_changes = mask_changes.view(-1, 1, 1, 1)
             masked_weights = masked_weights * mask_changes
 
         return F.conv2d(input, masked_weights, bias, self.stride, self.padding)
