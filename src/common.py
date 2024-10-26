@@ -71,8 +71,8 @@ class LayerLinear(nn.Module):
         getattr(self, WEIGHTS_ATTR).requires_grad = self.weights_training_enabled
         getattr(self, BIAS_ATTR).requires_grad = self.weights_training_enabled
 
-        setattr(self, MASK_PRUNING_ATTR,  nn.Parameter(torch.Tensor(self.in_features, self.out_features)))
-        setattr(self, MASK_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.in_features, self.out_features)))
+        setattr(self, MASK_PRUNING_ATTR,  nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+        setattr(self, MASK_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
 
         getattr(self, MASK_PRUNING_ATTR).requires_grad = self.mask_pruning_enabled
         getattr(self, MASK_FLIPPING_ATTR).requires_grad = self.mask_flipping_enabled
