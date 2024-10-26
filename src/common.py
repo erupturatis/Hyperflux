@@ -65,7 +65,7 @@ class LayerLinear(nn.Module):
         self.mask_flipping_enabled = configs_network['mask_flipping_enabled']
 
 
-        setattr(self, WEIGHTS_ATTR, nn.Parameter(torch.Tensor(self.in_features, self.out_features)))
+        setattr(self, WEIGHTS_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
         setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_features)))
 
         getattr(self, WEIGHTS_ATTR).requires_grad = self.weights_training_enabled

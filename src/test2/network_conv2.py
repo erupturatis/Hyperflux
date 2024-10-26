@@ -58,20 +58,21 @@ class LayerConv2(nn.Module):
         nn.init.uniform_(getattr(self, BIAS_ATTR), -bound, bound)
 
     def forward(self, input):
-        masked_weight = getattr(self, WEIGHTS_ATTR)
+        masked_weights = getattr(self, WEIGHTS_ATTR)
         bias = getattr(self, BIAS_ATTR)
-
         mask_changes = None
 
         if self.mask_pruning_enabled:
             mask_changes = MaskPruningFunction.apply(getattr(self, MASK_PRUNING_ATTR))
-            masked_weight = self.weights * mask_changes
+            mask_changes = mask_changes.view(-1, 1, 1, 1)
+            masked_weights = masked_weights * mask_changes
 
         if self.mask_flipping_enabled:
             mask_changes = MaskFlipFunction.apply(getattr(self, MASK_FLIPPING_ATTR))
-            masked_weight = masked_weight * mask_changes
+            mask_changes = mask_changes.view(-1, 1, 1, 1)
+            masked_weights = masked_weights * mask_changes
 
-        return F.conv2d(input, masked_weight, bias, self.stride, self.padding)
+        return F.conv2d(input, masked_weights, bias, self.stride, self.padding)
 
 
 
