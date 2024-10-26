@@ -141,9 +141,13 @@ class Net(nn.Module):
         masked = torch.tensor(0, device=get_device(), dtype=torch.float)
         for layer in [self.fc1, self.fc2, self.fc3]:
             total += layer.weight.numel()
-            mask = BinaryMaskFunction.apply(layer.mask_param)
-            
-            masked += mask.sum()
+
+            # Apply sigmoid to constrain values between 0 and 1
+            mask = torch.sigmoid(layer.mask_param)
+            # Apply threshold at 0.5 to get binary mask
+            mask_thresholded = (mask >= 0.5).float()
+
+            masked += mask_thresholded.sum()
 
         return masked / total
     def save_weights(self):
