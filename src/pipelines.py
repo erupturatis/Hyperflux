@@ -3,13 +3,13 @@ from src.test1.validate_nn import validate
 from src.test2.training import run_conv2
 
 #For FC 
-def pipeline_test1():
+def pipeline_mnist():
     run()
     
-def pipeline_validate():
+def pipeline_test():
     validate()
     
 #For Conv2 
-def pipeline_test2():
+def pipeline_cifar10():
     run_conv2()
     
