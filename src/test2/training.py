@@ -44,6 +44,7 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
             percent = model.get_masked_percentage()
             print(f'Masked weights percentage: {percent*100:.2f}%,Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
+            percent_negative = model.get_negative_percentage()
 
     avg_loss_masks /= len(train_loader.dataset)
     avg_loss_images /= len(train_loader.dataset)

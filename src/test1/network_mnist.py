@@ -6,7 +6,7 @@ import numpy as np
 
 from src.common import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction
 from src.utils import get_device
-from src.variables import MASK_PRUNING_ATTR
+from src.variables import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
 
 
 class ModelMnistFNN(nn.Module):
@@ -55,6 +55,17 @@ class ModelMnistFNN(nn.Module):
 
         return masked.item() / total
 
+    def get_flipped_percentage(self) -> float:
+        total = 0
+        flipped = torch.tensor(0, device=get_device(), dtype=torch.float)
+        for layer in [self.fc1, self.fc2, self.fc3]:
+            total += layer.weights.numel()
+            mask = torch.sigmoid(getattr(layer, MASK_FLIPPING_ATTR))
+            # Apply threshold at 0.5 to get binary mask
+            mask_thresholded = (mask >= 0.5).float()
+            flipped += mask_thresholded.sum()
+
+        return (total-flipped.item()) / total
 
     # other methods
     def get_layerwise_weights(self):

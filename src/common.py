@@ -81,8 +81,8 @@ class LayerLinear(nn.Module):
 
     def init_parameters(self):
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        nn.init.uniform_(getattr(self, MASK_PRUNING_ATTR), a=0.2, b=0.2)
-        nn.init.uniform_(getattr(self, MASK_FLIPPING_ATTR), a=0.2, b=0.2)
+        nn.init.uniform_(getattr(self, MASK_PRUNING_ATTR), a=1, b=1)
+        nn.init.uniform_(getattr(self, MASK_FLIPPING_ATTR), a=1, b=1)
 
         weights = getattr(self, WEIGHTS_ATTR)
         fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
