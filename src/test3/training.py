@@ -1,16 +1,18 @@
+import math
+
 import torch
+
+from src.variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
-from .network_mnist import ModelMnistFNN
+from src.test3.network_conv4 import ModelCifar10Conv4
 import numpy as np
-
-from ..variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
-
+from torch.optim.lr_scheduler import StepLR
 
 
-def train(model: ModelMnistFNN, train_loader, optimizer, epoch):
+def train(model:ModelCifar10Conv4, train_loader, optimizer, epoch):
 
     model.train()
     criterion = nn.CrossEntropyLoss()
@@ -27,27 +29,22 @@ def train(model: ModelMnistFNN, train_loader, optimizer, epoch):
         output = model(data)
 
         loss = criterion(output, target)
-        loss_masks = model.get_masked_loss()
-     
-
-        loss = loss 
-        loss_masks = loss_masks 
-
-        accumulated_loss +=  loss
-        accumulated_loss += loss_masks
+        loss_masks = model.get_masked_loss() 
 
         avg_loss_masks += loss_masks.item()
         avg_loss_images += loss.item()
+
+        accumulated_loss += loss
+        accumulated_loss += loss_masks
 
         accumulated_loss.backward()
         optimizer.step()
 
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
-            pruned_percent = model.get_masked_percentage()
-            print(f'Masked weights percentage: {pruned_percent*100:.2f}%,Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
-            flip_percentage = model.get_flipped_percentage()
-            print(f'Flipped weights percentage: {flip_percentage*100:.2f}%')
+            percent = model.get_masked_percentage()
+            print(f'Masked weights percentage: {percent*100:.2f}%,Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
+           
 
     avg_loss_masks /= len(train_loader.dataset)
     avg_loss_images /= len(train_loader.dataset)
@@ -71,41 +68,35 @@ def test(model, test_loader):
           f'Accuracy: {correct}/{len(test_loader.dataset)}'
           f' ({100. * correct / len(test_loader.dataset):.0f}%)\n')
 
-
-def run_mnist():
-    # Define transformations for the training and testing data
+def run_conv4():
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))  # Normalize with mean and std for RGB channels
     ])
 
     batch_size = 128
-    lr_weight_bias = 0.005
+    lr_weight_bias = 0.0012
     lr_custom_params = 0.01
     num_epochs = 100
 
-    # Download and load the training data
-    train_dataset = datasets.MNIST(root='./data', train=True,
-                                   download=True, transform=transform)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    # Load CIFAR-10 dataset
+    trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
 
-    # Download and load the test data
-    test_dataset = datasets.MNIST(root='./data', train=False,
-                                  download=True, transform=transform)
+    testset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
 
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     configs_network_masks = {
         'mask_pruning_enabled': True,
         'weights_training_enabled': True,
         'mask_flipping_enabled': True,
     }
-    # Instantiate the network, optimizer, etc.
+
+    model = ModelCifar10Conv4(configs_network_masks).to(get_device())
 
     weight_bias_params = []
     custom_params = []
-
-    model = ModelMnistFNN(configs_network_masks).to(get_device())
 
     for name, param in model.named_parameters():
         if WEIGHTS_ATTR in name or BIAS_ATTR in name:
@@ -114,21 +105,17 @@ def run_mnist():
             custom_params.append(param)
 
     optimizer = torch.optim.AdamW([
-        {'params': weight_bias_params, 'lr': lr_weight_bias},
-        {'params': custom_params, 'lr': lr_custom_params},
-      
+                        {'params': weight_bias_params, 'lr': lr_weight_bias},
+                        {'params': custom_params, 'lr': lr_custom_params},
     ])
 
-    lambda_lr_weight_bias = lambda epoch: 0.8 ** (epoch // 3)
-    lambda_lr_prune_params = lambda epoch: 1.1 ** (epoch // 3)
-
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_prune_params])
+    lambda_lr_weight_bias = lambda epoch: 0.1 ** (epoch // 2)
+    lambda_lr_custom_params = lambda epoch: 1.3 ** (epoch // 2)
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_custom_params])
 
     for epoch in range(1, num_epochs + 1):
-        # Toggle mask as needed
         train(model, train_loader, optimizer, epoch)
         test(model, test_loader)
         scheduler.step()
 
     print("Training complete")
-  
