@@ -79,6 +79,11 @@ class LayerLinear(nn.Module):
 
         self.init_parameters()
 
+    def enable_weights_training(self):
+        self.weights_training_enabled = True
+        getattr(self, WEIGHTS_ATTR).requires_grad = True
+        getattr(self, BIAS_ATTR).requires_grad = True
+
     def init_parameters(self):
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
         nn.init.uniform_(getattr(self, MASK_PRUNING_ATTR), a=1, b=1)

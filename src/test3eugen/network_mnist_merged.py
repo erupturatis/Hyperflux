@@ -112,6 +112,12 @@ class LayerLinearMerged(nn.Module):
     def disable_mask_grad(self):
         getattr(self, MASK_MERGED_ATTR).requires_grad = False
 
+    def enable_weights_training(self):
+        self.weights_training_enabled = True
+        getattr(self, WEIGHTS_ATTR).requires_grad = True
+        getattr(self, BIAS_ATTR).requires_grad = True
+
+
     def init_parameters(self):
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
         # starts from flat derivative
@@ -154,6 +160,10 @@ class ModelMnistFNNMergedMask(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+    def enable_weights_training(self):
+        for layer in [self.fc1, self.fc2, self.fc3]:
+            layer.enable_weights_training()
 
     def get_add_connections_regularization_loss(self) -> torch.Tensor:
         total = 0
@@ -293,3 +303,4 @@ class ModelMnistFNNMergedMask(nn.Module):
 
             # Reshape mask parameters back to their original shape
             mask_param.data = mask_param_flat.view_as(mask_param)
+
