@@ -6,7 +6,7 @@ import numpy as np
 
 from src.common import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction, ConfigsLinear
 from src.utils import get_device
-from src.variables import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, WEIGHTS_SISTER_ATTR, WEIGHTS_ATTR, BIAS_ATTR, \
+from src.constants import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, WEIGHTS_SISTER_ATTR, WEIGHTS_ATTR, BIAS_ATTR, \
     MASK_PRUNING_SISTER_ATTR
 
 

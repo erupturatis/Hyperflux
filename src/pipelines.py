@@ -1,7 +1,7 @@
-from src.test1.training import run_mnist
-from src.test1.validate_nn import validate
-from src.test2.training import run_conv2
-from src.test3eugen.training import run_mnist_merged_masks
+from src.experiment_MNIST_FCN.training import run_mnist
+from src.experiment_MNIST_FCN.validate_nn import validate
+from src.experiment_CIFAR10_CONV2.training import run_conv2
+from src.experiment_MNIST_FCN.masks_merged import run_mnist_merged_masks
 from src.test4eugen.training import run_mnist_sister
 
 

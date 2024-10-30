@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
-from src.test2.network_conv2 import ModelCifar10Conv2
+from src.experiment_CIFAR10_CONV2.network_conv2 import ModelCifar10Conv2
 import numpy as np
 from torch.optim.lr_scheduler import StepLR
 

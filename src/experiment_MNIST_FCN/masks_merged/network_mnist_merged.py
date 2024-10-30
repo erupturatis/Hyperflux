@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 from src.common import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction, ConfigsLinear
-from src.test1.others import ConfigsNetworkMasksMerged
+from src.experiment_MNIST_FCN.others import ConfigsNetworkMasksMerged
 
 from src.utils import get_device
 from src.constants import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR

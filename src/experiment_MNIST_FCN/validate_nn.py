@@ -1,5 +1,5 @@
 import numpy as np 
-from src.vanilla_models.fc_model import NetSimple
+from src.experiment_MNIST_FCN.Lenet300_network_vanilla import NetSimple
 from src.utils import get_device
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader

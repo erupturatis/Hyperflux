@@ -6,8 +6,8 @@ from torchvision import datasets, transforms
 from src.utils import get_device
 from .network_mnist_merged import ModelMnistFNNMergedMask
 import numpy as np
-from ..test1.others import ConfigsNetworkMasksMerged
-from ..constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, MASK_MERGED_ATTR
+from src.experiment_MNIST_FCN.others import ConfigsNetworkMasksMerged
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, MASK_MERGED_ATTR
 from typing import TypedDict
 
 exp = 0
