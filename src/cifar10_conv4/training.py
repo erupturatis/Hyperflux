@@ -2,18 +2,18 @@ import math
 
 import torch
 
-from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from src.variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
-from src.experiment_CIFAR10_CONV2.network_conv2 import ModelCifar10Conv2
+from src.cifar10_conv4.model_conv4 import ModelCifar10Conv4
 import numpy as np
 from torch.optim.lr_scheduler import StepLR
 
-exp = 0
-def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
-    global exp
+
+def train(model:ModelCifar10Conv4, train_loader, optimizer, epoch):
+
     model.train()
     criterion = nn.CrossEntropyLoss()
     device = get_device()
@@ -29,7 +29,7 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
         output = model(data)
 
         loss = criterion(output, target)
-        loss_masks = model.get_masked_loss() * (1.3 ** (epoch - 3 - exp))
+        loss_masks = model.get_masked_loss() 
 
         avg_loss_masks += loss_masks.item()
         avg_loss_images += loss.item()
@@ -42,16 +42,12 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
 
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
-            percent = model.get_masked_percentage()
+            percent = model.get_pruned_percentage()
             print(f'Masked weights percentage: {percent*100:.2f}%,Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
-            percent_negative = model.get_negative_percentage()
+           
 
     avg_loss_masks /= len(train_loader.dataset)
     avg_loss_images /= len(train_loader.dataset)
-
-    if(avg_loss_masks > avg_loss_images):
-        exp += 1
-        print("EXPONENT INCREASED")
 
 
 def test(model, test_loader):
@@ -67,19 +63,12 @@ def test(model, test_loader):
             pred = output.argmax(dim=1, keepdim=True)      # Get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
     test_loss /= len(test_loader.dataset)
-    accuracy = 100. * correct / len(test_loader.dataset)
-
-    global exp
-    if accuracy < 70:
-        exp += 1
-        print("EXPONENT INCREASED")
-
 
     print(f'\nTest set: Average loss: {test_loss:.4f}, '
           f'Accuracy: {correct}/{len(test_loader.dataset)}'
           f' ({100. * correct / len(test_loader.dataset):.0f}%)\n')
 
-def run_conv2():
+def run_conv4():
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))  # Normalize with mean and std for RGB channels
@@ -104,7 +93,7 @@ def run_conv2():
         'mask_flipping_enabled': True,
     }
 
-    model = ModelCifar10Conv2(configs_network_masks).to(get_device())
+    model = ModelCifar10Conv4(configs_network_masks).to(get_device())
 
     weight_bias_params = []
     custom_params = []
@@ -121,7 +110,7 @@ def run_conv2():
     ])
 
     lambda_lr_weight_bias = lambda epoch: 0.1 ** (epoch // 2)
-    lambda_lr_custom_params = lambda epoch: 1.1 ** (epoch // 2)
+    lambda_lr_custom_params = lambda epoch: 1.3 ** (epoch // 2)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_custom_params])
 
     for epoch in range(1, num_epochs + 1):

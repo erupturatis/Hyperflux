@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
-from src.test3resenet.resnet18_masked import ResNet, BasicBlock
+from src.cifar10_resnet.model_resnet18 import ModelResnet, BasicBlock
 from torchvision.transforms import RandomCrop, RandomHorizontalFlip, ColorJitter, RandomRotation, RandomErasing
 from torch.optim.lr_scheduler import LambdaLR  
 
@@ -87,7 +87,7 @@ def run_resnet():
     test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
     
     # Initialize custom ResNet model for CIFAR-10 with 10 classes
-    model = ResNet(BasicBlock, layers=[2, 2, 2, 2], num_classes=10, mask_enabled=True, freeze_weights=False, signs_enabled=True).to(get_device())
+    model = ModelResnet(BasicBlock, layers=[2, 2, 2, 2], num_classes=10, mask_enabled=True, freeze_weights=False, signs_enabled=True).to(get_device())
 
     weight_bias_params = []
     custom_params = []

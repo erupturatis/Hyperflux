@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
-from .network_mnist_sister import ModelMnistFNNSister
+from .model_fcn import ModelMnistFNN
 import numpy as np
 
 from ..constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
@@ -23,7 +23,7 @@ def balancer_parameters(network_loss: float, regularization_loss: float, scale:f
     b = (a * ratio * network_loss) / regularization_loss
     return a, b
 
-def train(model: ModelMnistFNNSister, train_loader, optimizer, epoch):
+def train(model: ModelMnistFNN, train_loader, optimizer, epoch):
     global exp
     model.train()
     criterion = nn.CrossEntropyLoss()
@@ -43,12 +43,11 @@ def train(model: ModelMnistFNNSister, train_loader, optimizer, epoch):
         # loss_masks = model.get_masked_loss() * (epoch **1.4) * 20
 
         loss = criterion(output, target)
-        loss_masks = model.get_masked_loss()
-        loss_masks *= 5
-        # a,b = balancer_parameters(loss.item(), loss_masks.item(), scale=0.5, ratio=epoch//2)
-        #
-        # loss = loss * a
-        # loss_masks = loss_masks * b
+        loss_masks = model.get_pruning_loss()
+        a,b = balancer_parameters(loss.item(), loss_masks.item(), scale=0.5, ratio=epoch//2)
+
+        loss = loss * a
+        loss_masks = loss_masks * b
 
         accumulated_loss += loss
         accumulated_loss += loss_masks
@@ -61,8 +60,10 @@ def train(model: ModelMnistFNNSister, train_loader, optimizer, epoch):
 
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
-            pruned_percent = model.get_masked_percentage()
+            pruned_percent = model.get_pruned_percentage()
             print(f'Masked weights percentage: {pruned_percent*100:.2f}%,Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
+            flip_percentage = model.get_flipped_percentage()
+            print(f'Flipped weights percentage: {flip_percentage*100:.2f}%')
 
     avg_loss_masks /= len(train_loader.dataset)
     avg_loss_images /= len(train_loader.dataset)
@@ -97,7 +98,7 @@ def test(model, test_loader):
           f' ({100. * correct / len(test_loader.dataset):.0f}%)\n')
 
 
-def run_mnist_sister():
+def run_mnist():
     # Define transformations for the training and testing data
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -121,32 +122,37 @@ def run_mnist_sister():
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     configs_network_masks = {
-        'mask_pruning_enabled': True,
+        'mask_pruning_enabled': False,
         'weights_training_enabled': False,
-        'mask_flipping_enabled': False,
+        'mask_flipping_enabled': True,
     }
     # Instantiate the network, optimizer, etc.
 
     weight_bias_params = []
     prune_params = []
+    flip_params = []
 
-    model = ModelMnistFNNSister(configs_network_masks).to(get_device())
+    model = ModelMnistFNN(configs_network_masks).to(get_device())
 
     for name, param in model.named_parameters():
         if WEIGHTS_ATTR in name or BIAS_ATTR in name:
             weight_bias_params.append(param)
         if MASK_PRUNING_ATTR in name:
             prune_params.append(param)
+        if MASK_FLIPPING_ATTR in name:
+            flip_params.append(param)
 
     optimizer = torch.optim.AdamW([
         {'params': weight_bias_params, 'lr': lr_weight_bias},
         {'params': prune_params, 'lr': lr_custom_params},
+        {'params': flip_params, 'lr': lr_custom_params * 5}
     ])
 
     lambda_lr_weight_bias = lambda epoch: 0.8 ** (epoch // 2)
     lambda_lr_prune_params = lambda epoch: 1.1 ** (epoch // 2)
+    lambda_lr_flip_params = lambda epoch: 1 ** (epoch // 2)
 
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_prune_params])
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_prune_params, lambda_lr_flip_params])
 
     for epoch in range(1, num_epochs + 1):
         # Toggle mask as needed

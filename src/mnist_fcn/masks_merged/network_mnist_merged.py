@@ -2,13 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-import numpy as np
 
-from src.common import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction, ConfigsLinear
-from src.experiment_MNIST_FCN.others import ConfigsNetworkMasksMerged
+from src.layers import ConfigsLayerLinear
+from src.mnist_fcn.masks_merged.others import ConfigsNetworkMasksMerged
 
 from src.utils import get_device
-from src.constants import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR
 
 INTERVAL_SIZE = 1
 
@@ -85,7 +84,7 @@ class MaskMergedFunction(torch.autograd.Function):
 
 
 class LayerLinearMerged(nn.Module):
-    def __init__(self, configs_linear: ConfigsLinear, configs_network: ConfigsNetworkMasksMerged):
+    def __init__(self, configs_linear: ConfigsLayerLinear, configs_network: ConfigsNetworkMasksMerged):
         super(LayerLinearMerged, self).__init__()
 
         self.in_features = configs_linear['in_features']

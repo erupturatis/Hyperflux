@@ -5,36 +5,6 @@ import math
 from src.utils import get_device
 import torchvision.models as models
 
-class SignMaskFunction(torch.autograd.Function):
-
-    @staticmethod
-    def forward(ctx, mask_param):
-        mask = torch.sigmoid(mask_param)
-        mask_classified = torch.where(mask < 0.5, -1,1)
-        ctx.save_for_backward(mask)
-        return mask_classified.float()
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        mask, = ctx.saved_tensors
-        grad_mask_param = grad_output * mask * (1 - mask)
-        return grad_mask_param
-    
-class BinaryMaskFunction(torch.autograd.Function):
-
-    @staticmethod
-    def forward(ctx, mask_param):
-        mask = torch.sigmoid(mask_param)
-        mask_thresholded = (mask >= 0.5).float()
-        ctx.save_for_backward(mask)
-        return mask_thresholded
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        mask, = ctx.saved_tensors
-        grad_mask_param = grad_output * mask * (1 - mask)
-        return grad_mask_param
-    
 class MaskedLinear(nn.Module):
     def __init__(self, in_features, out_features, bias=True, mask_enabled=True, freeze_weights=False, signs_enabled=True):
         super(MaskedLinear, self).__init__()
@@ -42,7 +12,8 @@ class MaskedLinear(nn.Module):
         self.out_features = out_features
         self.mask_enabled = mask_enabled
         self.signs_enabled = signs_enabled
-
+        self.freeze_weights = freeze_weights
+        print(f'Created masked with: signs {self.signs_enabled}, mask {self.mask_enabled}, weights {self.freeze_weights}')
         self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
 
         if bias:
@@ -82,7 +53,6 @@ class MaskedLinear(nn.Module):
         if self.mask_enabled:
             # Constrain mask values between 0 and 1 using sigmoid
             mask_thresholded = BinaryMaskFunction.apply(self.mask_param)
-
             # Apply mask to weights
             masked_weight = self.weight * mask_thresholded
         else:
@@ -100,6 +70,7 @@ class MaskedLinear(nn.Module):
 class MaskedConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding =0, stride = 1, bias=True, mask_enabled=True, freeze_weights=False, signs_enabled=True):
         super(MaskedConv2d, self).__init__()
+        
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -108,6 +79,8 @@ class MaskedConv2d(nn.Module):
 
         self.mask_enabled = mask_enabled
         self.signs_enabled = signs_enabled
+        self.freeze_weights = freeze_weights
+        print(f'Created masked with: signs {self.signs_enabled}, mask {self.mask_enabled}, weights {self.freeze_weights}')
         
         self.weight =  nn.Parameter(torch.Tensor(out_channels, in_channels, kernel_size, kernel_size)) 
         self.mask_param = nn.Parameter(torch.Tensor(out_channels, in_channels, kernel_size, kernel_size)) 
@@ -122,6 +95,7 @@ class MaskedConv2d(nn.Module):
             self.bias.requires_grad = False
 
         if mask_enabled == False:
+            
             self.mask_param.requires_grad = False
         else:
             self.mask_param.requires_grad = True
@@ -164,11 +138,10 @@ class BasicBlock(nn.Module):
         self.mask_enabled = mask_enabled
         self.signs_enabled = signs_enabled
         self.freeze_weights = freeze_weights
-
-        self.conv1 = MaskedConv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False,mask_enabled=mask_enabled, freeze_weights=freeze_weights, signs_enabled=signs_enabled)
+        self.conv1 = MaskedConv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False,mask_enabled=self.mask_enabled, freeze_weights=self.freeze_weights, signs_enabled=self.signs_enabled)
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = MaskedConv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False, mask_enabled=mask_enabled, freeze_weights=freeze_weights, signs_enabled=signs_enabled)
+        self.conv2 = MaskedConv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False, mask_enabled=self.mask_enabled, freeze_weights=self.freeze_weights, signs_enabled=self.signs_enabled)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.downsample = downsample  
 
@@ -234,6 +207,7 @@ class ResNet(nn.Module):
         self.signs_enabled = signs_enabled
         self.freeze_weights = freeze_weights
         self.in_channels = 64
+        
 
         self.conv1 = MaskedConv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False, mask_enabled=self.mask_enabled, freeze_weights=self.freeze_weights, signs_enabled=self.signs_enabled)
         self.bn1 = nn.BatchNorm2d(64)
@@ -249,20 +223,20 @@ class ResNet(nn.Module):
       
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = MaskedLinear(512 * block.expansion, num_classes, mask_enabled=self.mask_enabled, freeze_weights=self.freeze_weights, signs_enabled=self.signs_enabled)
-        self.load_pretrained_weights()
+        #self.load_pretrained_weights()
     def _make_layer(self, block, out_channels, blocks, stride=1, mask_enabled=True, freeze_weights=False, signs_enabled=True):
         downsample = None
         if stride != 1 or self.in_channels != out_channels * block.expansion:
             downsample = nn.Sequential(
-                MaskedConv2d(self.in_channels, out_channels * block.expansion, kernel_size=1, stride=stride, bias=False, mask_enabled=mask_enabled, freeze_weights=freeze_weights, signs_enabled=signs_enabled),
+                MaskedConv2d(self.in_channels, out_channels * block.expansion, kernel_size=1, stride=stride, bias=False, mask_enabled=self.mask_enabled, freeze_weights=self.freeze_weights, signs_enabled=self.signs_enabled),
                 nn.BatchNorm2d(out_channels * block.expansion),
             )
 
         layers = []
-        layers.append(block(self.in_channels, out_channels, stride, downsample))
+        layers.append(block(self.in_channels, out_channels, stride, downsample, mask_enabled = self.mask_enabled, signs_enabled = self.signs_enabled, freeze_weights = self.freeze_weights))
         self.in_channels = out_channels * block.expansion
         for _ in range(1, blocks):
-            layers.append(block(self.in_channels, out_channels))
+            layers.append(block(self.in_channels, out_channels, mask_enabled = self.mask_enabled, signs_enabled = self.signs_enabled, freeze_weights = self.freeze_weights))
 
         return nn.Sequential(*layers)
 

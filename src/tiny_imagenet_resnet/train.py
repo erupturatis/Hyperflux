@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.fx.experimental.migrate_gradual_types.constraint import GetItem
 from torch.optim import lr_scheduler
 from torchvision import models, datasets, transforms
 from torch.utils.data import DataLoader
@@ -8,8 +9,8 @@ import cv2
 import os
 from PIL import Image
 import numpy as np
-from src.utils import get_device
-from src.test4resnet.resnet18_masked import ResNet, BasicBlock
+from src.utils import get_device, get_root_folder
+from src.tiny_imagenet_resnet.resnet18_masked import ResNet, BasicBlock
 from torch.optim.lr_scheduler import LambdaLR  
 
 def resize_image(image_path, output_size=224):
@@ -76,7 +77,7 @@ def train(model, train_loader, optimizer_sgd, optimizer_adam, epoch):
 def run_resnet_tiny():
     num_epochs = 40
     batch_size = 128
-    data_dir =r'C:\Users\Statia 1\Desktop\AlexoaieAntonio\data\tiny-imagenet-200'  
+    data_dir =r'C:\Users\Statia 1\Desktop\AlexoaieAntonio\data\tiny-imagenet-200'
 
     data_transforms = {
     'train': transforms.Compose([

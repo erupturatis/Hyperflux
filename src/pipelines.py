@@ -1,9 +1,4 @@
-from src.experiment_MNIST_FCN.training import run_mnist
-from src.experiment_MNIST_FCN.validate_nn import validate
-from src.experiment_CIFAR10_CONV2.training import run_conv2
-from src.experiment_MNIST_FCN.masks_merged import run_mnist_merged_masks
-from src.test4eugen.training import run_mnist_sister
-
+from src.mnist_fcn.training import run_mnist
 
 def pipeline_mnist_sister():
     run_mnist_sister()

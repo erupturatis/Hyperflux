@@ -1,4 +1,4 @@
-from src.utils import get_device, get_project_root
+from src.utils import get_device, get_root_folder
 import torch
 from src.pipelines import pipeline_mnist, pipeline_test, pipeline_cifar10, pipeline_mnist_merged, pipeline_mnist_sister
 

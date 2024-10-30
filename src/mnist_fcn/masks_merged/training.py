@@ -1,14 +1,11 @@
 import torch
 import torch.nn as nn
-from sympy.physics.units import percent
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.utils import get_device
 from .network_mnist_merged import ModelMnistFNNMergedMask
-import numpy as np
-from src.experiment_MNIST_FCN.others import ConfigsNetworkMasksMerged
-from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, MASK_MERGED_ATTR
-from typing import TypedDict
+from src.mnist_fcn.masks_merged.others import ConfigsNetworkMasksMerged
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR
 
 exp = 0
 
