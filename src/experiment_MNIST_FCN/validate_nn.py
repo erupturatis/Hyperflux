@@ -1,5 +1,5 @@
 import numpy as np 
-from src.simple_models.fc_model import NetSimple
+from src.vanilla_models.fc_model import NetSimple
 from src.utils import get_device
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader

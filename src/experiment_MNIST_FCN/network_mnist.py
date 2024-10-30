@@ -6,7 +6,7 @@ import numpy as np
 
 from src.common import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction
 from src.utils import get_device
-from src.variables import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from src.constants import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
 
 
 class ModelMnistFNN(nn.Module):

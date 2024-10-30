@@ -8,7 +8,7 @@ from src.common import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, Ma
 from src.test1.others import ConfigsNetworkMasksMerged
 
 from src.utils import get_device
-from src.variables import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR
+from src.constants import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR
 
 INTERVAL_SIZE = 1
 

@@ -7,7 +7,7 @@ from src.utils import get_device
 from .network_mnist_merged import ModelMnistFNNMergedMask
 import numpy as np
 from ..test1.others import ConfigsNetworkMasksMerged
-from ..variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, MASK_MERGED_ATTR
+from ..constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR, MASK_MERGED_ATTR
 from typing import TypedDict
 
 exp = 0

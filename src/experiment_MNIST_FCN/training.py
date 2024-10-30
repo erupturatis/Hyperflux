@@ -6,7 +6,7 @@ from src.utils import get_device
 from .network_mnist import ModelMnistFNN
 import numpy as np
 
-from ..variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from ..constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
 
 exp = 0
 

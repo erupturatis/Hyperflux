@@ -8,7 +8,7 @@ from src.utils import get_device
 import math
 import numpy as np
 
-from src.variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_FLIPPING_ATTR, MASK_PRUNING_ATTR
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_FLIPPING_ATTR, MASK_PRUNING_ATTR
 
 
 class ConfigsConv2D(TypedDict):

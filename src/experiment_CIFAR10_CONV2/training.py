@@ -2,7 +2,7 @@ import math
 
 import torch
 
-from src.variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
