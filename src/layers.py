@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-
 from src.mask_functions import MaskPruningFunction, MaskFlipFunction
 from src.utils import get_device
 import math
@@ -140,61 +139,53 @@ class LayerConv2(nn.Module):
 class ConfigsBlockResnet(TypedDict):
     in_channels: int
     out_channels: int
+    kernel_size: int
     stride: int
+    padding: int
+
     downsample: nn.Module
-    mask_enabled: bool
-    freeze_weights: bool
-    signs_enabled: bool
 
 class BlockResnet(nn.Module):
-    def __init__(self, in_channels, out_channels, stride=1, downsample=None, mask_enabled=True, freeze_weights=False, signs_enabled=True):
+    def __init__(self, configs_block: ConfigsBlockResnet, configs_network_masks: ConfigsNetworkMasks):
         super(BlockResnet, self).__init__()
-        self.mask_enabled = mask_enabled
-        self.signs_enabled = signs_enabled
-        self.freeze_weights = freeze_weights
 
-        self.conv1 = MaskedConv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False,mask_enabled=mask_enabled, freeze_weights=freeze_weights, signs_enabled=signs_enabled)
+        self.mask_pruning_enabled = configs_network_masks['mask_pruning_enabled']
+        self.mask_flipping_enabled = configs_network_masks['mask_flipping_enabled']
+        self.weights_training_enabled = configs_network_masks['weights_training_enabled']
+
+        in_channels = configs_block['in_channels']
+        out_channels = configs_block['out_channels']
+        stride = configs_block['stride']
+        padding = configs_block['padding']
+        kernel = configs_block['kernel_size']
+
+
+        self.conv1 = LayerConv2({
+            'in_channels': in_channels,
+            'out_channels': out_channels,
+            'kernel_size': kernel,
+            'padding': padding,
+            'stride': stride
+        }, configs_network_masks)
         self.bn1 = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = MaskedConv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False, mask_enabled=mask_enabled, freeze_weights=freeze_weights, signs_enabled=signs_enabled)
+        self.conv2 = LayerConv2({
+            'in_channels': out_channels,
+            'out_channels': out_channels,
+            'kernel_size': kernel,
+            'padding': padding,
+            'stride': 1
+        }, configs_network_masks)
         self.bn2 = nn.BatchNorm2d(out_channels)
-        self.downsample = downsample
 
+        downsample = configs_block['downsample']
+        self.downsample = downsample
+        self.relu = nn.ReLU()
 
     def get_masked_percentage_tensor(self) -> torch.Tensor:
-        total = 0
-        masked = torch.tensor(0, device=get_device(), dtype=torch.float)
-        for layer in [self.conv1, self.conv2]:
-            total += layer.weight.numel()
-            mask = torch.sigmoid(layer.mask_param)
-            masked += mask.sum()
-        if self.downsample is not None:
-            for sublayer in self.downsample:
-                if hasattr(sublayer, 'mask_param'):
-                    total += sublayer.weight.numel()
-                    mask = torch.sigmoid(sublayer.mask_param)
-                    masked += mask.sum()
-        return masked, total
+        pass
 
     def get_true_masked_percentage_tensor(self) -> torch.Tensor:
-        total = 0
-        masked = torch.tensor(0, device=get_device(), dtype=torch.float)
-
-        for layer in [self.conv1, self.conv2]:
-            total += layer.weight.numel()
-            mask = torch.sigmoid(layer.mask_param)
-            mask_thresholded = (mask >= 0.5).float()
-            masked += mask_thresholded.sum()
-
-        if self.downsample is not None:
-            for sublayer in self.downsample:
-                if hasattr(sublayer, 'mask_param'):
-                    total += sublayer.weight.numel()
-                    mask = torch.sigmoid(sublayer.mask_param)
-                    mask_thresholded = (mask >= 0.5).float()
-                    masked += mask_thresholded.sum()
-
-        return masked, total
+        pass
 
     def forward(self, x):
         identity = x
