@@ -131,7 +131,6 @@ class MaskedConv2d(nn.Module):
         return F.conv2d(input, masked_weight, self.bias, self.stride, self.padding)
 
 class BasicBlock(nn.Module):
-    expansion = 1
 
     def __init__(self, in_channels, out_channels, stride=1, downsample=None, mask_enabled=True, freeze_weights=False, signs_enabled=True):
         super(BasicBlock, self).__init__()

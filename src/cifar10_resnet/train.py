@@ -2,12 +2,14 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from src.layers import ConfigsNetworkMasks
 from src.utils import get_device
-from src.cifar10_resnet.model_resnet18 import ModelResnet, BasicBlock
+from src.cifar10_resnet.model_resnet18 import ModelResnet
 from torchvision.transforms import RandomCrop, RandomHorizontalFlip, ColorJitter, RandomRotation, RandomErasing
 from torch.optim.lr_scheduler import LambdaLR  
 
-def train(model, train_loader, optimizer_sgd, optimizer_adam, epoch):
+def train(model: ModelResnet, train_loader, optimizer_sgd, optimizer_adam, epoch):
     model.train()
     criterion = nn.CrossEntropyLoss()
     device = get_device()
@@ -21,7 +23,8 @@ def train(model, train_loader, optimizer_sgd, optimizer_adam, epoch):
         output = model(data)
 
         loss = criterion(output, target)
-        loss_masks = model.get_masked_percentage_tensor()  
+        total, sigmoids = model.get_remaining_parameters_loss()
+        loss_masks = sigmoids / total
 
         accumulated_loss += loss
         accumulated_loss += loss_masks 
@@ -54,11 +57,11 @@ def test(model, test_loader, save=False):
           f'Accuracy: {correct}/{len(test_loader.dataset)}'
           f' ({100. * correct / len(test_loader.dataset):.0f}%)\n')
 
-def run_resnet():
+def run_cifar10_resnet():
     img_size=224
     crop_size = 224
     mean, std = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
-    batch_size = 128
+    batch_size = 32
     lr_weight_bias = 0.001
     lr_custom_params = 0.003
     num_epochs = 40
@@ -87,16 +90,17 @@ def run_resnet():
     test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
     
     # Initialize custom ResNet model for CIFAR-10 with 10 classes
-    model = ModelResnet(BasicBlock, layers=[2, 2, 2, 2], num_classes=10, mask_enabled=True, freeze_weights=False, signs_enabled=True).to(get_device())
+    model = ModelResnet(ConfigsNetworkMasks(mask_pruning_enabled=False, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
+
 
     weight_bias_params = []
     custom_params = []
 
     for name, param in model.named_parameters():
-        if 'mask_param' in name or 'signs_mask_param' in name:
-            custom_params.append(param)
-        else:
+        if WEIGHTS_ATTR in name or BIAS_ATTR in name:
             weight_bias_params.append(param)
+        if MASK_PRUNING_ATTR in name or MASK_FLIPPING_ATTR in name:
+            custom_params.append(param)
 
     # optimizer_sgd = torch.optim.SGD(weight_bias_params, lr=0.001,
     #                   momentum=0.9)
@@ -108,14 +112,12 @@ def run_resnet():
     # # # scheduler_sgd = LambdaLR(optimizer_sgd, lr_lambda=lambda_lr_weight_bias)
     # scheduler_adam = LambdaLR(optimizer_adam, lr_lambda=lambda_lr_custom_params)
 
-
     optimizer_sgd = torch.optim.AdamW(weight_bias_params, lr = lr_weight_bias)
     optimizer_adam = torch.optim.AdamW(custom_params, lr=lr_custom_params)
     lambda_lr_weight_bias = lambda epoch:   1 ** (epoch // 15)
     lambda_lr_custom_params = lambda epoch: 1.2 ** (epoch // 10)
     scheduler_sgd = LambdaLR(optimizer_sgd, lr_lambda=lambda_lr_weight_bias)
     scheduler_adam = LambdaLR(optimizer_adam, lr_lambda=lambda_lr_custom_params)
-
 
     # Training loop
     for epoch in range(1, num_epochs + 1):

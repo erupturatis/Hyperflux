@@ -1,15 +1,31 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 import torch
-from src.constants import MASK_PRUNING_ATTR
+from src.constants import MASK_PRUNING_ATTR, WEIGHTS_ATTR
+
+if TYPE_CHECKING:
+    from src.layers import  LayerPrimitive
+
 from src.utils import get_device
 from torch import nn
 
-def get_pruning_loss(model: nn.Module, registered_layers: List[any]) -> torch.Tensor:
+def get_parameters_pruning_statistics(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
     total = 0
-    masked = torch.tensor(0, device=get_device(), dtype=torch.float)
-    for layer in registered_layers:
-        total += layer.weights.numel()
-        mask = torch.sigmoid(getattr(layer, MASK_PRUNING_ATTR))
-        masked += mask.sum()
+    remaining = 0
 
-    return masked / total
+    weights = getattr(layer_primitive, WEIGHTS_ATTR)
+    mask_pruning = getattr(layer_primitive, MASK_PRUNING_ATTR)
+
+    total += weights.numel()
+    remaining += (torch.sigmoid(mask_pruning) >= 0.5).float().sum()
+    return total, remaining
+
+def get_parameters_pruning_sigmoid(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
+    total = 0
+    sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)
+
+    weights = getattr(layer_primitive, WEIGHTS_ATTR)
+    mask_pruning = getattr(layer_primitive, MASK_PRUNING_ATTR)
+
+    total += weights.numel()
+    sigmoids += torch.sigmoid(mask_pruning).sum()
+    return total, sigmoids

@@ -60,7 +60,7 @@ def train(model, train_loader, optimizer_sgd, optimizer_adam, epoch):
         output = model(data)
 
         loss = criterion(output, target)
-        loss_masks = model.get_masked_percentage_tensor()  
+        loss_masks = model.get_pruned_statistics()
 
         accumulated_loss += loss
         #accumulated_loss += loss_masks 

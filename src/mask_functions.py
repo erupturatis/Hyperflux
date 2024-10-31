@@ -1,3 +1,4 @@
+import torch
 
 class MaskFlipFunction(torch.autograd.Function):
     @staticmethod

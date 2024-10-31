@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import math
 import numpy as np
 from src.layers import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction
-from src.losses import get_pruning_loss
 from src.metrics import get_pruned_percentage, get_flipped_percentage
 from src.utils import get_device
 from src.constants import MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
