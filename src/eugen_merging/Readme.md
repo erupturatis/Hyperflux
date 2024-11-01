@@ -1,1 +1,0 @@
-Combining sign and pruning into 1 merged mask
