@@ -43,12 +43,12 @@ def save_weights(self):
         'fc3.weight': masked_fc3_weight.detach().cpu()
     }
 
-    if self.fc1.bias is not None:
-        weights_to_save['fc1.bias'] = self.fc1.bias.detach().cpu()
-    if self.fc2.bias is not None:
-        weights_to_save['fc2.bias'] = self.fc2.bias.detach().cpu()
-    if self.fc3.bias is not None:
-        weights_to_save['fc3.bias'] = self.fc3.bias.detach().cpu()
+    if self.fc1.bias_enabled is not None:
+        weights_to_save['fc1.bias'] = self.fc1.bias_enabled.detach().cpu()
+    if self.fc2.bias_enabled is not None:
+        weights_to_save['fc2.bias'] = self.fc2.bias_enabled.detach().cpu()
+    if self.fc3.bias_enabled is not None:
+        weights_to_save['fc3.bias'] = self.fc3.bias_enabled.detach().cpu()
 
     torch.save(weights_to_save, r"XAI_paper\nn_weights\model_v1_with_mask.pth")
     print(f"Weights with masks applied saved!")

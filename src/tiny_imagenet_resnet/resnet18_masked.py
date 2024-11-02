@@ -234,8 +234,8 @@ class ResNet(nn.Module):
         layers = []
         layers.append(block(self.in_channels, out_channels, stride, downsample, mask_enabled = self.mask_enabled, signs_enabled = self.signs_enabled, freeze_weights = self.freeze_weights))
         self.in_channels = out_channels * block.expansion
-        for _ in range(1, blocks):
-            layers.append(block(self.in_channels, out_channels, mask_enabled = self.mask_enabled, signs_enabled = self.signs_enabled, freeze_weights = self.freeze_weights))
+        # for _ in range(1, blocks):
+        layers.append(block(self.in_channels, out_channels, mask_enabled = self.mask_enabled, signs_enabled = self.signs_enabled, freeze_weights = self.freeze_weights))
 
         return nn.Sequential(*layers)
 
