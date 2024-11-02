@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import math
 import numpy as np
 
-from src.layers import MaskPruningFunction, MaskFlipFunction
+from src.layers import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 
 def get_layerwise_weights(self):
     weights = {}
@@ -17,24 +17,24 @@ def get_layerwise_masks(self):
     masks = {}
     for i, layer in enumerate([self.fc1, self.fc2, self.fc3]):
         if layer.mask_enabled:
-            binary_mask = MaskPruningFunction.apply(layer.mask_param).detach().cpu().numpy()
+            binary_mask = MaskPruningFunctionSigmoid.apply(layer.mask_param).detach().cpu().numpy()
             print(binary_mask)
         if layer.signs_enabled:
-            masks[f'fc{i}_weights'] = MaskFlipFunction.apply(layer.signs_mask_param).detach().cpu().numpy()
+            masks[f'fc{i}_weights'] = MaskFlipFunctionSigmoid.apply(layer.signs_mask_param).detach().cpu().numpy()
     return masks
 
 def save_weights(self):
     # Apply masks to weights before saving
-    masked_fc1_weight = self.fc1.weight * MaskPruningFunction.apply(self.fc1.mask_param)
-    masked_fc2_weight = self.fc2.weight * MaskPruningFunction.apply(self.fc2.mask_param)
-    masked_fc3_weight = self.fc3.weight * MaskPruningFunction.apply(self.fc3.mask_param)
+    masked_fc1_weight = self.fc1.weight * MaskPruningFunctionSigmoid.apply(self.fc1.mask_param)
+    masked_fc2_weight = self.fc2.weight * MaskPruningFunctionSigmoid.apply(self.fc2.mask_param)
+    masked_fc3_weight = self.fc3.weight * MaskPruningFunctionSigmoid.apply(self.fc3.mask_param)
 
     if self.fc1.signs_enabled:
-        masked_fc1_weight = masked_fc1_weight * MaskFlipFunction.apply(self.fc1.signs_mask_param)
+        masked_fc1_weight = masked_fc1_weight * MaskFlipFunctionSigmoid.apply(self.fc1.signs_mask_param)
     if self.fc2.signs_enabled:
-        masked_fc2_weight = masked_fc2_weight * MaskFlipFunction.apply(self.fc2.signs_mask_param)
+        masked_fc2_weight = masked_fc2_weight * MaskFlipFunctionSigmoid.apply(self.fc2.signs_mask_param)
     if self.fc3.signs_enabled:
-        masked_fc3_weight = masked_fc3_weight * MaskFlipFunction.apply(self.fc3.signs_mask_param)
+        masked_fc3_weight = masked_fc3_weight * MaskFlipFunctionSigmoid.apply(self.fc3.signs_mask_param)
 
     # Save the masked weights
     weights_to_save = {

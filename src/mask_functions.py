@@ -1,6 +1,6 @@
 import torch
 
-class MaskFlipFunction(torch.autograd.Function):
+class MaskFlipFunctionSigmoid(torch.autograd.Function):
     @staticmethod
     def forward(ctx, mask_param):
         mask = torch.sigmoid(mask_param)
@@ -16,7 +16,7 @@ class MaskFlipFunction(torch.autograd.Function):
         return grad_mask_param
 
 
-class MaskPruningFunction(torch.autograd.Function):
+class MaskPruningFunctionSigmoid(torch.autograd.Function):
     @staticmethod
     def forward(ctx, mask_param):
         mask = torch.sigmoid(mask_param)
@@ -32,3 +32,32 @@ class MaskPruningFunction(torch.autograd.Function):
         return grad_mask_param
 
 
+class MaskFlipFunctionLeaky(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, mask_param):
+        # Apply Leaky ReLU activation to mask_param
+        mask = torch.nn.functional.leaky_relu(mask_param, negative_slope=0.01)
+        mask_classified = torch.where(mask < 0, -1, 1)
+        ctx.save_for_backward(mask_param)
+        return mask_classified.float()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        mask_param, = ctx.saved_tensors
+        grad_mask_param = grad_output * ((mask_param > 0).float() + 0.01 * (mask_param <= 0).float())
+        return grad_mask_param
+
+
+class MaskPruningFunctionLeaky(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, mask_param):
+        mask = torch.nn.functional.leaky_relu(mask_param, negative_slope=0.01)
+        mask_thresholded = (mask >= 0).float()
+        ctx.save_for_backward(mask_param)
+        return mask_thresholded
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        mask_param, = ctx.saved_tensors
+        grad_mask_param = grad_output * ((mask_param > 0).float() + 0.01 * (mask_param <= 0).float())
+        return grad_mask_param

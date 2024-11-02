@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.layers import ConfigsNetworkMasks, LayerLinear, MaskFlipFunction, MaskPruningFunction, ConfigsLayerLinear, \
+from src.layers import ConfigsNetworkMasks, LayerLinear, MaskFlipFunctionSigmoid, MaskPruningFunctionSigmoid, ConfigsLayerLinear, \
     LayerConv2, ConfigsLayerConv2
-from src.to_be_renamed import get_pruning_loss
+from src.parameters_mask_processors import get_pruning_loss
 from src.metrics import get_pruned_percentage, get_flipped_percentage
 from src.others import get_device
 import math

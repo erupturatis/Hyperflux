@@ -6,9 +6,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.to_be_renamed import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics, \
-    get_parameters_flipped_statistics, get_parameters_pruning_sigmoid_steep
-from src.mask_functions import MaskPruningFunction, MaskFlipFunction
+
+from src.config_global import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
+    get_parameters_pruning_statistics, get_parameters_flipped_statistics
+from src.parameters_mask_processors import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
+    get_parameters_flipped_statistics_sigmoid, get_parameters_pruning_sigmoid_steep
+from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 from src.others import get_device
 import math
 import numpy as np
@@ -90,13 +93,13 @@ def get_remaining_parameters_loss_steep(self: LayerComposite) -> tuple[float, to
 def get_remaining_parameters_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
     total = 0
-    sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)
+    activations = torch.tensor(0, device=get_device(), dtype=torch.float)
     for layer in layers:
-        layer_total, layer_sigmoid = get_parameters_pruning_sigmoid(layer)
+        layer_total, layer_sigmoid = get_parameters_pruning(layer)
         total += layer_total
-        sigmoids += layer_sigmoid
+        activations += layer_sigmoid
 
-    return total, sigmoids
+    return total, activations
 
 def get_layers_primitive(self: LayerComposite) -> List[LayerPrimitive]:
     layers: List[LayerPrimitive] = []
@@ -161,7 +164,7 @@ class LayerLinear(LayerPrimitive):
             masked_weight = masked_weight * mask_changes
 
         if self.mask_flipping_enabled:
-            mask_changes = MaskFlipFunction.apply(self.mask_flipping)
+            mask_changes = MaskPruningFunction.apply(self.mask_flipping)
             masked_weight = masked_weight * mask_changes
 
         return F.linear(input, masked_weight, bias)

@@ -6,7 +6,7 @@ import math
 import numpy as np
 from fontTools.config import Config
 
-from src.layers import ConfigsNetworkMasks, LayerLinear, MaskPruningFunction, MaskFlipFunction, ConfigsLayerLinear, \
+from src.layers import ConfigsNetworkMasks, LayerLinear, MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, ConfigsLayerLinear, \
     get_remaining_parameters_loss, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive
 from src.others import get_device

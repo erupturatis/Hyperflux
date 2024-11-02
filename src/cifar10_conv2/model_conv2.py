@@ -3,7 +3,7 @@ from typing import List
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.layers import ConfigsNetworkMasks, LayerLinear, MaskFlipFunction, MaskPruningFunction, ConfigsLayerLinear, \
+from src.layers import ConfigsNetworkMasks, LayerLinear,  ConfigsLayerLinear, \
     ConfigsLayerConv2, LayerConv2, LayerComposite, LayerPrimitive, get_remaining_parameters_loss, get_layers_primitive, \
     get_layer_composite_pruning_statistics, get_layer_composite_flipped_statistics, get_remaining_parameters_loss_steep
 from src.others import get_device

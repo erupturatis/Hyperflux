@@ -14,17 +14,6 @@ from torch.optim.lr_scheduler import StepLR
 from src.training_common import get_model_parameters_and_masks
 
 STOP_EPOCH = 10
-TARGET_PRUNING_PERCENTAGE = 1
-SCALER = 1
-
-
-def find_optimal_pruning_loss_adjustment(remaining_epochs, current_percentage, predicted_reduction_per_epoch):
-    target_percentage_per_epoch = (TARGET_PRUNING_PERCENTAGE / current_percentage) ** (1 / remaining_epochs)
-    global SCALER
-    print(f"Target percentage per epoch: {target_percentage_per_epoch}")
-    print(f"Predicted reduction per epoch: {predicted_reduction_per_epoch}")
-    SCALER *= (predicted_reduction_per_epoch / target_percentage_per_epoch)
-    print(f"Scaler: {SCALER}")
 
 def get_model_remaining_parameters_percentage(model:ModelCifar10Conv2):
     total, remaining = model.get_parameters_pruning_statistics()
@@ -39,7 +28,6 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
     average_loss_dataset = 0
     batch_print_rate = 100
 
-    p_start = get_model_remaining_parameters_percentage(model)
     for batch_idx, (data, target) in enumerate(train_loader):
         accumulated_loss = torch.tensor(0.0).to(device)
 
@@ -49,9 +37,10 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
 
         loss = criterion(output, target)
         loss_remaining_weights = model.get_remaining_parameters_loss()
-        loss_remaining_weights *= SCALER
 
-        # loss_remaining_weights *= (15*epoch)
+        loss_remaining_weights *= (epoch ** 2.5)
+        # loss_remaining_weights *= (epoch * 15)
+
         if(epoch > STOP_EPOCH):
             loss_remaining_weights *= 0
 
@@ -84,11 +73,6 @@ def train(model:ModelCifar10Conv2, train_loader, optimizer, epoch):
             average_loss_masks = 0
             average_loss_dataset = 0
 
-    p_end = get_model_remaining_parameters_percentage(model)
-    reduction = (1 - p_end / p_start)
-    print(f"Reduction: {reduction}")
-    find_optimal_pruning_loss_adjustment(STOP_EPOCH - epoch, p_end, reduction)
-
 def test(model, test_loader):
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction='sum')
@@ -118,8 +102,8 @@ def run_cifar10_conv2():
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(model)
 
     lr_weight_bias = 0.0008
-    lr_pruning_params = lr_weight_bias * 10
-    lr_flipping_params = lr_weight_bias * 20
+    lr_pruning_params = 0.01
+    lr_flipping_params = 0.02
 
     num_epochs = 100
     optimizer = torch.optim.AdamW([
@@ -135,7 +119,10 @@ def run_cifar10_conv2():
             return (0.25 ** ((epoch-STOP_EPOCH) // 2))
 
     def lambda_lr_pruning_params(epoch):
-        return 1
+        if epoch < STOP_EPOCH:
+            return 1
+        else:
+            return 0.5
 
     lambda_lr_weight_bias = lambda_lr_weight_bias
     lambda_lr_pruning_params = lambda_lr_pruning_params
