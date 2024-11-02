@@ -8,7 +8,7 @@ import cv2
 import os
 from PIL import Image
 import numpy as np
-from src.utils import get_device
+from src.others import get_device
 
 # Resize function for bicubic interpolation
 def resize_image(image_path, output_size=224):

@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 from src.layers import LayerConv2, ConfigsNetworkMasks, BlockResnet, LayerLinear, LayerComposite, LayerPrimitive, \
-    get_layers_primitive, get_remaining_parameters_loss, get_parameters_statistics, BlockOfBlocksResnet
+    get_layers_primitive, get_remaining_parameters_loss, get_layer_composite_pruning_statistics, BlockOfBlocksResnet
 
 
 class ModelResnet(LayerComposite):
@@ -68,8 +68,8 @@ class ModelResnet(LayerComposite):
     def get_remaining_parameters_loss(self) -> tuple[float, torch.Tensor]:
         return get_remaining_parameters_loss(self)
 
-    def get_parameters_statistics(self) -> any:
-        return get_parameters_statistics(self)
+    def get_parameters_prunning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
 
     # def load_pretrained_weights(self, weight_path=r"C:\Users\Statia 1\Desktop\AlexoaieAntonio\XAI_paper\nn_weights\resnet18-f37072fd.pth"):
     #     """PLEASE REFACTOR THIS"""

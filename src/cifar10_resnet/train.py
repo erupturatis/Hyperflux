@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.layers import ConfigsNetworkMasks
-from src.utils import get_device
+from src.others import get_device
 from src.cifar10_resnet.model_resnet18 import ModelResnet
 from torchvision.transforms import RandomCrop, RandomHorizontalFlip, ColorJitter, RandomRotation, RandomErasing
 from torch.optim.lr_scheduler import LambdaLR  
@@ -99,7 +99,7 @@ def run_cifar10_resnet():
     for name, param in model.named_parameters():
         if WEIGHTS_ATTR in name or BIAS_ATTR in name:
             weight_bias_params.append(param)
-        if MASK_PRUNING_ATTR in name or MASK_FLIPPING_ATTR in name:
+        if WEIGHTS_PRUNING_ATTR in name or WEIGHTS_FLIPPING_ATTR in name:
             custom_params.append(param)
 
     # optimizer_sgd = torch.optim.SGD(weight_bias_params, lr=0.001,

@@ -6,7 +6,7 @@ import math
 from src.layers import ConfigsLayerLinear
 from src.mnist_fcn.masks_merged.others import ConfigsNetworkMasksMerged
 
-from src.utils import get_device
+from src.others import get_device
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR
 
 INTERVAL_SIZE = 1

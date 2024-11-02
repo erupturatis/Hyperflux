@@ -6,7 +6,7 @@ from src.variables import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPP
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from src.utils import get_device
+from src.others import get_device
 from src.cifar10_conv6.model_conv6 import ModelCifar10Conv6
 import numpy as np
 from torch.optim.lr_scheduler import StepLR

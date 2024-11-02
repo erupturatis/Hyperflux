@@ -4,10 +4,10 @@ import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.layers import ConfigsNetworkMasks, LayerLinear, MaskFlipFunction, MaskPruningFunction, ConfigsLayerLinear, \
      LayerConv2, ConfigsLayerConv2
-from src.constants import MASK_FLIPPING_ATTR
-from src.losses import get_pruning_loss
+from src.constants import WEIGHTS_FLIPPING_ATTR
+from src.to_be_renamed import get_pruning_loss
 from src.metrics import get_pruned_percentage, get_flipped_percentage
-from src.utils import get_device
+from src.others import get_device
 import math
 import numpy as np
 

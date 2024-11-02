@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from src.utils import get_device
+from src.others import get_device
 from .network_mnist_merged import ModelMnistFNNMergedMask
 from src.mnist_fcn.masks_merged.others import ConfigsNetworkMasksMerged
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_MERGED_ATTR

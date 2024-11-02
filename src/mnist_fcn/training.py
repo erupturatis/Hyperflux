@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from src.utils import get_device
+from src.others import get_device
 from .model_fcn import ModelMnistFNN
 import numpy as np
 
-from ..constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from ..constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 
 exp = 0
 
@@ -39,15 +39,9 @@ def train(model: ModelMnistFNN, train_loader, optimizer, epoch):
         optimizer.zero_grad()
         output = model(data)
 
-        # loss = criterion(output, target) * 3
-        # loss_masks = model.get_masked_loss() * (epoch **1.4) * 20
-
         loss = criterion(output, target)
-        loss_masks = model.get_pruning_loss()
-        a,b = balancer_parameters(loss.item(), loss_masks.item(), scale=0.5, ratio=epoch//2)
-
-        loss = loss * a
-        loss_masks = loss_masks * b
+        loss_masks = model.get_remaining_parameters_loss()
+        loss_masks = loss_masks * 1
 
         accumulated_loss += loss
         accumulated_loss += loss_masks
@@ -60,9 +54,11 @@ def train(model: ModelMnistFNN, train_loader, optimizer, epoch):
 
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
-            pruned_percent = model.get_pruned_percentage()
+            total, remaining = model.get_parameters_pruning_statistics()
+            pruned_percent = remaining / total
             print(f'Masked weights percentage: {pruned_percent*100:.2f}%,Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
-            flip_percentage = model.get_flipped_percentage()
+            total, remaining = model.get_parameters_flipped_statistics()
+            flip_percentage = remaining / total
             print(f'Flipped weights percentage: {flip_percentage*100:.2f}%')
 
     avg_loss_masks /= len(train_loader.dataset)
@@ -122,8 +118,8 @@ def run_mnist():
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     configs_network_masks = {
-        'mask_pruning_enabled': False,
-        'weights_training_enabled': False,
+        'mask_pruning_enabled': True,
+        'weights_training_enabled': True,
         'mask_flipping_enabled': True,
     }
     # Instantiate the network, optimizer, etc.
@@ -137,9 +133,9 @@ def run_mnist():
     for name, param in model.named_parameters():
         if WEIGHTS_ATTR in name or BIAS_ATTR in name:
             weight_bias_params.append(param)
-        if MASK_PRUNING_ATTR in name:
+        if WEIGHTS_PRUNING_ATTR in name:
             prune_params.append(param)
-        if MASK_FLIPPING_ATTR in name:
+        if WEIGHTS_FLIPPING_ATTR in name:
             flip_params.append(param)
 
     optimizer = torch.optim.AdamW([

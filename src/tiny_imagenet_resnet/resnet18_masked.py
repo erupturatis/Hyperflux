@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math 
-from src.utils import get_device
+from src.others import get_device
 import torchvision.models as models
 
 class MaskedLinear(nn.Module):

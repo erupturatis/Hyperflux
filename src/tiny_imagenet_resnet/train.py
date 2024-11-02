@@ -9,7 +9,7 @@ import cv2
 import os
 from PIL import Image
 import numpy as np
-from src.utils import get_device, get_root_folder
+from src.others import get_device, get_root_folder
 from src.tiny_imagenet_resnet.resnet18_masked import ResNet, BasicBlock
 from torch.optim.lr_scheduler import LambdaLR  
 

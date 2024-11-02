@@ -1,6 +1,7 @@
 import torch
 import os
 
+
 def get_device():
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -17,3 +18,4 @@ def get_root_folder() -> str:
 def prefix_path_with_root(path):
     root_path = get_root_folder()
     return root_path + "/" + path
+

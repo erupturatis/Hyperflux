@@ -1,20 +1,18 @@
 from typing import TypedDict
 from typing import List
 from abc import ABC, abstractmethod
-
+from dataclasses import dataclass
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sympy.logic.boolalg import Boolean
 from typing_extensions import TypedDict
-
-from src.losses import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics
+from src.to_be_renamed import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics, \
+    get_parameters_flipped_statistics
 from src.mask_functions import MaskPruningFunction, MaskFlipFunction
-from src.metrics import get_pruned_percentage, get_flipped_percentage
-from src.utils import get_device
+from src.others import get_device
 import math
 import numpy as np
-from src.constants import WEIGHTS_ATTR, BIAS_ATTR, MASK_PRUNING_ATTR, MASK_FLIPPING_ATTR
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 
 class ConfigsNetworkMasks(TypedDict):
     mask_pruning_enabled: bool
@@ -22,9 +20,11 @@ class ConfigsNetworkMasks(TypedDict):
     mask_flipping_enabled: bool
 
 
-class ConfigsLayerLinear(TypedDict):
+@dataclass
+class ConfigsLayerLinear:
     in_features: int
     out_features: int
+    bias: bool = True
 
 class LayerPrimitive(nn.Module, ABC):
     # @abstractmethod
@@ -45,15 +45,27 @@ class LayerComposite(nn.Module, ABC):
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         pass
 
-    @abstractmethod
-    def get_remaining_parameters_loss(self) -> tuple[float, torch.Tensor]:
-        pass
+    # @abstractmethod
+    # def get_remaining_parameters_loss(self) -> any:
+    #     pass
+    #
+    # @abstractmethod
+    # def get_parameters_pruning_statistics(self) -> any:
+    #     pass
 
-    @abstractmethod
-    def get_parameters_statistics(self) -> any:
-        pass
+def get_layer_composite_flipped_statistics(self: LayerComposite) -> tuple[float, float]:
+    layers = get_layers_primitive(self)
+    total = 0
+    remaining = 0
+    for layer in layers:
+        layer_total, layer_remaining = get_parameters_flipped_statistics(layer)
+        total += layer_total
+        remaining += layer_remaining
 
-def get_parameters_statistics(self: LayerComposite) -> tuple[float, float]:
+    return total, remaining
+
+
+def get_layer_composite_pruning_statistics(self: LayerComposite) -> tuple[float, float]:
     layers = get_layers_primitive(self)
     total = 0
     remaining = 0
@@ -89,8 +101,9 @@ class LayerLinear(LayerPrimitive):
     def __init__(self, configs_linear: ConfigsLayerLinear, configs_network: ConfigsNetworkMasks):
         super().__init__()
 
-        self.in_features = configs_linear['in_features']
-        self.out_features = configs_linear['out_features']
+        self.in_features = configs_linear.in_features
+        self.out_features = configs_linear.out_features
+        self.bias_enabled = configs_linear.bias
 
         self.mask_pruning_enabled = configs_network['mask_pruning_enabled']
         self.weights_training_enabled = configs_network['weights_training_enabled']
@@ -98,16 +111,16 @@ class LayerLinear(LayerPrimitive):
 
 
         setattr(self, WEIGHTS_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
-        setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_features)))
+        setattr(self, WEIGHTS_PRUNING_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+        setattr(self, WEIGHTS_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+
+        if self.bias_enabled:
+            setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_features)))
+            getattr(self, BIAS_ATTR).requires_grad = self.weights_training_enabled
 
         getattr(self, WEIGHTS_ATTR).requires_grad = self.weights_training_enabled
-        getattr(self, BIAS_ATTR).requires_grad = self.weights_training_enabled
-
-        setattr(self, MASK_PRUNING_ATTR,  nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
-        setattr(self, MASK_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
-
-        getattr(self, MASK_PRUNING_ATTR).requires_grad = self.mask_pruning_enabled
-        getattr(self, MASK_FLIPPING_ATTR).requires_grad = self.mask_flipping_enabled
+        getattr(self, WEIGHTS_PRUNING_ATTR).requires_grad = self.mask_pruning_enabled
+        getattr(self, WEIGHTS_FLIPPING_ATTR).requires_grad = self.mask_flipping_enabled
 
         self.init_parameters()
 
@@ -118,8 +131,8 @@ class LayerLinear(LayerPrimitive):
 
     def init_parameters(self):
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        nn.init.uniform_(getattr(self, MASK_PRUNING_ATTR), a=1, b=1)
-        nn.init.uniform_(getattr(self, MASK_FLIPPING_ATTR), a=1, b=1)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=1, b=1)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=1, b=1)
 
         weights = getattr(self, WEIGHTS_ATTR)
         fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
@@ -128,10 +141,12 @@ class LayerLinear(LayerPrimitive):
 
     def forward(self, input):
         masked_weight = getattr(self, WEIGHTS_ATTR)
-        bias = getattr(self, BIAS_ATTR)
+        bias = torch.zeros(self.out_features, device=get_device())
+        if hasattr(self, BIAS_ATTR):
+            bias = getattr(self, BIAS_ATTR)
 
         if self.mask_pruning_enabled:
-            mask_changes = MaskPruningFunction.apply(getattr(self, MASK_PRUNING_ATTR))
+            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
             masked_weight = masked_weight * mask_changes
 
         if self.mask_flipping_enabled:
@@ -141,22 +156,25 @@ class LayerLinear(LayerPrimitive):
         return F.linear(input, masked_weight, bias)
 
 
-class ConfigsLayerConv2(TypedDict):
+@dataclass
+class ConfigsLayerConv2:
     in_channels: int
     out_channels: int
     kernel_size: int
-    padding: int
-    stride: int
+    padding: int = 0
+    stride: int = 1
+    bias: bool = True
 
 class LayerConv2(LayerPrimitive):
     def __init__(self, configs_conv2d: ConfigsLayerConv2, configs_network_masks: ConfigsNetworkMasks):
         super(LayerConv2, self).__init__()
         # getting configs
-        self.in_channels = configs_conv2d['in_channels']
-        self.out_channels = configs_conv2d['out_channels']
-        self.kernel_size = configs_conv2d['kernel_size']
-        self.padding = configs_conv2d['padding']
-        self.stride = configs_conv2d['stride']
+        self.in_channels = configs_conv2d.in_channels
+        self.out_channels = configs_conv2d.out_channels
+        self.kernel_size = configs_conv2d.kernel_size
+        self.padding = configs_conv2d.padding
+        self.stride = configs_conv2d.stride
+        self.bias_enabled = configs_conv2d.bias
 
         self.mask_pruning_enabled = configs_network_masks['mask_pruning_enabled']
         self.mask_flipping_enabled = configs_network_masks['mask_flipping_enabled']
@@ -164,22 +182,24 @@ class LayerConv2(LayerPrimitive):
 
         # defining parameters
         setattr(self, WEIGHTS_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
-        setattr(self, MASK_PRUNING_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
-        setattr(self, MASK_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
-        setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_channels)))
+        setattr(self, WEIGHTS_PRUNING_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
+        setattr(self, WEIGHTS_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)))
+        if self.bias_enabled:
+            setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_channels)))
+            getattr(self, BIAS_ATTR).requires_grad = self.weights_training_enabled
 
         # turning on and off params
         getattr(self, WEIGHTS_ATTR).requires_grad = self.weights_training_enabled
         getattr(self, BIAS_ATTR).requires_grad = self.weights_training_enabled
-        getattr(self, MASK_PRUNING_ATTR).requires_grad = self.mask_pruning_enabled
-        getattr(self, MASK_FLIPPING_ATTR).requires_grad = self.mask_flipping_enabled
+        getattr(self, WEIGHTS_PRUNING_ATTR).requires_grad = self.mask_pruning_enabled
+        getattr(self, WEIGHTS_FLIPPING_ATTR).requires_grad = self.mask_flipping_enabled
 
         self.init_parameters()
 
     def init_parameters(self):
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        nn.init.uniform_(getattr(self, MASK_PRUNING_ATTR), a=1, b=1)
-        nn.init.uniform_(getattr(self, MASK_FLIPPING_ATTR), a=0.5, b=0.5)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=1, b=1)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.5, b=0.5)
 
         weights = getattr(self, WEIGHTS_ATTR)
         fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
@@ -188,14 +208,16 @@ class LayerConv2(LayerPrimitive):
 
     def forward(self, input):
         masked_weights = getattr(self, WEIGHTS_ATTR)
-        bias = getattr(self, BIAS_ATTR)
+        bias = torch.zeros(self.out_channels, device=get_device())
+        if hasattr(self, BIAS_ATTR):
+            bias = getattr(self, BIAS_ATTR)
 
         if self.mask_pruning_enabled:
-            mask_changes = MaskPruningFunction.apply(getattr(self, MASK_PRUNING_ATTR))
+            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
             masked_weights = masked_weights * mask_changes
 
         if self.mask_flipping_enabled:
-            mask_changes = MaskFlipFunction.apply(getattr(self, MASK_FLIPPING_ATTR))
+            mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weights = masked_weights * mask_changes
 
         return F.conv2d(input, masked_weights, bias, self.stride, self.padding)
@@ -234,8 +256,8 @@ class BlockDownsample(LayerComposite):
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
-    def get_parameters_statistics(self) -> any:
-        return get_parameters_statistics(self)
+    def get_parameters_prunning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -307,8 +329,8 @@ class BlockOfBlocksResnet(LayerComposite):
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
-    def get_parameters_statistics(self) -> any:
-        return get_parameters_statistics(self)
+    def get_parameters_prunning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
 
     def forward(self, x):
         for layer in self.registered_layers:
@@ -369,8 +391,8 @@ class BlockResnet(LayerComposite):
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
-    def get_parameters_statistics(self) -> any:
-        return get_parameters_statistics(self)
+    def get_parameters_prunning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
 
     def forward(self, x):
         identity = x
