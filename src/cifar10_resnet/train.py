@@ -14,6 +14,9 @@ def train(model: ModelBaseResnet18, train_loader, optimizer_sgd, optimizer_adam,
     criterion = nn.CrossEntropyLoss()
     device = get_device()
 
+    average_loss = 0.0
+
+    EPOCH_PRINT_RATE = 100
     for batch_idx, (data, target) in enumerate(train_loader):
         accumulated_loss = torch.tensor(0.0).to(device)
 
@@ -26,17 +29,21 @@ def train(model: ModelBaseResnet18, train_loader, optimizer_sgd, optimizer_adam,
         loss_masks = model.get_remaining_parameters_loss()
 
         accumulated_loss += loss
+        average_loss += loss.item()
+
         accumulated_loss += loss_masks 
         
         accumulated_loss.backward()
         optimizer_sgd.step()
         optimizer_adam.step()
         
-        if batch_idx % 100 == 0:
+        if batch_idx % EPOCH_PRINT_RATE == 0:
+            average_loss /= EPOCH_PRINT_RATE
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')
             total, remaining = model.get_parameters_pruning_statistics()
             percent = remaining / total
-            print(f'Masked weights percentage: {percent*100:.2f}%, Loss pruned: {loss_masks.item()}, Loss data: {loss.item()}')
+            print(f'Masked weights percentage: {percent*100:.2f}%, Loss pruned: {loss_masks.item()}, Loss data: {average_loss}')
+            average_loss = 0.0
 
 def test(model, test_loader, save=False):
     model.eval()
@@ -107,17 +114,17 @@ def run_cifar10_resnet():
     optimizer_sgd = torch.optim.AdamW(weight_bias_params, lr = lr_weight_bias)
     optimizer_adam = torch.optim.AdamW(custom_params, lr=lr_custom_params)
 
-    # lambda_lr_weight_bias = lambda epoch: 1 ** (epoch // 15)
-    # lambda_lr_custom_params = lambda epoch: 1.2 ** (epoch // 10)
-    # scheduler_sgd = LambdaLR(optimizer_sgd, lr_lambda=lambda_lr_weight_bias)
-    # scheduler_adam = LambdaLR(optimizer_adam, lr_lambda=lambda_lr_custom_params)
+    lambda_lr_weight_bias = lambda epoch: 0.9 ** (epoch)
+    lambda_lr_custom_params = lambda epoch: 1 ** (epoch // 10)
+    scheduler_sgd = LambdaLR(optimizer_sgd, lr_lambda=lambda_lr_weight_bias)
+    scheduler_adam = LambdaLR(optimizer_adam, lr_lambda=lambda_lr_custom_params)
 
     # Training loop
     for epoch in range(1, num_epochs + 1):
         train(model, train_loader, optimizer_sgd, optimizer_adam, epoch)
         test(model, test_loader, save=False)
-        # scheduler_sgd.step()
-        # scheduler_adam.step()
+        scheduler_sgd.step()
+        scheduler_adam.step()
 
     print("Training complete")
 
