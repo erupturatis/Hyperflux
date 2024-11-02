@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.to_be_renamed import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics, \
-    get_parameters_flipped_statistics
+    get_parameters_flipped_statistics, get_parameters_pruning_sigmoid_steep
 from src.mask_functions import MaskPruningFunction, MaskFlipFunction
 from src.others import get_device
 import math
@@ -75,6 +75,17 @@ def get_layer_composite_pruning_statistics(self: LayerComposite) -> tuple[float,
         remaining += layer_remaining
 
     return total, remaining
+
+def get_remaining_parameters_loss_steep(self: LayerComposite) -> tuple[float, torch.Tensor]:
+    layers: List[LayerPrimitive] = get_layers_primitive(self)
+    total = 0
+    sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)
+    for layer in layers:
+        layer_total, layer_sigmoid = get_parameters_pruning_sigmoid_steep(layer)
+        total += layer_total
+        sigmoids += layer_sigmoid
+
+    return total, sigmoids
 
 def get_remaining_parameters_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
     layers: List[LayerPrimitive] = get_layers_primitive(self)

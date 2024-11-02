@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.layers import ConfigsNetworkMasks, LayerLinear, MaskFlipFunction, MaskPruningFunction, ConfigsLayerLinear, \
     ConfigsLayerConv2, LayerConv2, LayerComposite, LayerPrimitive, get_remaining_parameters_loss, get_layers_primitive, \
-    get_layer_composite_pruning_statistics, get_layer_composite_flipped_statistics
+    get_layer_composite_pruning_statistics, get_layer_composite_flipped_statistics, get_remaining_parameters_loss_steep
 from src.others import get_device
 import math
 import numpy as np
@@ -32,6 +32,13 @@ class ModelCifar10Conv2(LayerComposite):
         self.fc3 = LayerLinear(config_linear_3, configs_network_masks)
 
         self.registered_layers = [self.fc1, self.fc2, self.fc3, self.conv2D_1, self.conv2D_2]
+
+    def get_remaining_parameters_loss_steep(self) -> torch.Tensor:
+        """
+        Returns the loss with a steep sigmoid function, 50*x
+        """
+        total, sigmoid =  get_remaining_parameters_loss_steep(self)
+        return sigmoid / total
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid =  get_remaining_parameters_loss(self)
