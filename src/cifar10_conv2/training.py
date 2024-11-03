@@ -15,7 +15,7 @@ from src.training_common import get_model_parameters_and_masks
 import wandb
 
 STOP_EPOCH = 10
-EXPONENT_CONSTANT = 3
+EXPONENT_CONSTANT = 3.5
 
 def get_model_remaining_parameters_percentage(model:ModelCifar10Conv2):
     total, remaining = model.get_parameters_pruning_statistics()
@@ -123,7 +123,7 @@ def run_cifar10_conv2():
     scheduler_decay_while_pruning = 0.9
     scheduler_decay_after_pruning = 0.9
 
-    wandb.init(project='mnist-fcn', config={
+    wandb.init(project='cifar10-conv2', config={
         'total_epochs': num_epochs,
         'stop_pruning_epoch': STOP_EPOCH,
         'lr_weight_bias': lr_weight_bias,
