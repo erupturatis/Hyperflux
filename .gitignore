@@ -1,5 +1,8 @@
 /venv
 /.idea
+/wandb
+**/wandb
+
 **/.idea
 /__pycache__
 **/__pycache__
