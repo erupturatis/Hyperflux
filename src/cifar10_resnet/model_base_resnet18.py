@@ -20,7 +20,6 @@ class ModelBaseResnet18(LayerComposite):
         super(ModelBaseResnet18, self).__init__()
         self.registered_layers = []
         self.relu = nn.ReLU(inplace=True)
-
         self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
 
         # Initial convolutional layer with bias=False
