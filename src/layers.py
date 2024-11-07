@@ -5,11 +5,9 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mpmath.math2 import sqrt2
 from typing_extensions import TypedDict
-
 from src.config_global import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
-    get_parameters_pruning_statistics, get_parameters_flipped_statistics
+    get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization
 from src.parameters_mask_processors import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
     get_parameters_flipped_statistics_sigmoid, get_parameters_pruning_sigmoid_steep
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
@@ -146,8 +144,10 @@ class LayerLinear(LayerPrimitive):
 
     def init_parameters(self):
         # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(0))
-        nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
+        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
         # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
+        init = configs_get_layers_initialization("fcn")
+        init(getattr(self, WEIGHTS_ATTR))
 
         nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
         nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)
@@ -218,8 +218,10 @@ class LayerConv2(LayerPrimitive):
 
     def init_parameters(self):
         # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(0))
-        nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
+        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
         # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
+        init = configs_get_layers_initialization("conv2d")
+        init(getattr(self, WEIGHTS_ATTR))
 
         nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
         nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)

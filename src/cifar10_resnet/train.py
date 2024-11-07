@@ -8,7 +8,8 @@ import wandb
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
 from src.layers import ConfigsNetworkMasks
-from src.others import get_device, ArgsDisplayModelStatistics, iterator_wrapper, update_args_display_model_statistics
+from src.others import get_device, ArgsDisplayModelStatistics, display_model_statistics, \
+    update_args_display_model_statistics
 from src.cifar10_resnet.model_base_resnet18 import ModelBaseResnet18, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 import kornia.augmentation as K
@@ -50,26 +51,24 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
     optimizer_pruning = args_optimizers.optimizer_pruning
     optimizer_flipping = args_optimizers.optimizer_flipping
 
-    average_loss = torch.tensor(0.0).to(device)
     EPOCH_PRINT_RATE = 100
 
     indices = torch.randperm(total_data_len, device=device)
     batch_indices = torch.split(indices, BATCH_SIZE)
 
-    average_loss_arr = [torch.tensor(0.0).to(device) for _ in range(2)]
-    average_loss_names = ["data", "remaining_weights"]
+    average_loss_names = ["Loss data", "Loss remaining weights"]
+    average_loss_data = torch.tensor(0.0).to(device)
+    average_loss_remaining_weights = torch.tensor(0.0).to(device)
 
     args_display: ArgsDisplayModelStatistics = ArgsDisplayModelStatistics(
         BATCH_PRINT_RATE=EPOCH_PRINT_RATE,
         DATA_LENGTH=total_data_len,
         batch_size=BATCH_SIZE,
-        average_loss_arr=average_loss_arr,
         average_loss_names=average_loss_names,
         model=MODEL
     )
 
-    iterator_with_display = iterator_wrapper(enumerate(batch_indices), args_display)
-    for batch_idx, batch in iterator_with_display:
+    for batch_idx, batch in enumerate(batch_indices):
         data = train_data[batch]
         target = train_labels[batch]
         data = AUGMENTATIONS(data)
@@ -79,13 +78,19 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
         optimizer_flipping.zero_grad()
 
         output = MODEL(data)
-        loss_remaining_weights = MODEL.get_remaining_parameters_loss()
+        loss_remaining_weights = MODEL.get_remaining_parameters_loss() * 0
+        loss_data = criterion(output, target)
+        average_loss_data += loss_data
+        average_loss_remaining_weights += loss_remaining_weights
 
-        loss = criterion(output, target)
+        loss = loss_remaining_weights + loss_data
         loss += loss_remaining_weights
 
-        average_loss += loss
-        update_args_display_model_statistics(args_display, batch_idx, EPOCH)
+        if (batch_idx + 1) % EPOCH_PRINT_RATE == 0 or (batch_idx + 1) == total_data_len:
+            update_args_display_model_statistics(args_display, [average_loss_data, average_loss_remaining_weights], batch_idx, EPOCH)
+            display_model_statistics(args_display)
+            average_loss_data = torch.tensor(0.0).to(device)
+            average_loss_remaining_weights = torch.tensor(0.0).to(device)
 
         loss.backward()
 

@@ -1,6 +1,9 @@
 import math
 import torch
 from matplotlib.pyplot import connect
+
+from src.config_global import configs_layers_initialization_all_kaiming_sqrt0, configs_get_layers_initialization, \
+    configs_layers_initialization_all_bad, configs_layers_initialization_all_kaiming_sqrt5
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -118,8 +121,10 @@ def test(model: ModelCifar10Conv2, test_data: torch.Tensor, test_labels: torch.T
 
 
 def run_cifar10_conv2():
+    configs_layers_initialization_all_kaiming_sqrt5()
+
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_data_tensors_on_GPU()
-    model = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=True, mask_flipping_enabled=True, weights_training_enabled=True)).to(get_device())
+    model = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=False, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(model)
 
     lr_weight_bias = 0.0008
@@ -150,8 +155,8 @@ def run_cifar10_conv2():
 
     def lambda_lr_weight_bias(epoch):
         if epoch < STOP_EPOCH:
-            # return (scheduler_decay_after_pruning ** (epoch))
-            return 0
+            return (scheduler_decay_after_pruning ** (epoch))
+            # return 0
         else:
             return (scheduler_decay_after_pruning ** (epoch-STOP_EPOCH))
             # return (scheduler_decay_after_pruning ** (epoch))
