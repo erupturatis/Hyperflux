@@ -74,13 +74,13 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
 
                     if phase == 'train':
                         loss.backward()
-                        optimizer.step()
+                        optimizer.baseline()
 
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
             if phase == 'train':
-                scheduler.step()
+                scheduler.baseline()
 
             epoch_loss = running_loss / dataset_sizes[phase] * 100
             epoch_acc = running_corrects.double() / dataset_sizes[phase] * 100

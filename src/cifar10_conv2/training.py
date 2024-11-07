@@ -1,7 +1,6 @@
 import math
 import torch
 from matplotlib.pyplot import connect
-
 from src.config_global import configs_layers_initialization_all_kaiming_sqrt0, configs_get_layers_initialization, \
     configs_layers_initialization_all_bad, configs_layers_initialization_all_kaiming_sqrt5
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
@@ -17,12 +16,19 @@ from torch.optim.lr_scheduler import StepLR
 from src.training_common import get_model_parameters_and_masks
 import wandb
 
-STOP_EPOCH = 0
-EXPONENT_CONSTANT = 2
+class PruningScheduler:
 
-def get_model_remaining_parameters_percentage(model:ModelCifar10Conv2):
-    total, remaining = model.get_parameters_pruning_statistics()
-    return remaining / total
+    def __init__(self, exponent_constant: float, pruning_target: float, steps_target: int):
+        self.baseline = 1
+        self.exponent_constant = exponent_constant
+        self.pruning_target = pruning_target
+        self.steps_target = steps_target
+
+    def record_state(self, step: int, remaining_weights: float):
+        self.baseline = remaining_weights
+
+
+
 
 def train(model: ModelCifar10Conv2, train_data: torch.Tensor, train_labels: torch.Tensor, optimizer, epoch, batch_size=128):
     model.train()
@@ -59,7 +65,7 @@ def train(model: ModelCifar10Conv2, train_data: torch.Tensor, train_labels: torc
         accumulated_loss += loss + loss_remaining_weights
 
         accumulated_loss.backward()
-        optimizer.step()
+        optimizer.baseline()
 
         if (batch_idx + 1) % BATCH_PRINT_RATE == 0 or (batch_idx + 1) == len(batch_indices):
             average_loss_masks /= BATCH_PRINT_RATE

@@ -41,7 +41,7 @@ def train(model:ModelCifar10Conv6, train_loader, optimizer, epoch, prune_enabled
             accumulated_loss += loss_masks
 
         accumulated_loss.backward()
-        optimizer.step()
+        optimizer.baseline()
 
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')

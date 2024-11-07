@@ -66,8 +66,8 @@ def train(model, train_loader, optimizer_sgd, optimizer_adam, epoch):
         #accumulated_loss += loss_masks 
         
         accumulated_loss.backward()
-        optimizer_sgd.step()
-        optimizer_adam.step()
+        optimizer_sgd.baseline()
+        optimizer_adam.baseline()
         
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx*len(data)}/{len(train_loader.dataset)}]')

@@ -94,9 +94,9 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
         loss.backward()
 
-        optimizer_weights.step()
-        optimizer_pruning.step()
-        optimizer_flipping.step()
+        optimizer_weights.baseline()
+        optimizer_pruning.baseline()
+        optimizer_flipping.baseline()
 
 
 def test(args_test: TestData):

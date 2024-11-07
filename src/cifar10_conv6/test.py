@@ -64,7 +64,7 @@ def train(model, device, train_loader, optimizer, epoch):
         output = model(data)   # Forward pass
         loss = F.cross_entropy(output, target)  # Cross-entropy loss
         loss.backward()  # Backward pass
-        optimizer.step()  # Update weights
+        optimizer.baseline()  # Update weights
         
         if batch_idx % 100 == 0:
             print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '

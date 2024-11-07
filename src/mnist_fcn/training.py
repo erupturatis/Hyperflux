@@ -49,7 +49,7 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
         average_loss_dataset += loss.item()
 
         accumulated_loss.backward()
-        optimizer.step()
+        optimizer.baseline()
 
         if (batch_idx + 1) % BATCH_PRINT_RATE == 0 or (batch_idx + 1) == len(batch_indices):
             average_loss_masks /= BATCH_PRINT_RATE
