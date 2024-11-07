@@ -9,6 +9,7 @@ def pipeline_cifar10_resnet():
     run_cifar10_resnet()
 
 def pipeline_cifar10_conv2():
+    print("got here")
     run_cifar10_conv2()
 
 

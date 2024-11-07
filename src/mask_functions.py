@@ -61,3 +61,16 @@ class MaskPruningFunctionLeaky(torch.autograd.Function):
         mask_param, = ctx.saved_tensors
         grad_mask_param = grad_output * ((mask_param > 0).float() + 0.01 * (mask_param <= 0).float())
         return grad_mask_param
+
+class MaskPruningFunctionLinear(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, mask_param):
+        mask = (mask_param > 0).float()
+        ctx.save_for_backward(mask_param)
+        return mask
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # Straight-through estimator: gradient is passed through as is
+        grad_mask_param = grad_output.clone()
+        return grad_mask_param

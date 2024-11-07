@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from mpmath.math2 import sqrt2
 from typing_extensions import TypedDict
 
 from src.config_global import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
@@ -145,8 +146,10 @@ class LayerLinear(LayerPrimitive):
 
     def init_parameters(self):
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=1, b=1)
-        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=1, b=1)
+        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
+
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)
 
         weights = getattr(self, WEIGHTS_ATTR)
         fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
@@ -164,7 +167,7 @@ class LayerLinear(LayerPrimitive):
             masked_weight = masked_weight * mask_changes
 
         if self.mask_flipping_enabled:
-            mask_changes = MaskPruningFunction.apply(self.mask_flipping)
+            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weight = masked_weight * mask_changes
 
         return F.linear(input, masked_weight, bias)

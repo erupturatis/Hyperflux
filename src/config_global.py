@@ -1,8 +1,14 @@
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, MaskPruningFunctionLeaky, \
-    MaskFlipFunctionLeaky
+    MaskFlipFunctionLeaky, MaskPruningFunctionLinear
 from src.parameters_mask_processors import get_parameters_pruning_leaky, get_parameters_pruning_statistics_leaky, \
     get_parameters_flipped_statistics_leaky, get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
     get_parameters_flipped_statistics_sigmoid
+
+# MaskPruningFunction = MaskPruningFunctionLeaky
+# MaskFlipFunction = MaskFlipFunctionLeaky
+# get_parameters_pruning = get_parameters_pruning_leaky
+# get_parameters_pruning_statistics = get_parameters_pruning_statistics_leaky
+# get_parameters_flipped_statistics = get_parameters_flipped_statistics_leaky
 
 # MaskPruningFunction = MaskPruningFunctionLeaky
 # MaskFlipFunction = MaskFlipFunctionLeaky
