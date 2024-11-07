@@ -4,13 +4,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-
+from src.others import get_device, prefix_path_with_root
 from src.blocks_resnet import BlockResnet, ConfigsBlockResnet
 from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerComposite, LayerPrimitive, \
     get_layers_primitive, get_remaining_parameters_loss, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
     ConfigsLayerLinear, get_layer_composite_flipped_statistics
 from dataclasses import dataclass
-
 
 @dataclass
 class ConfigsModelBaseResnet18:
@@ -29,16 +28,16 @@ class ModelBaseResnet18(LayerComposite):
             ConfigsLayerConv2(
                 in_channels=3,
                 out_channels=64,
-                kernel_size=7,
-                stride=2,
-                padding=3,
+                kernel_size=3,
+                stride=1,
+                padding=1,
                 bias_enabled=False
             ),
             configs_network_masks
         )
         self.registered_layers.append(self.conv1)
         self.bn1 = nn.BatchNorm2d(64)
-        self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        #self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # Layer 1 (Conv2_x): 2 Residual Blocks
         # Block 1
@@ -332,6 +331,8 @@ class ModelBaseResnet18(LayerComposite):
         )
         self.registered_layers.append(self.fc)
 
+        # self.load_pretrained_weights()
+
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid =  get_remaining_parameters_loss(self)
         return sigmoid / total
@@ -345,12 +346,99 @@ class ModelBaseResnet18(LayerComposite):
     def get_parameters_flipped_statistics(self) -> any:
         return get_layer_composite_flipped_statistics(self)
 
+    def load_pretrained_weights(self):
+        # Load the pretrained ResNet-18 weights
+        pretrained_state = torch.load(
+            prefix_path_with_root(r"data\pretrained\resnet18_cifar10_95.bin"),
+            map_location=get_device()
+        )
+
+        # Load weights for the initial convolutional layer
+        self.conv1.weights.data.copy_(pretrained_state['conv1.weight'])
+        print("Loaded weights for 'conv1'")
+
+        # Load weights for the initial batch normalization layer
+        self.bn1.weight.data.copy_(pretrained_state['bn1.weight'])
+        self.bn1.bias.data.copy_(pretrained_state['bn1.bias'])
+        self.bn1.running_mean.data.copy_(pretrained_state['bn1.running_mean'])
+        self.bn1.running_var.data.copy_(pretrained_state['bn1.running_var'])
+        print("Loaded weights for 'bn1'")
+
+        # Function to map layer indices
+        def map_layers(layer_num, block_num):
+            pretrained_prefix = f'layer{layer_num}.{block_num - 1}'
+            custom_prefix = f'layer{layer_num}_block{block_num}'
+            return pretrained_prefix, custom_prefix
+
+        # Loop over layers and blocks
+        for layer_num in range(1, 5):  # Layers 1 to 4
+            num_blocks = 2  # ResNet-18 has 2 blocks per layer
+            for block_num in range(1, num_blocks + 1):
+                pretrained_prefix, custom_prefix = map_layers(layer_num, block_num)
+
+                # Load conv1 weights
+                conv1_pretrained = f'{pretrained_prefix}.conv1.weight'
+                conv1_custom = getattr(self, f'{custom_prefix}_conv1')
+                conv1_custom.weights.data.copy_(pretrained_state[conv1_pretrained])
+
+                # Load bn1 weights
+                bn1_pretrained = f'{pretrained_prefix}.bn1'
+                bn1_custom = getattr(self, f'{custom_prefix}_bn1')
+                bn1_custom.weight.data.copy_(pretrained_state[f'{bn1_pretrained}.weight'])
+                bn1_custom.bias.data.copy_(pretrained_state[f'{bn1_pretrained}.bias'])
+                bn1_custom.running_mean.data.copy_(pretrained_state[f'{bn1_pretrained}.running_mean'])
+                bn1_custom.running_var.data.copy_(pretrained_state[f'{bn1_pretrained}.running_var'])
+
+                # Load conv2 weights
+                conv2_pretrained = f'{pretrained_prefix}.conv2.weight'
+                conv2_custom = getattr(self, f'{custom_prefix}_conv2')
+                conv2_custom.weights.data.copy_(pretrained_state[conv2_pretrained])
+
+                # Load bn2 weights
+                bn2_pretrained = f'{pretrained_prefix}.bn2'
+                bn2_custom = getattr(self, f'{custom_prefix}_bn2')
+                bn2_custom.weight.data.copy_(pretrained_state[f'{bn2_pretrained}.weight'])
+                bn2_custom.bias.data.copy_(pretrained_state[f'{bn2_pretrained}.bias'])
+                bn2_custom.running_mean.data.copy_(pretrained_state[f'{bn2_pretrained}.running_mean'])
+                bn2_custom.running_var.data.copy_(pretrained_state[f'{bn2_pretrained}.running_var'])
+
+                print(f"Loaded weights for '{custom_prefix}'")
+
+                # Load downsample layers if present
+                downsample_key = f'{pretrained_prefix}.downsample.0.weight'
+                if downsample_key in pretrained_state:
+                    # Downsample convolutional layer
+                    downsample_conv_pretrained = downsample_key
+                    downsample_conv_custom = getattr(self, f'{custom_prefix}_downsample')
+                    downsample_conv_custom.weights.data.copy_(pretrained_state[downsample_conv_pretrained])
+
+                    # Downsample batch normalization layer
+                    downsample_bn_pretrained = f'{pretrained_prefix}.downsample.1'
+                    downsample_bn_custom = getattr(self, f'{custom_prefix}_downsample_bn')
+                    downsample_bn_custom.weight.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.weight'])
+                    downsample_bn_custom.bias.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.bias'])
+                    downsample_bn_custom.running_mean.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.running_mean'])
+                    downsample_bn_custom.running_var.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.running_var'])
+
+                    print(f"Loaded downsample weights for '{custom_prefix}'")
+
+        # Load weights for the fully connected layer, if sizes match
+        fc_weight_key = 'fc.weight'
+        fc_bias_key = 'fc.bias'
+        if self.fc.weights.size() == pretrained_state[fc_weight_key].size():
+            self.fc.weights.data.copy_(pretrained_state[fc_weight_key])
+            self.fc.bias.data.copy_(pretrained_state[fc_bias_key])
+            print("Loaded weights for 'fc'")
+        else:
+            print(f"Skipping 'fc' weights due to size mismatch.")
+
+        print(f"Successfully loaded pretrained weights.")
     def forward(self, x):
         # Initial layers
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        x = self.maxpool1(x)
+        # x = self.maxpool1(x)
 
         # Layer 1
         # Block 1

@@ -10,8 +10,8 @@ from ..data_preprocessing import preprocess_mnist_data_loaders, preprocess_mnist
 from ..layers import ConfigsNetworkMasks
 from ..training_common import get_model_parameters_and_masks
 
-STOP_EPOCH = 15
-EXPONENT_CONSTANT = 2.5
+STOP_EPOCH = 10
+EXPONENT_CONSTANT = 2
 
 def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Tensor, optimizer, epoch, batch_size=128):
     model.train()

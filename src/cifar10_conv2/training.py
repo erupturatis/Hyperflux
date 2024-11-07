@@ -14,8 +14,8 @@ from torch.optim.lr_scheduler import StepLR
 from src.training_common import get_model_parameters_and_masks
 import wandb
 
-STOP_EPOCH = 10
-EXPONENT_CONSTANT = 3
+STOP_EPOCH = 0
+EXPONENT_CONSTANT = 2
 
 def get_model_remaining_parameters_percentage(model:ModelCifar10Conv2):
     total, remaining = model.get_parameters_pruning_statistics()
@@ -119,7 +119,7 @@ def test(model: ModelCifar10Conv2, test_data: torch.Tensor, test_labels: torch.T
 
 def run_cifar10_conv2():
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_data_tensors_on_GPU()
-    model = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=False, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
+    model = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=True, mask_flipping_enabled=True, weights_training_enabled=True)).to(get_device())
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(model)
 
     lr_weight_bias = 0.0008
@@ -128,7 +128,7 @@ def run_cifar10_conv2():
 
     num_epochs = 30
     scheduler_decay_while_pruning = 0.8
-    scheduler_decay_after_pruning = 1
+    scheduler_decay_after_pruning = 0.8
 
     wandb.init(project='Dump', config={
         'total_epochs': num_epochs,
@@ -150,19 +150,24 @@ def run_cifar10_conv2():
 
     def lambda_lr_weight_bias(epoch):
         if epoch < STOP_EPOCH:
-            return (scheduler_decay_while_pruning ** epoch)
+            # return (scheduler_decay_after_pruning ** (epoch))
+            return 0
         else:
             return (scheduler_decay_after_pruning ** (epoch-STOP_EPOCH))
+            # return (scheduler_decay_after_pruning ** (epoch))
+            # return 0
 
     def lambda_lr_pruning(epoch):
         if epoch < STOP_EPOCH:
+            # return 0
             return (1 ** epoch)
         else:
-            return (0.95 ** (epoch-STOP_EPOCH))
+            return 0
+            return (1 ** epoch)
 
     lambda_lr_weight_bias = lambda_lr_weight_bias
     lambda_lr_pruning_params = lambda_lr_pruning
-    lambda_lr_flipping_params = lambda_lr_pruning_params
+    lambda_lr_flipping_params = lambda_lr_pruning
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_pruning_params, lambda_lr_flipping_params])
 
     for epoch in range(1, num_epochs + 1):

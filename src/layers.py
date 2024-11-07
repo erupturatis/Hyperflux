@@ -145,8 +145,9 @@ class LayerLinear(LayerPrimitive):
         getattr(self, BIAS_ATTR).requires_grad = True
 
     def init_parameters(self):
+        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(0))
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
+        # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
 
         nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
         nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)
@@ -216,9 +217,12 @@ class LayerConv2(LayerPrimitive):
         self.init_parameters()
 
     def init_parameters(self):
+        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(0))
         nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=1, b=1)
-        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.5, b=0.5)
+        # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
+
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)
 
         if hasattr(self, BIAS_ATTR):
             weights = getattr(self, WEIGHTS_ATTR)

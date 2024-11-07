@@ -48,6 +48,58 @@ def preprocess_mnist_data_loaders() -> tuple[DataLoader, DataLoader]:
 
     return train_loader, test_loader
 
+def preprocess_cifar10_resnet_data_tensors_on_GPU() -> tuple[ torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    mean, std = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
+    trainset = datasets.CIFAR10(
+        root="./data",
+        train=True,
+        download=True,
+        transform=transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std),
+            ]
+        ),
+    )
+
+    testset = datasets.CIFAR10(
+        root="./data",
+        train=False,
+        download=True,
+        transform=transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std),
+            ]
+        ),
+    )
+
+    # Preload data to GPU
+    train_loader = DataLoader(
+        trainset,
+        batch_size=len(trainset),
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+    )
+    test_loader = DataLoader(
+        testset,
+        batch_size=len(testset),
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+    )
+
+    train_data, train_labels = next(iter(train_loader))
+    train_data = train_data.to(get_device())
+    train_labels = train_labels.to(get_device())
+
+    test_data, test_labels = next(iter(test_loader))
+    test_data = test_data.to(get_device())
+    test_labels = test_labels.to(get_device())
+
+    return train_data, train_labels, test_data, test_labels
+
 def preprocess_cifar10_data_tensors_on_GPU() -> tuple[ torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     transform = transforms.Compose([
         transforms.ToTensor(),
