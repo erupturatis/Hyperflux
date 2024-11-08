@@ -1,7 +1,7 @@
 import math
 import torch
 from matplotlib.pyplot import connect
-from src.config_global import configs_layers_initialization_all_kaiming_sqrt0, configs_get_layers_initialization, \
+from src.config_layers import configs_layers_initialization_all_kaiming_sqrt0, configs_get_layers_initialization, \
     configs_layers_initialization_all_bad, configs_layers_initialization_all_kaiming_sqrt5
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 import torch.nn as nn
