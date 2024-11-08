@@ -5,7 +5,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import wandb
-
 from src.config_global import configs_layers_initialization_all_kaiming_sqrt5
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
@@ -15,6 +14,7 @@ from src.others import get_device, ArgsDisplayModelStatistics, display_model_sta
 from src.cifar10_resnet.model_base_resnet18 import ModelBaseResnet18, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 import kornia.augmentation as K
+from src.schedulers import PruningScheduler
 from src.training_common import get_model_parameters_and_masks
 
 @dataclass
@@ -39,7 +39,7 @@ class ArgsOthers:
 
 
 def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
-    global BATCH_SIZE, AUGMENTATIONS, MODEL, EPOCH
+    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, pruning_scheduler
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss()
@@ -70,6 +70,10 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
         model=MODEL
     )
 
+    total, remaining = MODEL.get_parameters_pruning_statistics()
+    pruning_scheduler.record_state(remaining)
+    pruning_scheduler.step()
+
     for batch_idx, batch in enumerate(batch_indices):
         data = train_data[batch]
         target = train_labels[batch]
@@ -80,7 +84,7 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
         optimizer_flipping.zero_grad()
 
         output = MODEL(data)
-        loss_remaining_weights = MODEL.get_remaining_parameters_loss() * 0
+        loss_remaining_weights = MODEL.get_remaining_parameters_loss() * pruning_scheduler.get_multiplier()
         loss_data = criterion(output, target)
         average_loss_data += loss_data
         average_loss_remaining_weights += loss_remaining_weights
@@ -102,7 +106,7 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
 
 def test(args_test: TestData):
-    global BATCH_SIZE, MODEL, EPOCH
+    global BATCH_SIZE, MODEL, epoch_global
 
     MODEL.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
@@ -148,26 +152,31 @@ AUGMENTATIONS = nn.Sequential(
     K.RandomRotation(degrees=10.0),
     K.RandomHorizontalFlip(p=0.5),
 ).to(get_device())
-EPOCH: int = 0
+pruning_scheduler: PruningScheduler
+epoch_global: int = 0
 
 def run_cifar10_resnet():
     configs_layers_initialization_all_kaiming_sqrt5()
 
-    global MODEL, BATCH_SIZE, EPOCH
+    global MODEL, BATCH_SIZE, epoch_global
     lr_weight_bias = 0.1 # Adjust learning rate as needed
-    lr_custom_params = 0.01
-    num_epochs = 400
+    lr_custom_params = 0.001
+
+    stop_epoch = 200
+    num_epochs = 300
+
     momentum = 0.9
     weight_decay = 1e-4
 
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
     configs_network_masks = ConfigsNetworkMasks(
         mask_pruning_enabled=True,
-        mask_flipping_enabled=True,
+        mask_flipping_enabled=False,
         weights_training_enabled=True,
     )
     configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
     MODEL = ModelBaseResnet18(configs_model_base_resnet18, configs_network_masks).to(get_device())
+    pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.01, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
 
     # wandb.init(
     #     project="Dump",
@@ -194,13 +203,15 @@ def run_cifar10_resnet():
     scheduler_weights = CosineAnnealingLR(optimizer_weights, T_max=num_epochs)
 
     optimizer_pruning = torch.optim.AdamW(pruning_params, lr=lr_custom_params)
-    scheduler_pruning = LambdaLR(optimizer_pruning, lr_lambda=lambda epoch: 1 ** epoch)
+
+    scheduler_decay_after_pruning = 0.9
+    scheduler_pruning = LambdaLR(optimizer_pruning, lr_lambda=lambda epoch: 1 if epoch < stop_epoch else scheduler_decay_after_pruning ** (epoch - stop_epoch))
     optimizer_flipping = torch.optim.AdamW(flipping_params, lr=lr_custom_params)
-    scheduler_flipping = LambdaLR(optimizer_flipping, lr_lambda=lambda epoch: 1 ** epoch)
+    scheduler_flipping = LambdaLR(optimizer_flipping, lr_lambda=lambda epoch: 1 if epoch < stop_epoch else scheduler_decay_after_pruning ** (epoch - stop_epoch))
 
     # Training loop
     for epoch in range(1, num_epochs + 1):
-        EPOCH = epoch
+        epoch_global = epoch
         train(ArgsTrain(train_data, train_labels), ArgsOptimizers(optimizer_weights, optimizer_pruning, optimizer_flipping))
         test(TestData(test_data, test_labels))
 

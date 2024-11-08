@@ -40,6 +40,12 @@ def get_parameters_pruning_sigmoid_steep(layer_primitive: 'LayerPrimitive') -> t
     sigmoids += torch.sigmoid(50 * mask_pruning).sum()
     return total, sigmoids
 
+def get_parameters_total(layer_primitive: 'LayerPrimitive') -> int:
+    total = 0
+    weights = getattr(layer_primitive, WEIGHTS_ATTR)
+    total += weights.numel()
+    return total
+
 def get_parameters_pruning_sigmoid(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
     total = 0
     sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)

@@ -3,9 +3,10 @@ from typing import List
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.layers import ConfigsNetworkMasks, LayerLinear,  ConfigsLayerLinear, \
+from src.layers import ConfigsNetworkMasks, LayerLinear, ConfigsLayerLinear, \
     ConfigsLayerConv2, LayerConv2, LayerComposite, LayerPrimitive, get_remaining_parameters_loss, get_layers_primitive, \
-    get_layer_composite_pruning_statistics, get_layer_composite_flipped_statistics, get_remaining_parameters_loss_steep
+    get_layer_composite_pruning_statistics, get_layer_composite_flipped_statistics, get_remaining_parameters_loss_steep, \
+    get_parameters_total_count
 from src.others import get_device
 import math
 import numpy as np
@@ -43,6 +44,10 @@ class ModelCifar10Conv2(LayerComposite):
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid =  get_remaining_parameters_loss(self)
         return sigmoid / total
+
+    def get_parameters_total_count(self) -> int:
+        total = get_parameters_total_count(self)
+        return total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)

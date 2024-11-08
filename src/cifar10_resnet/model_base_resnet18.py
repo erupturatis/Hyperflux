@@ -8,7 +8,7 @@ from src.others import get_device, prefix_path_with_root
 from src.blocks_resnet import BlockResnet, ConfigsBlockResnet
 from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerComposite, LayerPrimitive, \
     get_layers_primitive, get_remaining_parameters_loss, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
-    ConfigsLayerLinear, get_layer_composite_flipped_statistics
+    ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count
 from dataclasses import dataclass
 
 @dataclass
@@ -344,6 +344,10 @@ class ModelBaseResnet18(LayerComposite):
 
     def get_parameters_flipped_statistics(self) -> any:
         return get_layer_composite_flipped_statistics(self)
+
+    def get_parameters_total_count(self) -> int:
+        total = get_parameters_total_count(self)
+        return total
 
     def load_pretrained_weights(self):
         # Load the pretrained ResNet-18 weights

@@ -9,7 +9,7 @@ from typing_extensions import TypedDict
 from src.config_global import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
     get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization
 from src.parameters_mask_processors import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
-    get_parameters_flipped_statistics_sigmoid, get_parameters_pruning_sigmoid_steep
+    get_parameters_flipped_statistics_sigmoid, get_parameters_pruning_sigmoid_steep, get_parameters_total
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 from src.others import get_device
 import math
@@ -88,6 +88,25 @@ def get_remaining_parameters_loss_steep(self: LayerComposite) -> tuple[float, to
         sigmoids += layer_sigmoid
 
     return total, sigmoids
+
+def get_remaining_parameters_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
+    layers: List[LayerPrimitive] = get_layers_primitive(self)
+    total = 0
+    activations = torch.tensor(0, device=get_device(), dtype=torch.float)
+    for layer in layers:
+        layer_total, layer_sigmoid = get_parameters_pruning(layer)
+        total += layer_total
+
+    return total, activations
+
+def get_parameters_total_count(self: LayerComposite) -> int:
+    layers: List[LayerPrimitive] = get_layers_primitive(self)
+    total = 0
+    for layer in layers:
+        layer_total = get_parameters_total(layer)
+        total += layer_total
+
+    return total
 
 def get_remaining_parameters_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
