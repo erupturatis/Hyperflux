@@ -5,6 +5,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import wandb
+
+from src.config_global import configs_layers_initialization_all_kaiming_sqrt5
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
 from src.layers import ConfigsNetworkMasks
@@ -94,9 +96,9 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
         loss.backward()
 
-        optimizer_weights.baseline()
-        optimizer_pruning.baseline()
-        optimizer_flipping.baseline()
+        optimizer_weights.step()
+        optimizer_pruning.step()
+        optimizer_flipping.step()
 
 
 def test(args_test: TestData):
@@ -149,17 +151,19 @@ AUGMENTATIONS = nn.Sequential(
 EPOCH: int = 0
 
 def run_cifar10_resnet():
+    configs_layers_initialization_all_kaiming_sqrt5()
+
     global MODEL, BATCH_SIZE, EPOCH
     lr_weight_bias = 0.1 # Adjust learning rate as needed
     lr_custom_params = 0.01
-    num_epochs = 200
+    num_epochs = 400
     momentum = 0.9
     weight_decay = 1e-4
 
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
     configs_network_masks = ConfigsNetworkMasks(
-        mask_pruning_enabled=False,
-        mask_flipping_enabled=False,
+        mask_pruning_enabled=True,
+        mask_flipping_enabled=True,
         weights_training_enabled=True,
     )
     configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
