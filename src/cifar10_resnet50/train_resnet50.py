@@ -87,7 +87,6 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
         output = MODEL(data)
         loss_remaining_weights = MODEL.get_remaining_parameters_loss() * pruning_scheduler.get_multiplier()
-        
 
         loss_data = criterion(output, target)
         average_loss_data += loss_data
@@ -99,7 +98,7 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
         lr_pruning = optimizer_pruning.param_groups[0]['lr']
         lr_flipping = optimizer_flipping.param_groups[0]['lr']
         
-
+    
         if (batch_idx + 1) % EPOCH_PRINT_RATE == 0 or (batch_idx + 1) == total_data_len:
             update_args_display_model_statistics(args_display, [average_loss_data, average_loss_remaining_weights], batch_idx, epoch_global, [lr_weights, lr_pruning, lr_flipping])
             display_model_statistics(args_display)
@@ -167,11 +166,11 @@ def run_cifar10_resnet50():
     configs_layers_initialization_all_kaiming_sqrt5()
 
     global MODEL, BATCH_SIZE, epoch_global, pruning_scheduler
-    lr_weight_bias = 0.00005 # Adjust learning rate as needed
+    lr_weight_bias = 0.001 # Adjust learning rate as needed
     lr_custom_params = 0.001
                                             
-    stop_epoch = 100
-    num_epochs = 200
+    stop_epoch = 200
+    num_epochs = 500
 
     momentum = 0.9
     weight_decay = 1e-4
@@ -179,16 +178,16 @@ def run_cifar10_resnet50():
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
     configs_network_masks = ConfigsNetworkMasks(
         mask_pruning_enabled=True,
-        mask_flipping_enabled = False,
+        mask_flipping_enabled = True,
         weights_training_enabled=True,
     )
     configs_model_base_resnet50 = ConfigsModelBaseResnet50(num_classes=10)
     MODEL = ModelBaseResnet50(configs_model_base_resnet50, configs_network_masks).to(get_device())
-    pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.01, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
+    pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.004, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
 
     if WANDB_REGISTER:
         wandb.init(
-            project="Dump",
+            project="resnet50_cifar10",
             config={
                 "batch_size": BATCH_SIZE,
                 "num_epochs": num_epochs,
@@ -202,21 +201,23 @@ def run_cifar10_resnet50():
     # Initialize custom ResNet model
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)
 
-    # # Define optimizers and learning rate schedulers
-    # optimizer_weights = torch.optim.SGD(
-    #     weight_bias_params,
-    #     lr=lr_weight_bias,
-    #     momentum=momentum,
-    #    # weight_decay=weight_decay,
-    # )
-    # scheduler_weights = CosineAnnealingLR(optimizer_weights, T_max=num_epochs)
+    # Define optimizers and learning rate schedulers
+    optimizer_weights = torch.optim.SGD(
+        weight_bias_params,
+        lr=lr_weight_bias,
+        momentum=momentum,
+       # weight_decay=weight_decay,
+    )
+    # scheduler_weights = LambdaLR(optimizer_weights, lr_lambda=lambda epoch: 0.8 ** (epoch // 2))
+        
+    scheduler_weights = CosineAnnealingLR(optimizer_weights, T_max=num_epochs, eta_min=1e-10)
 
-    optimizer_weights = torch.optim.AdamW(weight_bias_params, lr=lr_weight_bias, eps = 1e-8)  
-    scheduler_weights = CosineAnnealingLR(optimizer_weights, T_max=num_epochs, eta_min= 1e-9) 
+    # optimizer_weights = torch.optim.AdamW(weight_bias_params, lr=lr_weight_bias, eps = 1e-8)  
+    # scheduler_weights = CosineAnnealingLR(optimizer_weights, T_max=num_epochs, eta_min= 1e-9) 
 
     optimizer_pruning = torch.optim.AdamW(pruning_params, lr=lr_custom_params)
 
-    scheduler_decay_after_pruning = 0.99
+    scheduler_decay_after_pruning = 0.6
     scheduler_pruning = LambdaLR(optimizer_pruning, lr_lambda=lambda epoch: 1 if epoch < stop_epoch else 1 * scheduler_decay_after_pruning ** (epoch - stop_epoch))
         
     optimizer_flipping = torch.optim.AdamW(flipping_params, lr=lr_custom_params)

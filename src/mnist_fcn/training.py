@@ -55,7 +55,7 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
             average_loss_masks /= BATCH_PRINT_RATE
             average_loss_dataset /= BATCH_PRINT_RATE
 
-            print(f'Train Epoch: {epoch} [{(batch_idx+1)*batch_size}/{total_data_len}]')
+            print(f'Train Epoch: {epoch} [{(batch_idx+1) * batch_size}/{total_data_len}]')
 
             total, remaining = model.get_parameters_pruning_statistics()
             pruned_percent = remaining / total

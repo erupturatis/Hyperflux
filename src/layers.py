@@ -167,9 +167,11 @@ class LayerLinear(LayerPrimitive):
         # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
         init = configs_get_layers_initialization("fcn")
         init(getattr(self, WEIGHTS_ATTR))
+        
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.3)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.3)
 
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
-        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)
+
 
         weights = getattr(self, WEIGHTS_ATTR)
         fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
@@ -242,8 +244,10 @@ class LayerConv2(LayerPrimitive):
         init = configs_get_layers_initialization("conv2d")
         init(getattr(self, WEIGHTS_ATTR))
 
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0.1)
-        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0.1)
+
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.3)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.3)
+
 
         if hasattr(self, BIAS_ATTR):
             weights = getattr(self, WEIGHTS_ATTR)
