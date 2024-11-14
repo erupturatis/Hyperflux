@@ -7,9 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.config_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
-    get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization
-from src.parameters_mask_processors import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
-    get_parameters_flipped_statistics_sigmoid, get_parameters_pruning_sigmoid_steep, get_parameters_total
+    get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization, \
+    get_parameters_pruning_statistics_vanilla_network
+from src.parameters_mask_processors import get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \
+    get_parameters_flipped_statistics_sigmoid_, get_parameters_pruning_sigmoid_steep, get_parameters_total, \
+    get_parameters_pruning_statistics_vanilla_
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 from src.others import get_device
 import math
@@ -26,7 +28,7 @@ class ConfigsNetworkMasks(TypedDict):
 class ConfigsLayerLinear:
     in_features: int
     out_features: int
-    bias: bool = True
+    bias_enabled: bool = True
 
 class LayerPrimitive(nn.Module, ABC):
     # @abstractmethod
@@ -66,6 +68,17 @@ def get_layer_composite_flipped_statistics(self: LayerComposite) -> tuple[float,
 
     return total, remaining
 
+
+def get_layer_composite_pruning_statistics_vanilla(self: LayerComposite) -> tuple[float, float]:
+    layers = get_layers_primitive(self)
+    total = 0
+    remaining = 0
+    for layer in layers:
+        layer_total, layer_remaining = get_parameters_pruning_statistics_vanilla_network(layer)
+        total += layer_total
+        remaining += layer_remaining
+
+    return total, remaining
 
 def get_layer_composite_pruning_statistics(self: LayerComposite) -> tuple[float, float]:
     layers = get_layers_primitive(self)
@@ -135,7 +148,7 @@ class LayerLinear(LayerPrimitive):
 
         self.in_features = configs_linear.in_features
         self.out_features = configs_linear.out_features
-        self.bias_enabled = configs_linear.bias
+        self.bias_enabled = configs_linear.bias_enabled
 
         self.mask_pruning_enabled = configs_network['mask_pruning_enabled']
         self.weights_training_enabled = configs_network['weights_training_enabled']
@@ -156,10 +169,25 @@ class LayerLinear(LayerPrimitive):
 
         self.init_parameters()
 
+    def get_bias_enabled(self):
+        return self.bias_enabled
+
     def enable_weights_training(self):
         self.weights_training_enabled = True
         getattr(self, WEIGHTS_ATTR).requires_grad = True
         getattr(self, BIAS_ATTR).requires_grad = True
+
+    def get_applied_weights(self) -> any:
+        masked_weight = getattr(self, WEIGHTS_ATTR)
+        if self.mask_pruning_enabled:
+            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+            masked_weight = masked_weight * mask_changes
+
+        if self.mask_flipping_enabled:
+            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
+            masked_weight = masked_weight * mask_changes
+
+        return masked_weight
 
     def init_parameters(self):
         # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(0))
@@ -237,17 +265,27 @@ class LayerConv2(LayerPrimitive):
 
         self.init_parameters()
 
+    def get_bias_enabled(self):
+        return self.bias_enabled
+
+    def get_applied_weights(self) -> any:
+        masked_weights = getattr(self, WEIGHTS_ATTR)
+        if self.mask_pruning_enabled:
+            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+            masked_weights = masked_weights * mask_changes
+
+        if self.mask_flipping_enabled:
+            mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
+            masked_weights = masked_weights * mask_changes
+
+        return masked_weights
+
     def init_parameters(self):
-        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(0))
-        # nn.init.kaiming_uniform_(getattr(self, WEIGHTS_ATTR), a=math.sqrt(5))
-        # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
         init = configs_get_layers_initialization("conv2d")
         init(getattr(self, WEIGHTS_ATTR))
 
-
         nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.3)
         nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.3)
-
 
         if hasattr(self, BIAS_ATTR):
             weights = getattr(self, WEIGHTS_ATTR)
@@ -270,3 +308,77 @@ class LayerConv2(LayerPrimitive):
             masked_weights = masked_weights * mask_changes
 
         return F.conv2d(input, masked_weights, bias, self.stride, self.padding)
+
+
+
+class LayerLinearVanilla(LayerPrimitive):
+    def __init__(self, configs_linear: ConfigsLayerLinear):
+        super().__init__()
+        self.in_features = configs_linear.in_features
+        self.out_features = configs_linear.out_features
+        self.bias_enabled = configs_linear.bias_enabled
+
+        # Define weight and bias parameters
+        self.weights = nn.Parameter(torch.Tensor(self.out_features, self.in_features))
+        if self.bias_enabled:
+            self.bias = nn.Parameter(torch.Tensor(self.out_features))
+        else:
+            self.register_parameter('bias', None)
+
+        self.init_parameters()
+
+    def get_bias_enabled(self):
+        return self.bias_enabled
+
+    def get_applied_weights(self) -> torch.Tensor:
+        return self.weights
+
+    def init_parameters(self):
+        # Initialize parameters using Kaiming Uniform
+        nn.init.kaiming_uniform_(self.weights, a=math.sqrt(5))
+        if self.bias_enabled:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
+            bound = 1 / math.sqrt(fan_in)
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input):
+        return F.linear(input, self.get_applied_weights(), self.bias)
+
+
+class LayerConv2Vanilla(LayerPrimitive):
+    def __init__(self, configs_conv2d: ConfigsLayerConv2):
+        super(LayerConv2Vanilla, self).__init__()
+        self.in_channels = configs_conv2d.in_channels
+        self.out_channels = configs_conv2d.out_channels
+        self.kernel_size = configs_conv2d.kernel_size
+        self.padding = configs_conv2d.padding
+        self.stride = configs_conv2d.stride
+        self.bias_enabled = configs_conv2d.bias_enabled
+
+        # Define weight and bias parameters
+        self.weights = nn.Parameter(
+            torch.Tensor(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size)
+        )
+        if self.bias_enabled:
+            self.bias = nn.Parameter(torch.Tensor(self.out_channels))
+        else:
+            self.register_parameter('bias', None)
+
+        self.init_parameters()
+
+    def get_bias_enabled(self):
+        return self.bias_enabled
+
+    def get_applied_weights(self) -> torch.Tensor:
+        return self.weights
+
+    def init_parameters(self):
+        # Initialize parameters using Kaiming Uniform
+        nn.init.kaiming_uniform_(self.weights, a=math.sqrt(5))
+        if self.bias_enabled:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
+            bound = 1 / math.sqrt(fan_in)
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input):
+        return F.conv2d(input, self.get_applied_weights(), self.bias, self.stride, self.padding)

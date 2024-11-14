@@ -11,7 +11,7 @@ from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
 from src.layers import ConfigsNetworkMasks
 from src.others import get_device, ArgsDisplayModelStatistics, display_model_statistics, \
-    update_args_display_model_statistics, get_model_remaining_parameters_percentage
+    update_args_display_model_statistics
 from src.cifar10_resnet50.model_base_resnet50 import ModelBaseResnet50, ConfigsModelBaseResnet50
 
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR

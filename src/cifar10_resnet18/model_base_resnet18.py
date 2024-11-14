@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from src.cifar10_resnet18.common_resnet18 import forward_pass_resnet18, load_model_weights, save_model_weights, \
+    ConfigsModelBaseResnet18
 from src.cifar10_resnet18.model_resnet18_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
 from src.others import get_device, prefix_path_with_root
@@ -13,15 +15,18 @@ from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerCompos
     ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count
 from dataclasses import dataclass
 
-@dataclass
-class ConfigsModelBaseResnet18:
-    num_classes: int
 
 class ModelBaseResnet18(LayerComposite):
     def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet18, configs_network_masks: ConfigsNetworkMasks):
         super(ModelBaseResnet18, self).__init__()
         self.registered_layers = []
+
+        # hardcoded activations
         self.relu = nn.ReLU(inplace=True)
+        self.avgpool = nn.AdaptiveAvgPool2d(
+            output_size=(1,1)
+        )
+
         self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
 
         for layer_attr in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
@@ -62,16 +67,11 @@ class ModelBaseResnet18(LayerComposite):
                 layer = nn.BatchNorm2d(
                     num_features=layer_attr['num_features']
                 )
-            elif type_ == 'AdaptiveAvgPool2d':
-                layer = nn.AdaptiveAvgPool2d(
-                    output_size=layer_attr['output_size']
-                )
             else:
                 raise ValueError(f"Unsupported unregistered layer type: {type_}")
 
             setattr(self, name, layer)
 
-        self.load_pretrained_weights()
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid =  get_remaining_parameters_loss(self)
@@ -90,227 +90,101 @@ class ModelBaseResnet18(LayerComposite):
         total = get_parameters_total_count(self)
         return total
 
-    def load_pretrained_weights(self):
-        # Load the pretrained ResNet-18 weights
+    def forward(self, x):
+        return forward_pass_resnet18(self, x)
+
+    def save(self, path: str):
+        save_model_weights(self, path, skip_array=[])
+
+    def load(self, path: str):
+        load_model_weights(self, path, skip_array=[])
+
+    def load_pretrained_weights_DEPRECATED(self):
+        """
+        THIS METHOD IS DEPRECATED. USE CAREFULLY
+        """
         pretrained_state = torch.load(
             prefix_path_with_root(r"data\pretrained\resnet18_cifar10_95.bin"),
             map_location=get_device()
         )
 
-        # Load weights for the initial convolutional layer
+        # load weights for the initial convolutional layer
         self.conv1.weights.data.copy_(pretrained_state['conv1.weight'])
-        print("Loaded weights for 'conv1'")
+        print("loaded weights for 'conv1'")
 
-        # Load weights for the initial batch normalization layer
-        self.bn1.weight.data.copy_(pretrained_state['bn1.weight'])
-        self.bn1.bias.data.copy_(pretrained_state['bn1.bias'])
+        # load weights for the initial batch normalization layer
+        self.bn1.weights.data.copy_(pretrained_state['bn1.weight'])
+        self.bn1.bias_enabled.data.copy_(pretrained_state['bn1.bias'])
         self.bn1.running_mean.data.copy_(pretrained_state['bn1.running_mean'])
         self.bn1.running_var.data.copy_(pretrained_state['bn1.running_var'])
-        print("Loaded weights for 'bn1'")
+        print("loaded weights for 'bn1'")
 
-        # Function to map layer indices
+        # function to map layer indices
         def map_layers(layer_num, block_num):
             pretrained_prefix = f'layer{layer_num}.{block_num - 1}'
             custom_prefix = f'layer{layer_num}_block{block_num}'
             return pretrained_prefix, custom_prefix
 
-        # Loop over layers and blocks
-        for layer_num in range(1, 5):  # Layers 1 to 4
-            num_blocks = 2  # ResNet-18 has 2 blocks per layer
+        # loop over layers and blocks
+        for layer_num in range(1, 5):  # layers 1 to 4
+            num_blocks = 2  # resnet-18 has 2 blocks per layer
             for block_num in range(1, num_blocks + 1):
                 pretrained_prefix, custom_prefix = map_layers(layer_num, block_num)
 
-                # Load conv1 weights
+                # load conv1 weights
                 conv1_pretrained = f'{pretrained_prefix}.conv1.weight'
                 conv1_custom = getattr(self, f'{custom_prefix}_conv1')
                 conv1_custom.weights.data.copy_(pretrained_state[conv1_pretrained])
 
-                # Load bn1 weights
+                # load bn1 weights
                 bn1_pretrained = f'{pretrained_prefix}.bn1'
                 bn1_custom = getattr(self, f'{custom_prefix}_bn1')
-                bn1_custom.weight.data.copy_(pretrained_state[f'{bn1_pretrained}.weight'])
-                bn1_custom.bias.data.copy_(pretrained_state[f'{bn1_pretrained}.bias'])
+                bn1_custom.weights.data.copy_(pretrained_state[f'{bn1_pretrained}.weight'])
+                bn1_custom.bias_enabled.data.copy_(pretrained_state[f'{bn1_pretrained}.bias'])
                 bn1_custom.running_mean.data.copy_(pretrained_state[f'{bn1_pretrained}.running_mean'])
                 bn1_custom.running_var.data.copy_(pretrained_state[f'{bn1_pretrained}.running_var'])
 
-                # Load conv2 weights
+                # load conv2 weights
                 conv2_pretrained = f'{pretrained_prefix}.conv2.weight'
                 conv2_custom = getattr(self, f'{custom_prefix}_conv2')
                 conv2_custom.weights.data.copy_(pretrained_state[conv2_pretrained])
 
-                # Load bn2 weights
+                # load bn2 weights
                 bn2_pretrained = f'{pretrained_prefix}.bn2'
                 bn2_custom = getattr(self, f'{custom_prefix}_bn2')
-                bn2_custom.weight.data.copy_(pretrained_state[f'{bn2_pretrained}.weight'])
-                bn2_custom.bias.data.copy_(pretrained_state[f'{bn2_pretrained}.bias'])
+                bn2_custom.weights.data.copy_(pretrained_state[f'{bn2_pretrained}.weight'])
+                bn2_custom.bias_enabled.data.copy_(pretrained_state[f'{bn2_pretrained}.bias'])
                 bn2_custom.running_mean.data.copy_(pretrained_state[f'{bn2_pretrained}.running_mean'])
                 bn2_custom.running_var.data.copy_(pretrained_state[f'{bn2_pretrained}.running_var'])
 
-                print(f"Loaded weights for '{custom_prefix}'")
+                print(f"loaded weights for '{custom_prefix}'")
 
-                # Load downsample layers if present
+                # load downsample layers if present
                 downsample_key = f'{pretrained_prefix}.downsample.0.weight'
                 if downsample_key in pretrained_state:
-                    # Downsample convolutional layer
+                    # downsample convolutional layer
                     downsample_conv_pretrained = downsample_key
                     downsample_conv_custom = getattr(self, f'{custom_prefix}_downsample')
                     downsample_conv_custom.weights.data.copy_(pretrained_state[downsample_conv_pretrained])
 
-                    # Downsample batch normalization layer
+                    # downsample batch normalization layer
                     downsample_bn_pretrained = f'{pretrained_prefix}.downsample.1'
                     downsample_bn_custom = getattr(self, f'{custom_prefix}_downsample_bn')
-                    downsample_bn_custom.weight.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.weight'])
-                    downsample_bn_custom.bias.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.bias'])
+                    downsample_bn_custom.weights.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.weight'])
+                    downsample_bn_custom.bias_enabled.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.bias'])
                     downsample_bn_custom.running_mean.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.running_mean'])
                     downsample_bn_custom.running_var.data.copy_(pretrained_state[f'{downsample_bn_pretrained}.running_var'])
 
-                    print(f"Loaded downsample weights for '{custom_prefix}'")
+                    print(f"loaded downsample weights for '{custom_prefix}'")
 
-        # Load weights for the fully connected layer, if sizes match
+        # load weights for the fully connected layer, if sizes match
         fc_weight_key = 'fc.weight'
         fc_bias_key = 'fc.bias'
         if self.fc.weights.size() == pretrained_state[fc_weight_key].size():
             self.fc.weights.data.copy_(pretrained_state[fc_weight_key])
-            self.fc.bias.data.copy_(pretrained_state[fc_bias_key])
-            print("Loaded weights for 'fc'")
+            self.fc.bias_enabled.data.copy_(pretrained_state[fc_bias_key])
+            print("loaded weights for 'fc'")
         else:
-            print(f"Skipping 'fc' weights due to size mismatch.")
+            print(f"skipping 'fc' weights due to size mismatch.")
 
-        print(f"Successfully loaded pretrained weights.")
-
-    def forward(self, x):
-        # Initial layers
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        # x = self.maxpool1(x)
-
-        # Layer 1
-        # Block 1
-        identity = x
-        out = self.layer1_block1_conv1(x)
-        out = self.layer1_block1_bn1(out)
-        out = self.relu(out)
-        out = self.layer1_block1_conv2(out)
-        out = self.layer1_block1_bn2(out)
-        out += identity
-        out = self.relu(out)
-
-        # Block 2
-        identity = out
-        out = self.layer1_block2_conv1(out)
-        out = self.layer1_block2_bn1(out)
-        out = self.relu(out)
-        out = self.layer1_block2_conv2(out)
-        out = self.layer1_block2_bn2(out)
-        out += identity
-        out = self.relu(out)
-
-        # Layer 2
-        # Block 1 with downsampling
-        identity = out
-        out = self.layer2_block1_conv1(out)
-        out = self.layer2_block1_bn1(out)
-        out = self.relu(out)
-        out = self.layer2_block1_conv2(out)
-        out = self.layer2_block1_bn2(out)
-
-        identity = self.layer2_block1_downsample(identity)
-        identity = self.layer2_block1_downsample_bn(identity)
-
-        out += identity
-        out = self.relu(out)
-
-        # Block 2
-        identity = out
-        out = self.layer2_block2_conv1(out)
-        out = self.layer2_block2_bn1(out)
-        out = self.relu(out)
-        out = self.layer2_block2_conv2(out)
-        out = self.layer2_block2_bn2(out)
-        out += identity
-        out = self.relu(out)
-
-        # Layer 3
-        # Block 1 with downsampling
-        identity = out
-        out = self.layer3_block1_conv1(out)
-        out = self.layer3_block1_bn1(out)
-        out = self.relu(out)
-        out = self.layer3_block1_conv2(out)
-        out = self.layer3_block1_bn2(out)
-
-        identity = self.layer3_block1_downsample(identity)
-        identity = self.layer3_block1_downsample_bn(identity)
-
-        out += identity
-        out = self.relu(out)
-
-        # Block 2
-        identity = out
-        out = self.layer3_block2_conv1(out)
-        out = self.layer3_block2_bn1(out)
-        out = self.relu(out)
-        out = self.layer3_block2_conv2(out)
-        out = self.layer3_block2_bn2(out)
-        out += identity
-        out = self.relu(out)
-
-        # Layer 4
-        # Block 1 with downsampling
-        identity = out
-        out = self.layer4_block1_conv1(out)
-        out = self.layer4_block1_bn1(out)
-        out = self.relu(out)
-        out = self.layer4_block1_conv2(out)
-        out = self.layer4_block1_bn2(out)
-
-        identity = self.layer4_block1_downsample(identity)
-        identity = self.layer4_block1_downsample_bn(identity)
-
-        out += identity
-        out = self.relu(out)
-
-        # Block 2
-        identity = out
-        out = self.layer4_block2_conv1(out)
-        out = self.layer4_block2_bn1(out)
-        out = self.relu(out)
-        out = self.layer4_block2_conv2(out)
-        out = self.layer4_block2_bn2(out)
-        out += identity
-        out = self.relu(out)
-
-        # Final layers
-        out = self.avgpool(out)
-        out = torch.flatten(out, 1)
-        out = self.fc(out)
-
-        return out
-
-    # def load_pretrained_weights(self, weight_path=r"C:\Users\Statia 1\Desktop\AlexoaieAntonio\XAI_paper\nn_weights\resnet18-f37072fd.pth"):
-    #     """PLEASE REFACTOR THIS"""
-    #     # Load weights from the specified .pth file
-    #     pretrained_state = torch.load(weight_path)  # Load the state dictionary from file
-    #
-    #     # Get the current state dictionary of our model
-    #     own_state = self.state_dict()
-    #
-    #     for name, param in pretrained_state.items():
-    #         if name not in own_state:
-    #             print(f"Parameter '{name}' does not match any layer in the model's own_state.")
-    #             continue  # Ignore parameters that don’t match our model structure
-    #
-    #         if isinstance(param, nn.Parameter):
-    #             param = param.data  # Convert parameters to tensors
-    #
-    #         # Check for size compatibility
-    #         if own_state[name].size() != param.size():
-    #             print(f"Skipping '{name}' due to size mismatch: expected {own_state[name].size()}, got {param.size()}.")
-    #             continue
-    #
-    #         # Only load weights for the main layers (ignore mask/sign layers)
-    #         if 'mask_param' not in name and 'signs_mask_param' not in name:
-    #             own_state[name].copy_(param)
-    #
-    #     print(f"Loaded pretrained weights from {weight_path}.")
+        print(f"successfully loaded pretrained weights.")

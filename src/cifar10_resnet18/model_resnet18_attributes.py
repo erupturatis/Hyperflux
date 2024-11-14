@@ -102,6 +102,129 @@ RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES = [
     {"name": "layer4_block2_bn1", "type": "BatchNorm2d", "num_features": 512},
     {"name": "layer4_block2_bn2", "type": "BatchNorm2d", "num_features": 512},
 
-    # Activation functions and pooling layers
-    {"name": "avgpool", "type": "AdaptiveAvgPool2d", "output_size": (1, 1)}
+]
+
+CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
+    # Initial convolutional layer and batch norm
+    {'custom_name': 'conv1', 'standard_name': 'conv1.weight'},
+    {'custom_name': 'bn1', 'standard_name': 'bn1'},
+
+    # Layer 1 - Block 1
+    {'custom_name': 'layer1_block1_conv1', 'standard_name': 'layer1.0.conv1.weight'},
+    {'custom_name': 'layer1_block1_bn1', 'standard_name': 'layer1.0.bn1'},
+    {'custom_name': 'layer1_block1_conv2', 'standard_name': 'layer1.0.conv2.weight'},
+    {'custom_name': 'layer1_block1_bn2', 'standard_name': 'layer1.0.bn2'},
+
+    # Layer 1 - Block 2
+    {'custom_name': 'layer1_block2_conv1', 'standard_name': 'layer1.1.conv1.weight'},
+    {'custom_name': 'layer1_block2_bn1', 'standard_name': 'layer1.1.bn1'},
+    {'custom_name': 'layer1_block2_conv2', 'standard_name': 'layer1.1.conv2.weight'},
+    {'custom_name': 'layer1_block2_bn2', 'standard_name': 'layer1.1.bn2'},
+
+    # Layer 2 - Block 1
+    {'custom_name': 'layer2_block1_conv1', 'standard_name': 'layer2.0.conv1.weight'},
+    {'custom_name': 'layer2_block1_bn1', 'standard_name': 'layer2.0.bn1'},
+    {'custom_name': 'layer2_block1_conv2', 'standard_name': 'layer2.0.conv2.weight'},
+    {'custom_name': 'layer2_block1_bn2', 'standard_name': 'layer2.0.bn2'},
+    {'custom_name': 'layer2_block1_downsample', 'standard_name': 'layer2.0.downsample.0.weight'},
+    {'custom_name': 'layer2_block1_downsample_bn', 'standard_name': 'layer2.0.downsample.1'},
+
+    # Layer 2 - Block 2
+    {'custom_name': 'layer2_block2_conv1', 'standard_name': 'layer2.1.conv1.weight'},
+    {'custom_name': 'layer2_block2_bn1', 'standard_name': 'layer2.1.bn1'},
+    {'custom_name': 'layer2_block2_conv2', 'standard_name': 'layer2.1.conv2.weight'},
+    {'custom_name': 'layer2_block2_bn2', 'standard_name': 'layer2.1.bn2'},
+
+    # Layer 3 - Block 1
+    {'custom_name': 'layer3_block1_conv1', 'standard_name': 'layer3.0.conv1.weight'},
+    {'custom_name': 'layer3_block1_bn1', 'standard_name': 'layer3.0.bn1'},
+    {'custom_name': 'layer3_block1_conv2', 'standard_name': 'layer3.0.conv2.weight'},
+    {'custom_name': 'layer3_block1_bn2', 'standard_name': 'layer3.0.bn2'},
+    {'custom_name': 'layer3_block1_downsample', 'standard_name': 'layer3.0.downsample.0.weight'},
+    {'custom_name': 'layer3_block1_downsample_bn', 'standard_name': 'layer3.0.downsample.1'},
+
+    # Layer 3 - Block 2
+    {'custom_name': 'layer3_block2_conv1', 'standard_name': 'layer3.1.conv1.weight'},
+    {'custom_name': 'layer3_block2_bn1', 'standard_name': 'layer3.1.bn1'},
+    {'custom_name': 'layer3_block2_conv2', 'standard_name': 'layer3.1.conv2.weight'},
+    {'custom_name': 'layer3_block2_bn2', 'standard_name': 'layer3.1.bn2'},
+
+    # Layer 4 - Block 1
+    {'custom_name': 'layer4_block1_conv1', 'standard_name': 'layer4.0.conv1.weight'},
+    {'custom_name': 'layer4_block1_bn1', 'standard_name': 'layer4.0.bn1'},
+    {'custom_name': 'layer4_block1_conv2', 'standard_name': 'layer4.0.conv2.weight'},
+    {'custom_name': 'layer4_block1_bn2', 'standard_name': 'layer4.0.bn2'},
+    {'custom_name': 'layer4_block1_downsample', 'standard_name': 'layer4.0.downsample.0.weight'},
+    {'custom_name': 'layer4_block1_downsample_bn', 'standard_name': 'layer4.0.downsample.1'},
+
+    # Layer 4 - Block 2
+    {'custom_name': 'layer4_block2_conv1', 'standard_name': 'layer4.1.conv1.weight'},
+    {'custom_name': 'layer4_block2_bn1', 'standard_name': 'layer4.1.bn1'},
+    {'custom_name': 'layer4_block2_conv2', 'standard_name': 'layer4.1.conv2.weight'},
+    {'custom_name': 'layer4_block2_bn2', 'standard_name': 'layer4.1.bn2'},
+
+    # Fully connected layer
+    {'custom_name': 'fc', 'standard_name': 'fc.weight'},
+]
+
+STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = [
+    {'standard_name': 'conv1.weight', 'custom_name': 'conv1'},
+    {'standard_name': 'bn1', 'custom_name': 'bn1'},
+
+    # Layer 1 - Block 1
+    {'standard_name': 'layer1.0.conv1.weight', 'custom_name': 'layer1_block1_conv1'},
+    {'standard_name': 'layer1.0.bn1', 'custom_name': 'layer1_block1_bn1'},
+    {'standard_name': 'layer1.0.conv2.weight', 'custom_name': 'layer1_block1_conv2'},
+    {'standard_name': 'layer1.0.bn2', 'custom_name': 'layer1_block1_bn2'},
+
+    # Layer 1 - Block 2
+    {'standard_name': 'layer1.1.conv1.weight', 'custom_name': 'layer1_block2_conv1'},
+    {'standard_name': 'layer1.1.bn1', 'custom_name': 'layer1_block2_bn1'},
+    {'standard_name': 'layer1.1.conv2.weight', 'custom_name': 'layer1_block2_conv2'},
+    {'standard_name': 'layer1.1.bn2', 'custom_name': 'layer1_block2_bn2'},
+
+    # Layer 2 - Block 1
+    {'standard_name': 'layer2.0.conv1.weight', 'custom_name': 'layer2_block1_conv1'},
+    {'standard_name': 'layer2.0.bn1', 'custom_name': 'layer2_block1_bn1'},
+    {'standard_name': 'layer2.0.conv2.weight', 'custom_name': 'layer2_block1_conv2'},
+    {'standard_name': 'layer2.0.bn2', 'custom_name': 'layer2_block1_bn2'},
+    {'standard_name': 'layer2.0.downsample.0.weight', 'custom_name': 'layer2_block1_downsample'},
+    {'standard_name': 'layer2.0.downsample.1', 'custom_name': 'layer2_block1_downsample_bn'},
+
+    # Layer 2 - Block 2
+    {'standard_name': 'layer2.1.conv1.weight', 'custom_name': 'layer2_block2_conv1'},
+    {'standard_name': 'layer2.1.bn1', 'custom_name': 'layer2_block2_bn1'},
+    {'standard_name': 'layer2.1.conv2.weight', 'custom_name': 'layer2_block2_conv2'},
+    {'standard_name': 'layer2.1.bn2', 'custom_name': 'layer2_block2_bn2'},
+
+    # Layer 3 - Block 1
+    {'standard_name': 'layer3.0.conv1.weight', 'custom_name': 'layer3_block1_conv1'},
+    {'standard_name': 'layer3.0.bn1', 'custom_name': 'layer3_block1_bn1'},
+    {'standard_name': 'layer3.0.conv2.weight', 'custom_name': 'layer3_block1_conv2'},
+    {'standard_name': 'layer3.0.bn2', 'custom_name': 'layer3_block1_bn2'},
+    {'standard_name': 'layer3.0.downsample.0.weight', 'custom_name': 'layer3_block1_downsample'},
+    {'standard_name': 'layer3.0.downsample.1', 'custom_name': 'layer3_block1_downsample_bn'},
+
+    # Layer 3 - Block 2
+    {'standard_name': 'layer3.1.conv1.weight', 'custom_name': 'layer3_block2_conv1'},
+    {'standard_name': 'layer3.1.bn1', 'custom_name': 'layer3_block2_bn1'},
+    {'standard_name': 'layer3.1.conv2.weight', 'custom_name': 'layer3_block2_conv2'},
+    {'standard_name': 'layer3.1.bn2', 'custom_name': 'layer3_block2_bn2'},
+
+    # Layer 4 - Block 1
+    {'standard_name': 'layer4.0.conv1.weight', 'custom_name': 'layer4_block1_conv1'},
+    {'standard_name': 'layer4.0.bn1', 'custom_name': 'layer4_block1_bn1'},
+    {'standard_name': 'layer4.0.conv2.weight', 'custom_name': 'layer4_block1_conv2'},
+    {'standard_name': 'layer4.0.bn2', 'custom_name': 'layer4_block1_bn2'},
+    {'standard_name': 'layer4.0.downsample.0.weight', 'custom_name': 'layer4_block1_downsample'},
+    {'standard_name': 'layer4.0.downsample.1', 'custom_name': 'layer4_block1_downsample_bn'},
+
+    # Layer 4 - Block 2
+    {'standard_name': 'layer4.1.conv1.weight', 'custom_name': 'layer4_block2_conv1'},
+    {'standard_name': 'layer4.1.bn1', 'custom_name': 'layer4_block2_bn1'},
+    {'standard_name': 'layer4.1.conv2.weight', 'custom_name': 'layer4_block2_conv2'},
+    {'standard_name': 'layer4.1.bn2', 'custom_name': 'layer4_block2_bn2'},
+
+    # Fully connected layer
+    {'standard_name': 'fc.weight', 'custom_name': 'fc'},
 ]

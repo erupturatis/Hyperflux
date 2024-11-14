@@ -93,6 +93,3 @@ def display_model_statistics(args: ArgsDisplayModelStatistics):
 
     args.average_loss_arr = []
 
-def get_model_remaining_parameters_percentage(model: 'LayerComposite') -> float:
-    total, remaining = model.get_parameters_pruning_statistics()
-    return remaining / total

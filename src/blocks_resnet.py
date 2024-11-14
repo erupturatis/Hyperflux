@@ -7,8 +7,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.layers import LayerComposite, LayerPrimitive, ConfigsNetworkMasks, ConfigsLayerConv2, LayerConv2
-from src.parameters_mask_processors import get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
-    get_parameters_flipped_statistics_sigmoid
+from src.parameters_mask_processors import get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \
+    get_parameters_flipped_statistics_sigmoid_
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 from src.others import get_device
 import math

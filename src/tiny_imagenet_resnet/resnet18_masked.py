@@ -155,7 +155,7 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             for sublayer in self.downsample:
                 if hasattr(sublayer, 'mask_param'):  
-                    total += sublayer.weight.numel()
+                    total += sublayer.weights.numel()
                     mask = torch.sigmoid(sublayer.mask_param)
                     masked += mask.sum()
         return masked, total
@@ -173,7 +173,7 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             for sublayer in self.downsample:
                 if hasattr(sublayer, 'mask_param'):  
-                    total += sublayer.weight.numel()
+                    total += sublayer.weights.numel()
                     mask = torch.sigmoid(sublayer.mask_param)
                     mask_thresholded = (mask >= 0.5).float()
                     masked += mask_thresholded.sum()

@@ -1,62 +1,95 @@
+from typing import TypedDict
+from typing import List
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+from src.cifar10_resnet18.common_resnet18 import forward_pass_resnet18, load_model_weights, save_model_weights, \
+    ConfigsModelBaseResnet18
+from src.cifar10_resnet18.model_resnet18_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
+from src.others import get_device, prefix_path_with_root
+from src.blocks_resnet import BlockResnet, ConfigsBlockResnet
+from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerComposite, LayerPrimitive, \
+    get_layers_primitive, get_remaining_parameters_loss, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
+    ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count, LayerConv2Vanilla, \
+    LayerLinearVanilla, get_layer_composite_pruning_statistics_vanilla
+from dataclasses import dataclass
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class BasicBlock(nn.Module):
-    expansion = 1
+class ModelVanillaResnet18(LayerComposite):
+    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet18):
+        super(ModelVanillaResnet18, self).__init__()
+        self.registered_layers = []
 
-    def __init__(self, in_channels, out_channels, stride=1):
-        super(BasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(out_channels)
+        # hardcoded activations
+        self.relu = nn.ReLU(inplace=True)
+        self.avgpool = nn.AdaptiveAvgPool2d(
+            output_size=(1,1)
+        )
 
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_channels != out_channels:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(out_channels)
-            )
+        self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
+
+        for layer_attr in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
+            name = layer_attr['name']
+            type_ = layer_attr['type']
+
+            if type_ == 'LayerConv2':
+                layer = LayerConv2Vanilla(
+                    ConfigsLayerConv2(
+                        in_channels=layer_attr['in_channels'],
+                        out_channels=layer_attr['out_channels'],
+                        kernel_size=layer_attr['kernel_size'],
+                        stride=layer_attr['stride'],
+                        padding=layer_attr['padding'],
+                        bias_enabled=layer_attr['bias_enabled']
+                    )
+                )
+            elif type_ == 'LayerLinear':
+                layer = LayerLinearVanilla(
+                    ConfigsLayerLinear(
+                        in_features=layer_attr['in_features'],
+                        out_features=layer_attr['out_features']
+                    )
+                )
+            else:
+                raise ValueError(f"Unsupported registered layer type: {type_}")
+
+            setattr(self, name, layer)
+            self.registered_layers.append(layer)
+
+        for layer_attr in RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES:
+            name = layer_attr['name']
+            type_ = layer_attr['type']
+
+            if type_ == 'BatchNorm2d':
+                layer = nn.BatchNorm2d(
+                    num_features=layer_attr['num_features']
+                )
+            else:
+                raise ValueError(f"Unsupported unregistered layer type: {type_}")
+
+            setattr(self, name, layer)
+
+        self.load("saved_models/model_5epochs.pth")
+
+    def get_layers_primitive(self) -> List[LayerPrimitive]:
+        return get_layers_primitive(self)
+
+    def get_parameters_pruning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics_vanilla(self)
+
+    def get_parameters_total_count(self) -> int:
+        total = get_parameters_total_count(self)
+        return total
 
     def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
-        out += self.shortcut(x)
-        return F.relu(out)
+        return forward_pass_resnet18(self, x)
 
-class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=1000):
-        super(ResNet, self).__init__()
-        self.in_channels = 64
+    def save(self, path: str):
+        save_model_weights(self, path, skip_array=[])
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
-
-    def _make_layer(self, block, out_channels, num_blocks, stride):
-        strides = [stride] + [1] * (num_blocks - 1)
-        layers = []
-        for stride in strides:
-            layers.append(block(self.in_channels, out_channels, stride))
-            self.in_channels = out_channels * block.expansion
-        return nn.Sequential(*layers)
-
-    def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        x = F.avg_pool2d(x, 4)
-        x = torch.flatten(x, 1)
-        x = self.fc(x)
-        return x
-
-def ResNet18(num_classes=1000):
-    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
+    def load(self, path: str):
+        load_model_weights(self, path, skip_array=[])

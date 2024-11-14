@@ -9,7 +9,7 @@ from src.layers import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 def get_layerwise_weights(self):
     weights = {}
     for i, layer in enumerate([self.fc1, self.fc2, self.fc3]):
-        weight = layer.weight.detach().cpu().numpy()
+        weight = layer.weights.detach().cpu().numpy()
         weights[f'fc{i}_weights'] = np.where(weight < 0, -1, 1)
     return weights
 
@@ -25,9 +25,9 @@ def get_layerwise_masks(self):
 
 def save_weights(self):
     # Apply masks to weights before saving
-    masked_fc1_weight = self.fc1.weight * MaskPruningFunctionSigmoid.apply(self.fc1.mask_param)
-    masked_fc2_weight = self.fc2.weight * MaskPruningFunctionSigmoid.apply(self.fc2.mask_param)
-    masked_fc3_weight = self.fc3.weight * MaskPruningFunctionSigmoid.apply(self.fc3.mask_param)
+    masked_fc1_weight = self.fc1.weights * MaskPruningFunctionSigmoid.apply(self.fc1.mask_param)
+    masked_fc2_weight = self.fc2.weights * MaskPruningFunctionSigmoid.apply(self.fc2.mask_param)
+    masked_fc3_weight = self.fc3.weights * MaskPruningFunctionSigmoid.apply(self.fc3.mask_param)
 
     if self.fc1.signs_enabled:
         masked_fc1_weight = masked_fc1_weight * MaskFlipFunctionSigmoid.apply(self.fc1.signs_mask_param)

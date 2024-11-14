@@ -2,8 +2,8 @@ from src.layer_initializations import kaiming_sqrt5, kaiming_sqrt0, bad_initiali
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, MaskPruningFunctionLeaky, \
     MaskFlipFunctionLeaky, MaskPruningFunctionLinear
 from src.parameters_mask_processors import get_parameters_pruning_leaky, get_parameters_pruning_statistics_leaky, \
-    get_parameters_flipped_statistics_leaky, get_parameters_pruning_sigmoid, get_parameters_pruning_statistics_sigmoid, \
-    get_parameters_flipped_statistics_sigmoid
+    get_parameters_flipped_statistics_leaky, get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \
+    get_parameters_flipped_statistics_sigmoid_, get_parameters_pruning_statistics_vanilla_
 from typing import Dict, Union
 
 # MaskPruningFunction = MaskPruningFunctionLeaky
@@ -20,9 +20,10 @@ from typing import Dict, Union
 
 MaskPruningFunction = MaskPruningFunctionSigmoid
 MaskFlipFunction = MaskFlipFunctionSigmoid
-get_parameters_pruning = get_parameters_pruning_sigmoid
-get_parameters_pruning_statistics = get_parameters_pruning_statistics_sigmoid
-get_parameters_flipped_statistics = get_parameters_flipped_statistics_sigmoid
+get_parameters_pruning = get_parameters_pruning_sigmoid_
+get_parameters_pruning_statistics = get_parameters_pruning_statistics_sigmoid_
+get_parameters_pruning_statistics_vanilla_network = get_parameters_pruning_statistics_vanilla_
+get_parameters_flipped_statistics = get_parameters_flipped_statistics_sigmoid_
 
 _configs_layers_init = {
     "fcn": kaiming_sqrt5,

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from src.others import get_device
 from torch import nn
 
-def get_parameters_flipped_statistics_sigmoid(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
+def get_parameters_flipped_statistics_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
     total = 0
     remaining_non_flipped = 0
 
@@ -18,7 +18,16 @@ def get_parameters_flipped_statistics_sigmoid(layer_primitive: 'LayerPrimitive')
     remaining_non_flipped += (torch.sigmoid(mask_pruning) >= 0.5).float().sum()
     return total, remaining_non_flipped
 
-def get_parameters_pruning_statistics_sigmoid(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
+def get_parameters_pruning_statistics_vanilla_(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
+    total = 0
+    remaining = 0
+
+    weights = getattr(layer_primitive, WEIGHTS_ATTR)
+    total += weights.numel()
+    remaining += (weights != 0).float().sum()
+    return total, remaining
+
+def get_parameters_pruning_statistics_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
     total = 0
     remaining = 0
 
@@ -46,7 +55,7 @@ def get_parameters_total(layer_primitive: 'LayerPrimitive') -> int:
     total += weights.numel()
     return total
 
-def get_parameters_pruning_sigmoid(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
+def get_parameters_pruning_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
     total = 0
     sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)
 
