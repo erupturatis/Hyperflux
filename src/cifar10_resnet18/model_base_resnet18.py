@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from src.cifar10_resnet18.model_resnet18_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
 from src.others import get_device, prefix_path_with_root
 from src.blocks_resnet import BlockResnet, ConfigsBlockResnet
 from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerComposite, LayerPrimitive, \
@@ -22,313 +24,52 @@ class ModelBaseResnet18(LayerComposite):
         self.relu = nn.ReLU(inplace=True)
         self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
 
-        # Initial convolutional layer with bias=False
-        self.conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=3,
-                out_channels=64,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.conv1)
-        self.bn1 = nn.BatchNorm2d(64)
-        #self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        for layer_attr in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
+            name = layer_attr['name']
+            type_ = layer_attr['type']
 
-        # Layer 1 (Conv2_x): 2 Residual Blocks
-        # Block 1
-        self.layer1_block1_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer1_block1_conv1)
-        self.layer1_block1_bn1 = nn.BatchNorm2d(64)
+            if type_ == 'LayerConv2':
+                layer = LayerConv2(
+                    ConfigsLayerConv2(
+                        in_channels=layer_attr['in_channels'],
+                        out_channels=layer_attr['out_channels'],
+                        kernel_size=layer_attr['kernel_size'],
+                        stride=layer_attr['stride'],
+                        padding=layer_attr['padding'],
+                        bias_enabled=layer_attr['bias_enabled']
+                    ),
+                    configs_network_masks
+                )
+            elif type_ == 'LayerLinear':
+                layer = LayerLinear(
+                    ConfigsLayerLinear(
+                        in_features=layer_attr['in_features'],
+                        out_features=layer_attr['out_features']
+                    ),
+                    configs_network_masks
+                )
+            else:
+                raise ValueError(f"Unsupported registered layer type: {type_}")
 
-        self.layer1_block1_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer1_block1_conv2)
-        self.layer1_block1_bn2 = nn.BatchNorm2d(64)
+            setattr(self, name, layer)
+            self.registered_layers.append(layer)
 
-        # Block 2
-        self.layer1_block2_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer1_block2_conv1)
-        self.layer1_block2_bn1 = nn.BatchNorm2d(64)
+        for layer_attr in RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES:
+            name = layer_attr['name']
+            type_ = layer_attr['type']
 
-        self.layer1_block2_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer1_block2_conv2)
-        self.layer1_block2_bn2 = nn.BatchNorm2d(64)
+            if type_ == 'BatchNorm2d':
+                layer = nn.BatchNorm2d(
+                    num_features=layer_attr['num_features']
+                )
+            elif type_ == 'AdaptiveAvgPool2d':
+                layer = nn.AdaptiveAvgPool2d(
+                    output_size=layer_attr['output_size']
+                )
+            else:
+                raise ValueError(f"Unsupported unregistered layer type: {type_}")
 
-        # Layer 2 (Conv3_x): 2 Residual Blocks
-        # Block 1 with downsampling
-        self.layer2_block1_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=64,
-                out_channels=128,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer2_block1_conv1)
-        self.layer2_block1_bn1 = nn.BatchNorm2d(128)
-
-        self.layer2_block1_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=128,
-                out_channels=128,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer2_block1_conv2)
-        self.layer2_block1_bn2 = nn.BatchNorm2d(128)
-
-        # Downsampling for residual connection
-        self.layer2_block1_downsample = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=64,
-                out_channels=128,
-                kernel_size=1,
-                stride=2,
-                padding=0,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer2_block1_downsample)
-        self.layer2_block1_downsample_bn = nn.BatchNorm2d(128)
-
-        # Block 2
-        self.layer2_block2_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=128,
-                out_channels=128,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer2_block2_conv1)
-        self.layer2_block2_bn1 = nn.BatchNorm2d(128)
-
-        self.layer2_block2_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=128,
-                out_channels=128,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer2_block2_conv2)
-        self.layer2_block2_bn2 = nn.BatchNorm2d(128)
-
-        # Layer 3 (Conv4_x): 2 Residual Blocks
-        # Block 1 with downsampling
-        self.layer3_block1_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=128,
-                out_channels=256,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer3_block1_conv1)
-        self.layer3_block1_bn1 = nn.BatchNorm2d(256)
-
-        self.layer3_block1_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=256,
-                out_channels=256,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer3_block1_conv2)
-        self.layer3_block1_bn2 = nn.BatchNorm2d(256)
-
-        # Downsampling for residual connection
-        self.layer3_block1_downsample = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=128,
-                out_channels=256,
-                kernel_size=1,
-                stride=2,
-                padding=0,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer3_block1_downsample)
-        self.layer3_block1_downsample_bn = nn.BatchNorm2d(256)
-
-        # Block 2
-        self.layer3_block2_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=256,
-                out_channels=256,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer3_block2_conv1)
-        self.layer3_block2_bn1 = nn.BatchNorm2d(256)
-
-        self.layer3_block2_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=256,
-                out_channels=256,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer3_block2_conv2)
-        self.layer3_block2_bn2 = nn.BatchNorm2d(256)
-
-        # Layer 4 (Conv5_x): 2 Residual Blocks
-        # Block 1 with downsampling
-        self.layer4_block1_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=256,
-                out_channels=512,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer4_block1_conv1)
-        self.layer4_block1_bn1 = nn.BatchNorm2d(512)
-
-        self.layer4_block1_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=512,
-                out_channels=512,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer4_block1_conv2)
-        self.layer4_block1_bn2 = nn.BatchNorm2d(512)
-
-        # Downsampling for residual connection
-        self.layer4_block1_downsample = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=256,
-                out_channels=512,
-                kernel_size=1,
-                stride=2,
-                padding=0,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer4_block1_downsample)
-        self.layer4_block1_downsample_bn = nn.BatchNorm2d(512)
-
-        # Block 2
-        self.layer4_block2_conv1 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=512,
-                out_channels=512,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer4_block2_conv1)
-        self.layer4_block2_bn1 = nn.BatchNorm2d(512)
-
-        self.layer4_block2_conv2 = LayerConv2(
-            ConfigsLayerConv2(
-                in_channels=512,
-                out_channels=512,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias_enabled=False
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.layer4_block2_conv2)
-        self.layer4_block2_bn2 = nn.BatchNorm2d(512)
-
-        # Final layers
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = LayerLinear(
-            ConfigsLayerLinear(
-                in_features=512,
-                out_features=self.NUM_OUTPUT_CLASSES
-            ),
-            configs_network_masks
-        )
-        self.registered_layers.append(self.fc)
+            setattr(self, name, layer)
 
         self.load_pretrained_weights()
 
@@ -436,6 +177,7 @@ class ModelBaseResnet18(LayerComposite):
             print(f"Skipping 'fc' weights due to size mismatch.")
 
         print(f"Successfully loaded pretrained weights.")
+
     def forward(self, x):
         # Initial layers
         x = self.conv1(x)

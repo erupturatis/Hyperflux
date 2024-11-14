@@ -162,7 +162,7 @@ AUGMENTATIONS = nn.Sequential(
 pruning_scheduler: PruningScheduler
 epoch_global: int = 0
 
-def run_cifar10_resnet():
+def run_cifar10_resnet18():
     configs_layers_initialization_all_kaiming_sqrt5()
 
     global MODEL, BATCH_SIZE, epoch_global, pruning_scheduler

@@ -157,7 +157,7 @@ def run_cifar10_conv2():
     num_epochs = 30
 
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_data_tensors_on_GPU()
-    MODEL = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=True, mask_flipping_enabled=True, weights_training_enabled=True)).to(get_device())
+    MODEL = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
     pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.0025, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)
 
