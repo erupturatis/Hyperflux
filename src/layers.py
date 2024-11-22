@@ -184,7 +184,7 @@ class LayerLinear(LayerPrimitive):
             masked_weight = masked_weight * mask_changes
 
         if self.mask_flipping_enabled:
-            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
+            mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weight = masked_weight * mask_changes
 
         return masked_weight

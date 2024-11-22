@@ -141,7 +141,7 @@ def forward_pass_resnet18(self: 'LayerComposite', x: torch.Tensor) -> torch.Tens
 
     return out
 
-def save_model_weights(model: 'LayerComposite', filepath: str, skip_array: List = []):
+def save_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, skip_array: List = []):
     """
     Saves the model weights in a format compatible with standard ResNet18 implementations.
 
@@ -190,7 +190,7 @@ def save_model_weights(model: 'LayerComposite', filepath: str, skip_array: List 
     torch.save(state_dict, filepath)
     print(f"Model weights saved to {filepath}.")
 
-def load_model_weights(model: 'LayerComposite', filepath: str, skip_array: List = []):
+def load_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, skip_array: List = []):
     """
     Loads weights from a file into the custom ResNet18 model using the mapping.
 

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from src.cifar10_resnet18.common_resnet18 import forward_pass_resnet18, load_model_weights, save_model_weights, \
+from src.cifar10_resnet18.common_resnet18 import forward_pass_resnet18, load_model_weights_resnet18_cifar10, save_model_weights_resnet18_cifar10, \
     ConfigsModelBaseResnet18
 from src.cifar10_resnet18.model_resnet18_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
@@ -89,7 +89,7 @@ class ModelVanillaResnet18(LayerComposite):
         return forward_pass_resnet18(self, x)
 
     def save(self, path: str):
-        save_model_weights(self, path, skip_array=[])
+        save_model_weights_resnet18_cifar10(self, path, skip_array=[])
 
     def load(self, path: str):
-        load_model_weights(self, path, skip_array=[])
+        load_model_weights_resnet18_cifar10(self, path, skip_array=[])
