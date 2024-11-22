@@ -61,6 +61,70 @@ RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES = [
     # Fully connected layer
     {"name": "fc", "type": "LayerLinear", "in_features": 512, "out_features": 10}
 ]
+# Registered layers
+RESNET18_CIFAR10_PYTORCH_REGISTERED_LAYERS_ATTRIBUTES = [
+    # Initial convolutional layer
+    {"name": "conv1.weight", "type": "Conv2d", "in_channels": 3, "out_channels": 64,
+     "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+
+    # Layer 1 - Block 0
+    {"name": "layer1.0.conv1.weight", "type": "Conv2d", "in_channels": 64,
+     "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer1.0.conv2.weight", "type": "Conv2d", "in_channels": 64,
+     "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+
+    # Layer 1 - Block 1
+    {"name": "layer1.1.conv1.weight", "type": "Conv2d", "in_channels": 64,
+     "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer1.1.conv2.weight", "type": "Conv2d", "in_channels": 64,
+     "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+
+    # Layer 2 - Block 0
+    {"name": "layer2.0.conv1.weight", "type": "Conv2d", "in_channels": 64,
+     "out_channels": 128, "kernel_size": 3, "stride": 2, "padding": 1, "bias": False},
+    {"name": "layer2.0.conv2.weight", "type": "Conv2d", "in_channels": 128,
+     "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer2.0.downsample.0.weight", "type": "Conv2d", "in_channels": 64,
+     "out_channels": 128, "kernel_size": 1, "stride": 2, "padding": 0, "bias": False},
+
+    # Layer 2 - Block 1
+    {"name": "layer2.1.conv1.weight", "type": "Conv2d", "in_channels": 128,
+     "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer2.1.conv2.weight", "type": "Conv2d", "in_channels": 128,
+     "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+
+    # Layer 3 - Block 0
+    {"name": "layer3.0.conv1.weight", "type": "Conv2d", "in_channels": 128,
+     "out_channels": 256, "kernel_size": 3, "stride": 2, "padding": 1, "bias": False},
+    {"name": "layer3.0.conv2.weight", "type": "Conv2d", "in_channels": 256,
+     "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer3.0.downsample.0.weight", "type": "Conv2d", "in_channels": 128,
+     "out_channels": 256, "kernel_size": 1, "stride": 2, "padding": 0, "bias": False},
+
+    # Layer 3 - Block 1
+    {"name": "layer3.1.conv1.weight", "type": "Conv2d", "in_channels": 256,
+     "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer3.1.conv2.weight", "type": "Conv2d", "in_channels": 256,
+     "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+
+    # Layer 4 - Block 0
+    {"name": "layer4.0.conv1.weight", "type": "Conv2d", "in_channels": 256,
+     "out_channels": 512, "kernel_size": 3, "stride": 2, "padding": 1, "bias": False},
+    {"name": "layer4.0.conv2.weight", "type": "Conv2d", "in_channels": 512,
+     "out_channels": 512, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer4.0.downsample.0.weight", "type": "Conv2d", "in_channels": 256,
+     "out_channels": 512, "kernel_size": 1, "stride": 2, "padding": 0, "bias": False},
+
+    # Layer 4 - Block 1
+    {"name": "layer4.1.conv1.weight", "type": "Conv2d", "in_channels": 512,
+     "out_channels": 512, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+    {"name": "layer4.1.conv2.weight", "type": "Conv2d", "in_channels": 512,
+     "out_channels": 512, "kernel_size": 3, "stride": 1, "padding": 1, "bias": False},
+
+    # Fully connected layer
+    {"name": "fc.weight", "type": "Linear", "in_features": 512, "out_features": 10, "bias": True},
+    {"name": "fc.bias", "type": "Linear", "in_features": 512, "out_features": 10, "bias": True},
+]
 
 # Unregistered layers (e.g., batch norms, activations, pooling)
 RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES = [
