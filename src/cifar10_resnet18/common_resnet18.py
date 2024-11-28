@@ -190,20 +190,8 @@ def save_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, 
     torch.save(state_dict, filepath)
     print(f"Model weights saved to {filepath}.")
 
-def load_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, skip_array: List = []):
-    """
-    Loads weights from a file into the custom ResNet18 model using the mapping.
-
-    Args:
-        model (ModelBaseResnet18): The custom ResNet18 model instance.
-        filepath (str): The path from where the weights will be loaded.
-    """
-    import torch
-
-    filepath = prefix_path_with_root(filepath)
-    # Load the state_dict
-    state_dict = torch.load(filepath)
-    # print(state_dict.keys())
+def load_model_weights_resnet18_cifar10(model: 'LayerComposite', model_dict, skip_array: List = []):
+    state_dict = model_dict
 
     # Iterate over the mapping array
     for mapping in STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING:
@@ -236,4 +224,19 @@ def load_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, 
         else:
             print(f"Unhandled layer type for layer '{custom_name}': {type(layer)}")
 
-    print(f"Model weights loaded from {filepath}.")
+def load_model_weights_resnet18_cifar10_from_path(model: 'LayerComposite', filepath: str, skip_array: List = []):
+    """
+    Loads weights from a file into the custom ResNet18 model using the mapping.
+
+    Args:
+        model (ModelBaseResnet18): The custom ResNet18 model instance.
+        filepath (str): The path from where the weights will be loaded.
+    """
+    import torch
+
+    filepath = prefix_path_with_root(filepath)
+    # Load the state_dict
+    state_dict = torch.load(filepath)
+
+    load_model_weights_resnet18_cifar10(model, state_dict, skip_array)
+

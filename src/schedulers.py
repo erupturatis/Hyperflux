@@ -73,6 +73,7 @@ class PruningScheduler:
             self.streak += 0.5
         else:
             self.streak = 0
+            self.streak -= 0.1
 
     def get_multiplier(self) -> int:
         return self.baseline ** self.exponent_constant

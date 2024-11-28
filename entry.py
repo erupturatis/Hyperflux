@@ -5,5 +5,6 @@ import torch
 
 if __name__ == '__main__':
     # pipeline_mnist_probabilistic()
-    pipeline_mnist()
+    # pipeline_mnist()
+    pipeline_cifar10_resnet18()
     pass
