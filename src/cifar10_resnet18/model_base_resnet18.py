@@ -10,14 +10,14 @@ from src.cifar10_resnet18.model_resnet18_attributes import RESNET18_CIFAR10_REGI
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
 from src.others import get_device, prefix_path_with_root
 from src.blocks_resnet import BlockResnet, ConfigsBlockResnet
-from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerComposite, LayerPrimitive, \
-    get_layers_primitive, get_remaining_parameters_loss, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
+from src.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
+    get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
     ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count
 from dataclasses import dataclass
 
 
 class ModelBaseResnet18(LayerComposite):
-    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet18, configs_network_masks: ConfigsNetworkMasks):
+    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet18, configs_network_masks: ConfigsNetworkMasksImportance):
         super(ModelBaseResnet18, self).__init__()
         self.registered_layers = []
 
@@ -34,7 +34,7 @@ class ModelBaseResnet18(LayerComposite):
             type_ = layer_attr['type']
 
             if type_ == 'LayerConv2':
-                layer = LayerConv2(
+                layer = LayerConv2MaskImportance(
                     ConfigsLayerConv2(
                         in_channels=layer_attr['in_channels'],
                         out_channels=layer_attr['out_channels'],
@@ -46,7 +46,7 @@ class ModelBaseResnet18(LayerComposite):
                     configs_network_masks
                 )
             elif type_ == 'LayerLinear':
-                layer = LayerLinear(
+                layer = LayerLinearMaskImportance(
                     ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
                         out_features=layer_attr['out_features']
@@ -74,7 +74,7 @@ class ModelBaseResnet18(LayerComposite):
 
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid =  get_remaining_parameters_loss(self)
+        total, sigmoid =  get_remaining_parameters_loss_masks_importance(self)
         return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:

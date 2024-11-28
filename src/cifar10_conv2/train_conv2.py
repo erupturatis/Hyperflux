@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from src.data_preprocessing import preprocess_cifar10_data_loaders, preprocess_cifar10_data_tensors_on_GPU
-from src.layers import ConfigsNetworkMasks
+from src.layers import ConfigsNetworkMasksImportance
 from src.others import get_device, ArgsDisplayModelStatistics, update_args_display_model_statistics, \
     display_model_statistics
 from src.cifar10_conv2.model_conv2 import ModelCifar10Conv2
@@ -84,7 +84,7 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
         loss = criterion(output, target)
         loss_remaining_weights = MODEL.get_remaining_parameters_loss()
-        loss_remaining_weights *= pruning_scheduler.get_multiplier()
+        loss_remaining_weights *= pruning_scheduler.get_multiplier() * 0
 
         # if(epoch > STOP_EPOCH):
         #     loss_remaining_weights *= 0
@@ -157,7 +157,7 @@ def run_cifar10_conv2():
     num_epochs = 30
 
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_data_tensors_on_GPU()
-    MODEL = ModelCifar10Conv2(ConfigsNetworkMasks(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
+    MODEL = ModelCifar10Conv2(ConfigsNetworkMasksImportance(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=False)).to(get_device())
     pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.0025, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)
 
@@ -186,7 +186,7 @@ def run_cifar10_conv2():
 
     def lambda_lr_weight_bias(epoch):
         if epoch < stop_epoch:
-            return scheduler_decay_while_pruning ** (epoch)
+            return scheduler_decay_while_pruning ** 1 # (epoch)
         else:
             return scheduler_decay_after_pruning ** (epoch-stop_epoch)
 

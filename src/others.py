@@ -49,19 +49,11 @@ class ArgsDisplayModelStatistics:
     epoch: int = 0
     batch_size: int = 128
 
-    lr_weights: float = 0
-    lr_prune: float = 0
-    lr_flip : float = 0
 
-
-def update_args_display_model_statistics(args: ArgsDisplayModelStatistics, average_loss_arr: List[torch.Tensor], current_batch_idx: int, epoch: int, learning_rates : List[float]):
+def update_args_display_model_statistics(args: ArgsDisplayModelStatistics, average_loss_arr: List[torch.Tensor], current_batch_idx: int, epoch: int):
     args.average_loss_arr = average_loss_arr
     args.current_batch_idx = current_batch_idx
     args.epoch = epoch
-    args.lr_weights = learning_rates[0]
-    args.lr_prune = learning_rates[1]
-    args.lr_flip = learning_rates[2]
-    
 
 def display_model_statistics(args: ArgsDisplayModelStatistics):
     print_rate = args.BATCH_PRINT_RATE
@@ -69,11 +61,6 @@ def display_model_statistics(args: ArgsDisplayModelStatistics):
     average_loss_arr = args.average_loss_arr
     average_loss_names = args.average_loss_names
     model = args.model
-
-
-    lr_weights = args.lr_weights
-    lr_prune = args.lr_prune
-    lr_flip = args.lr_flip
 
     current_batch_idx = args.current_batch_idx
     BATCH_SIZE = args.batch_size
@@ -87,9 +74,6 @@ def display_model_statistics(args: ArgsDisplayModelStatistics):
     percent_flip = remaining_flipping / total_flipping * 100
     print(f"Train Epoch: {epoch} [{(current_batch_idx+1) * BATCH_SIZE}/{total_data_len}]")
     print(f"Masked weights percentage: {percent:.2f}% Flipped weights percentage: {percent_flip:.2f}%")
-    losses_str = "".join([f" {average_loss_names[idx]}: {loss}" for idx, loss in enumerate(loss_mean_arr)])
-    print(f"{losses_str}, lr_weights: {lr_weights}, lr_prune: {lr_prune}, lr_flip: {lr_flip}")
-
 
     args.average_loss_arr = []
 

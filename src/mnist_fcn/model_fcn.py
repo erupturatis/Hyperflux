@@ -6,24 +6,24 @@ import math
 import numpy as np
 from fontTools.config import Config
 
-from src.layers import ConfigsNetworkMasks, LayerLinear, MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, ConfigsLayerLinear, \
-    get_remaining_parameters_loss, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
+from src.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, ConfigsLayerLinear, \
+    get_remaining_parameters_loss_masks_importance, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive
 from src.others import get_device
 from src.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 
 class ModelMnistFNN(LayerComposite):
-    def __init__(self, config_network_mask: ConfigsNetworkMasks):
+    def __init__(self, config_network_mask: ConfigsNetworkMasksImportance):
         super(ModelMnistFNN, self).__init__()
-        self.fc1 = LayerLinear(
+        self.fc1 = LayerLinearMaskImportance(
             configs_linear=ConfigsLayerLinear(in_features=28*28, out_features=300),
             configs_network=config_network_mask
         )
-        self.fc2 = LayerLinear(
+        self.fc2 = LayerLinearMaskImportance(
             configs_linear=ConfigsLayerLinear(in_features=300, out_features=100),
             configs_network=config_network_mask
         )
-        self.fc3 = LayerLinear(
+        self.fc3 = LayerLinearMaskImportance(
             configs_linear=ConfigsLayerLinear(in_features=100, out_features=10),
             configs_network=config_network_mask
         )
@@ -32,7 +32,7 @@ class ModelMnistFNN(LayerComposite):
 
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid =  get_remaining_parameters_loss(self)
+        total, sigmoid =  get_remaining_parameters_loss_masks_importance(self)
         return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:

@@ -9,7 +9,7 @@ from src.config_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.config_other import WANDB_REGISTER
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
-from src.layers import ConfigsNetworkMasks
+from src.layers import ConfigsNetworkMasksImportance
 from src.others import get_device, ArgsDisplayModelStatistics, display_model_statistics, \
     update_args_display_model_statistics
 from src.cifar10_resnet50.model_base_resnet50 import ModelBaseResnet50, ConfigsModelBaseResnet50
@@ -176,7 +176,7 @@ def run_cifar10_resnet50():
     weight_decay = 1e-4
 
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
-    configs_network_masks = ConfigsNetworkMasks(
+    configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
         mask_flipping_enabled = True,
         weights_training_enabled=True,

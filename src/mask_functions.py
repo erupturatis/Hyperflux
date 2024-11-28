@@ -31,6 +31,25 @@ class MaskPruningFunctionSigmoid(torch.autograd.Function):
         grad_mask_param = grad_output * mask * (1 - mask)
         return grad_mask_param
 
+class MaskPruningFunctionSigmoidSampled(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, mask_param):
+        mask_prob = torch.sigmoid(mask_param)
+        sampled_mask = torch.bernoulli(mask_prob)
+        # Save mask probabilities for backward pass
+        ctx.save_for_backward(mask_prob)
+        # Straight-Through Estimator:
+        # Forward pass uses sampled_mask
+        # Backward pass uses mask_prob gradients
+        return sampled_mask.float()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        mask_prob, = ctx.saved_tensors
+        grad_mask_param = grad_output * mask_prob * (1 - mask_prob)
+
+        return grad_mask_param
+
 
 class MaskFlipFunctionLeaky(torch.autograd.Function):
     @staticmethod

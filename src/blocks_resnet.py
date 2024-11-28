@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.layers import LayerComposite, LayerPrimitive, ConfigsNetworkMasks, ConfigsLayerConv2, LayerConv2
+from src.layers import LayerComposite, LayerPrimitive, ConfigsNetworkMasksImportance, ConfigsLayerConv2, LayerConv2MaskImportance
 from src.parameters_mask_processors import get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \
     get_parameters_flipped_statistics_sigmoid_
 from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
@@ -92,7 +92,7 @@ class ConfigsBlockResnet:
 
 
 class BlockResnet(LayerComposite):
-    def __init__(self, configs_block: ConfigsBlockResnet, configs_network_masks: ConfigsNetworkMasks):
+    def __init__(self, configs_block: ConfigsBlockResnet, configs_network_masks: ConfigsNetworkMasksImportance):
         super(BlockResnet, self).__init__()
 
         in_channels = configs_block.in_channels
@@ -102,9 +102,9 @@ class BlockResnet(LayerComposite):
         kernel = configs_block.kernel_size
         downsample = configs_block.downsample
 
-        self.conv1 = LayerConv2(ConfigsLayerConv2(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel, stride=stride, padding=padding), configs_network_masks)
+        self.conv1 = LayerConv2MaskImportance(ConfigsLayerConv2(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel, stride=stride, padding=padding), configs_network_masks)
         self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = LayerConv2({
+        self.conv2 = LayerConv2MaskImportance({
             'in_channels': out_channels,
             'out_channels': out_channels,
             'kernel_size': kernel,
@@ -163,7 +163,7 @@ class ConfigsBlockDownsample(TypedDict):
 
 
 class BlockDownsample(LayerComposite):
-    def __init__(self, configs_block: ConfigsBlockDownsample, configs_network_masks: ConfigsNetworkMasks):
+    def __init__(self, configs_block: ConfigsBlockDownsample, configs_network_masks: ConfigsNetworkMasksImportance):
         super(BlockDownsample, self).__init__()
 
         self.EXPANSION = 1
@@ -171,7 +171,7 @@ class BlockDownsample(LayerComposite):
         self.out_channels = configs_block['out_channels']
         self.stride = configs_block['stride']
 
-        self.conv1 = LayerConv2({
+        self.conv1 = LayerConv2MaskImportance({
             "in_channels": self.in_channels,
             "out_channels": self.out_channels * self.EXPANSION,
             "kernel_size": 1,

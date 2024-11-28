@@ -16,9 +16,14 @@ from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmo
 from src.others import get_device
 import math
 import numpy as np
-from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
+from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, WEIGHTS_BASE_ATTR
 
-class ConfigsNetworkMasks(TypedDict):
+
+class ConfigsNetworkMasksProbabilitiesPruneSign(TypedDict):
+    mask_probabilities_enabled: bool
+    weights_training_enabled: bool
+
+class ConfigsNetworkMasksImportance(TypedDict):
     mask_pruning_enabled: bool
     weights_training_enabled: bool
     mask_flipping_enabled: bool
@@ -80,6 +85,37 @@ def get_layer_composite_pruning_statistics_vanilla(self: LayerComposite) -> tupl
 
     return total, remaining
 
+def get_parameters_probabilities_statistics(layer: LayerPrimitive) -> tuple[int, int, int]:
+    if not hasattr(layer, WEIGHTS_PRUNING_ATTR):
+        raise ValueError("Layer does not have pruning probabilities attribute.")
+
+    # Retrieve pruning probabilities
+    prune_probs = getattr(layer, WEIGHTS_PRUNING_ATTR)
+    base_probs = getattr(layer, WEIGHTS_BASE_ATTR)
+    flip_probs = getattr(layer, WEIGHTS_FLIPPING_ATTR)
+
+    probabilities = torch.stack([base_probs, flip_probs, prune_probs], dim=-1)
+    pruned_count = torch.sum(torch.argmax(probabilities, dim=-1) == 2).item()
+    flipped_count = torch.sum(torch.argmax(probabilities, dim=-1) == 1).item()
+    base_count = torch.sum(torch.argmax(probabilities, dim=-1) == 0).item()
+
+    return base_count, flipped_count, pruned_count
+
+def get_layer_composite_pruning_statistics_probabilities(self: LayerComposite) -> tuple[int, int, int]:
+    layers = get_layers_primitive(self)
+
+    base_total = 0
+    flipped_total = 0
+    pruned_total = 0
+
+    for layer in layers:
+        base, flip, pruned = get_parameters_probabilities_statistics(layer)
+        base_total += base
+        flipped_total += flip
+        pruned_total += pruned
+
+    return  base_total, flipped_total, pruned_total
+
 def get_layer_composite_pruning_statistics(self: LayerComposite) -> tuple[float, float]:
     layers = get_layers_primitive(self)
     total = 0
@@ -121,7 +157,7 @@ def get_parameters_total_count(self: LayerComposite) -> int:
 
     return total
 
-def get_remaining_parameters_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
+def get_remaining_parameters_loss_masks_importance(self: LayerComposite) -> tuple[float, torch.Tensor]:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
     total = 0
     activations = torch.tensor(0, device=get_device(), dtype=torch.float)
@@ -142,8 +178,8 @@ def get_layers_primitive(self: LayerComposite) -> List[LayerPrimitive]:
 
     return layers
 
-class LayerLinear(LayerPrimitive):
-    def __init__(self, configs_linear: ConfigsLayerLinear, configs_network: ConfigsNetworkMasks):
+class LayerLinearMaskImportance(LayerPrimitive):
+    def __init__(self, configs_linear: ConfigsLayerLinear, configs_network: ConfigsNetworkMasksImportance):
         super().__init__()
 
         self.in_features = configs_linear.in_features
@@ -196,7 +232,7 @@ class LayerLinear(LayerPrimitive):
         init = configs_get_layers_initialization("fcn")
         init(getattr(self, WEIGHTS_ATTR))
         
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.3)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.5)
         nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.3)
 
 
@@ -206,18 +242,22 @@ class LayerLinear(LayerPrimitive):
         bound = 1 / math.sqrt(fan_in)
         nn.init.uniform_(getattr(self, BIAS_ATTR), -bound, bound)
 
-    def forward(self, input):
+    def forward(self, input, inference = False):
         masked_weight = getattr(self, WEIGHTS_ATTR)
         bias = torch.zeros(self.out_features, device=get_device())
         if hasattr(self, BIAS_ATTR):
             bias = getattr(self, BIAS_ATTR)
 
         if self.mask_pruning_enabled:
-            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+            if inference == False:
+                mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+            else:
+                mask_changes = MaskPruningFunctionSigmoid.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+
             masked_weight = masked_weight * mask_changes
 
         if self.mask_flipping_enabled:
-            mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
+            mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weight = masked_weight * mask_changes
 
         return F.linear(input, masked_weight, bias)
@@ -232,9 +272,9 @@ class ConfigsLayerConv2:
     stride: int = 1
     bias_enabled: bool = True
 
-class LayerConv2(LayerPrimitive):
-    def __init__(self, configs_conv2d: ConfigsLayerConv2, configs_network_masks: ConfigsNetworkMasks):
-        super(LayerConv2, self).__init__()
+class LayerConv2MaskImportance(LayerPrimitive):
+    def __init__(self, configs_conv2d: ConfigsLayerConv2, configs_network_masks: ConfigsNetworkMasksImportance):
+        super(LayerConv2MaskImportance, self).__init__()
         # getting configs
         self.in_channels = configs_conv2d.in_channels
         self.out_channels = configs_conv2d.out_channels
@@ -284,8 +324,8 @@ class LayerConv2(LayerPrimitive):
         init = configs_get_layers_initialization("conv2d")
         init(getattr(self, WEIGHTS_ATTR))
 
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.3)
-        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.3)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.1, b=0.3)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.1, b=0.3)
 
         if hasattr(self, BIAS_ATTR):
             weights = getattr(self, WEIGHTS_ATTR)
@@ -382,3 +422,157 @@ class LayerConv2Vanilla(LayerPrimitive):
 
     def forward(self, input):
         return F.conv2d(input, self.get_applied_weights(), self.bias, self.stride, self.padding)
+
+
+
+class LayerLinearMaskProbabilitiesPruneSign(LayerPrimitive):
+    def __init__(self, configs_linear: ConfigsLayerLinear, configs_network: ConfigsNetworkMasksProbabilitiesPruneSign):
+        super().__init__()
+
+        self.in_features = configs_linear.in_features
+        self.out_features = configs_linear.out_features
+
+        self.mask_probabilities_enabled = configs_network['mask_probabilities_enabled']
+        self.weights_training_enabled = configs_network['weights_training_enabled']
+
+        setattr(self, WEIGHTS_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+        setattr(self, BIAS_ATTR, nn.Parameter(torch.Tensor(self.out_features)))
+        getattr(self, WEIGHTS_ATTR).requires_grad = self.weights_training_enabled
+        getattr(self, BIAS_ATTR).requires_grad = self.weights_training_enabled
+
+        # Attributes for base, flipped and pruned. They are passed in sigmoid
+        setattr(self, WEIGHTS_BASE_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+        setattr(self, WEIGHTS_PRUNING_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+        setattr(self, WEIGHTS_FLIPPING_ATTR, nn.Parameter(torch.Tensor(self.out_features, self.in_features)))
+        getattr(self, WEIGHTS_BASE_ATTR).requires_grad = self.mask_probabilities_enabled
+        getattr(self, WEIGHTS_FLIPPING_ATTR).requires_grad = self.mask_probabilities_enabled
+        getattr(self, WEIGHTS_PRUNING_ATTR).requires_grad = self.mask_probabilities_enabled
+
+        self.init_parameters()
+
+    def get_applied_weights(self) -> any:
+        # To implement
+        pass
+
+    def init_parameters(self):
+        init = configs_get_layers_initialization("fcn")
+        init(getattr(self, WEIGHTS_ATTR))
+
+        nn.init.uniform_(getattr(self, WEIGHTS_BASE_ATTR), a=1, b=2)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.5, b=0.9)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.5, b=0.9)
+        if self.mask_probabilities_enabled == False:
+            nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0, b=0)
+            nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0, b=0)
+
+        weights = getattr(self, WEIGHTS_ATTR)
+        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
+        bound = 1 / math.sqrt(fan_in)
+        nn.init.uniform_(getattr(self, BIAS_ATTR), -bound, bound)
+
+    def forward(self, input):
+        weights = getattr(self, WEIGHTS_ATTR)
+        bias = getattr(self, BIAS_ATTR)
+        if self.mask_probabilities_enabled == False:
+            return F.linear(input, weights, bias)
+
+        base_probs = getattr(self, WEIGHTS_BASE_ATTR)
+        flip_probs = getattr(self, WEIGHTS_FLIPPING_ATTR)
+        prune_probs = getattr(self, WEIGHTS_PRUNING_ATTR)
+
+        # Combine base, flip, and prune probabilities and normalize them
+        probabilities = torch.softmax(torch.stack([base_probs, flip_probs, prune_probs], dim=-1), dim=-1)
+
+        # Apply the straight-through mask
+        mask = StraightThroughMask.apply(probabilities)
+
+        # Modify weights based on the mask
+        masked_weights = weights * mask
+
+        return F.linear(input, masked_weights, bias)
+
+
+    def forward_inference(self, input):
+        weights = getattr(self, WEIGHTS_ATTR)
+        bias = getattr(self, BIAS_ATTR)
+        if not self.mask_probabilities_enabled:
+            return F.linear(input, weights, bias)
+
+        base_probs = getattr(self, WEIGHTS_BASE_ATTR)
+        flip_probs = getattr(self, WEIGHTS_FLIPPING_ATTR)
+        prune_probs = getattr(self, WEIGHTS_PRUNING_ATTR)
+
+        # Combine base, flip, and prune probabilities and normalize them
+        probabilities = torch.softmax(torch.stack([base_probs, flip_probs, prune_probs], dim=-1), dim=-1)
+
+        # Select the action with the highest probability (0 = base, 1 = flip, 2 = prune)
+        actions = torch.argmax(probabilities, dim=-1)
+
+        # Apply the actions: 0 = base (x1), 1 = flip (x-1), 2 = prune (x0)
+        mask = torch.where(actions == 0, 1.0, torch.where(actions == 1, -1.0, 0.0))
+
+        # Modify weights based on the mask
+        masked_weights = weights * mask
+
+        return F.linear(input, masked_weights, bias)
+
+
+class StraightThroughMask(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, probabilities, temperature=1.0):
+        """
+        Forward pass for the Straight-Through Mask.
+
+        Args:
+            probabilities (Tensor): Probabilities for each mask state. Shape: (out_features, in_features, 3)
+            temperature (float): Temperature parameter for Gumbel-Softmax.
+
+        Returns:
+            Tensor: Masked weights based on sampled actions. Shape: (out_features, in_features)
+        """
+        ctx.save_for_backward(probabilities)
+        ctx.temperature = temperature
+
+        # Sample from Gumbel-Softmax
+        # Add small epsilon to avoid log(0)
+        gumbel_noise = -torch.log(-torch.log(torch.rand_like(probabilities) + 1e-20) + 1e-20)
+        y = (torch.log(probabilities + 1e-20) + gumbel_noise) / temperature
+        soft_mask = F.softmax(y, dim=-1)
+
+        # Hard sampling: one-hot vectors
+        _, max_indices = soft_mask.max(dim=-1, keepdim=True)
+        hard_mask = torch.zeros_like(probabilities).scatter_(-1, max_indices, 1.0)
+
+        # Define mask values: 0 = base (1.0), 1 = flip (-1.0), 2 = prune (0.0)
+        mask_values = torch.tensor([1.0, -1.0, 0.0], device=probabilities.device).view(1, 1, 3)
+        hard_mask_values = torch.sum(hard_mask * mask_values, dim=-1)  # Shape: (out_features, in_features)
+
+        # Straight-Through: Use hard mask in forward, soft mask for backward
+        mask = hard_mask_values + soft_mask.sum(dim=-1) - soft_mask.detach().sum(dim=-1)
+
+        return mask
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        """
+        Backward pass for the Straight-Through Mask.
+
+        Args:
+            grad_output (Tensor): Gradient of the loss with respect to the output mask.
+
+        Returns:
+            Tensor: Gradient of the loss with respect to the input probabilities.
+            None: No gradient for temperature.
+        """
+        probabilities, = ctx.saved_tensors
+        temperature = ctx.temperature
+
+        # Compute gradient through soft_mask
+        gumbel_noise = -torch.log(-torch.log(torch.rand_like(probabilities) + 1e-20) + 1e-20)
+        y = (torch.log(probabilities + 1e-20) + gumbel_noise) / temperature
+        soft_mask = F.softmax(y, dim=-1)
+
+        # Gradient of the softmax
+        grad_soft_mask = grad_output.unsqueeze(-1) * (soft_mask * (1 - soft_mask))
+
+        return grad_soft_mask, None  # No gradient for temperature

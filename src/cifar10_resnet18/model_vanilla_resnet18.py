@@ -10,8 +10,8 @@ from src.cifar10_resnet18.model_resnet18_attributes import RESNET18_CIFAR10_REGI
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
 from src.others import get_device, prefix_path_with_root
 from src.blocks_resnet import BlockResnet, ConfigsBlockResnet
-from src.layers import LayerConv2, ConfigsNetworkMasks, LayerLinear, LayerComposite, LayerPrimitive, \
-    get_layers_primitive, get_remaining_parameters_loss, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
+from src.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
+    get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
     ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count, LayerConv2Vanilla, \
     LayerLinearVanilla, get_layer_composite_pruning_statistics_vanilla
 from dataclasses import dataclass

@@ -4,13 +4,13 @@ import torch.nn as nn
 from dataclasses import dataclass
 from src.others import get_device, prefix_path_with_root
 from src.layers import (
-    LayerConv2,
-    ConfigsNetworkMasks,
-    LayerLinear,
+    LayerConv2MaskImportance,
+    ConfigsNetworkMasksImportance,
+    LayerLinearMaskImportance,
     LayerComposite,
     LayerPrimitive,
     get_layers_primitive,
-    get_remaining_parameters_loss,
+    get_remaining_parameters_loss_masks_importance,
     get_layer_composite_pruning_statistics,
     ConfigsLayerConv2,
     ConfigsLayerLinear,
@@ -23,14 +23,14 @@ class ConfigsModelBaseResnet50:
     num_classes: int
 
 class ModelBaseResnet50(LayerComposite):
-    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet50, configs_network_masks: ConfigsNetworkMasks):
+    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet50, configs_network_masks: ConfigsNetworkMasksImportance):
         super(ModelBaseResnet50, self).__init__()
         self.registered_layers = []
         self.relu = nn.ReLU(inplace=True)
         self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
 
         # Initial convolutional layer with bias=False
-        self.conv1 = LayerConv2(
+        self.conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=3,
                 out_channels=64,
@@ -53,7 +53,7 @@ class ModelBaseResnet50(LayerComposite):
         # Block 1   
         ############################################
         # Conv1 
-        self.layer1_block1_conv1 = LayerConv2(
+        self.layer1_block1_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=64,
@@ -68,7 +68,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block1_bn1 = nn.BatchNorm2d(64)
 
         # Conv2
-        self.layer1_block1_conv2 = LayerConv2(
+        self.layer1_block1_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=64,
@@ -83,7 +83,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block1_bn2 = nn.BatchNorm2d(64)
 
         # Conv3
-        self.layer1_block1_conv3 = LayerConv2(
+        self.layer1_block1_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=256,
@@ -98,7 +98,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block1_bn3 = nn.BatchNorm2d(256)
 
         # Downsample
-        self.layer1_block1_downsample = LayerConv2(
+        self.layer1_block1_downsample = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=256,
@@ -116,7 +116,7 @@ class ModelBaseResnet50(LayerComposite):
         # Block 2
         ############################################
         # Conv1
-        self.layer1_block2_conv1 = LayerConv2(
+        self.layer1_block2_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=256,
                 out_channels=64,
@@ -131,7 +131,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block2_bn1 = nn.BatchNorm2d(64)
 
         # Conv2
-        self.layer1_block2_conv2 = LayerConv2(
+        self.layer1_block2_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=64,
@@ -146,7 +146,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block2_bn2 = nn.BatchNorm2d(64)
 
         # Conv3
-        self.layer1_block2_conv3 = LayerConv2(
+        self.layer1_block2_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=256,
@@ -164,7 +164,7 @@ class ModelBaseResnet50(LayerComposite):
         # Block 3
         ############################################
         # Conv1
-        self.layer1_block3_conv1 = LayerConv2(
+        self.layer1_block3_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=256,
                 out_channels=64,
@@ -179,7 +179,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block3_bn1 = nn.BatchNorm2d(64)
 
         # Conv2
-        self.layer1_block3_conv2 = LayerConv2(
+        self.layer1_block3_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=64,
@@ -194,7 +194,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer1_block3_bn2 = nn.BatchNorm2d(64)
 
         # Conv3
-        self.layer1_block3_conv3 = LayerConv2(
+        self.layer1_block3_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=64,
                 out_channels=256,
@@ -216,7 +216,7 @@ class ModelBaseResnet50(LayerComposite):
         # Block 1 with Downsampling
         ############################################
         # Conv1
-        self.layer2_block1_conv1 = LayerConv2(
+        self.layer2_block1_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=256,
                 out_channels=128,
@@ -231,7 +231,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer2_block1_bn1 = nn.BatchNorm2d(128)
 
         # Conv2
-        self.layer2_block1_conv2 = LayerConv2(
+        self.layer2_block1_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=128,
@@ -246,7 +246,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer2_block1_bn2 = nn.BatchNorm2d(128)
 
         # Conv3
-        self.layer2_block1_conv3 = LayerConv2(
+        self.layer2_block1_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=512,
@@ -261,7 +261,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer2_block1_bn3 = nn.BatchNorm2d(512)
 
         # Downsample
-        self.layer2_block1_downsample = LayerConv2(
+        self.layer2_block1_downsample = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=256,
                 out_channels=512,
@@ -278,7 +278,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 2
         ############################################
-        self.layer2_block2_conv1 = LayerConv2(
+        self.layer2_block2_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=128,
@@ -292,7 +292,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer2_block2_conv1)
         self.layer2_block2_bn1 = nn.BatchNorm2d(128)
 
-        self.layer2_block2_conv2 = LayerConv2(
+        self.layer2_block2_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=128,
@@ -306,7 +306,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer2_block2_conv2)
         self.layer2_block2_bn2 = nn.BatchNorm2d(128)
 
-        self.layer2_block2_conv3 = LayerConv2(
+        self.layer2_block2_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=512,
@@ -323,7 +323,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 3
         ############################################
-        self.layer2_block3_conv1 = LayerConv2(
+        self.layer2_block3_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=128,
@@ -337,7 +337,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer2_block3_conv1)
         self.layer2_block3_bn1 = nn.BatchNorm2d(128)
 
-        self.layer2_block3_conv2 = LayerConv2(
+        self.layer2_block3_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=128,
@@ -351,7 +351,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer2_block3_conv2)
         self.layer2_block3_bn2 = nn.BatchNorm2d(128)
 
-        self.layer2_block3_conv3 = LayerConv2(
+        self.layer2_block3_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=512,
@@ -368,7 +368,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 4
         ############################################
-        self.layer2_block4_conv1 = LayerConv2(
+        self.layer2_block4_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=128,
@@ -382,7 +382,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer2_block4_conv1)
         self.layer2_block4_bn1 = nn.BatchNorm2d(128)
 
-        self.layer2_block4_conv2 = LayerConv2(
+        self.layer2_block4_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=128,
@@ -396,7 +396,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer2_block4_conv2)
         self.layer2_block4_bn2 = nn.BatchNorm2d(128)
 
-        self.layer2_block4_conv3 = LayerConv2(
+        self.layer2_block4_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=128,
                 out_channels=512,
@@ -417,7 +417,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 1 with Downsampling
         ############################################
-        self.layer3_block1_conv1 = LayerConv2(
+        self.layer3_block1_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=256,
@@ -431,7 +431,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer3_block1_conv1)
         self.layer3_block1_bn1 = nn.BatchNorm2d(256)
 
-        self.layer3_block1_conv2 = LayerConv2(
+        self.layer3_block1_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=256,
                 out_channels=256,
@@ -445,7 +445,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer3_block1_conv2)
         self.layer3_block1_bn2 = nn.BatchNorm2d(256)
 
-        self.layer3_block1_conv3 = LayerConv2(
+        self.layer3_block1_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=256,
                 out_channels=1024,
@@ -460,7 +460,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer3_block1_bn3 = nn.BatchNorm2d(1024)
 
         # Downsample
-        self.layer3_block1_downsample = LayerConv2(
+        self.layer3_block1_downsample = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=1024,
@@ -479,7 +479,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         for i in range(2, 7):
             # Conv1
-            setattr(self, f'layer3_block{i}_conv1', LayerConv2(
+            setattr(self, f'layer3_block{i}_conv1', LayerConv2MaskImportance(
                 ConfigsLayerConv2(
                     in_channels=1024,
                     out_channels=256,
@@ -494,7 +494,7 @@ class ModelBaseResnet50(LayerComposite):
             setattr(self, f'layer3_block{i}_bn1', nn.BatchNorm2d(256))
 
             # Conv2
-            setattr(self, f'layer3_block{i}_conv2', LayerConv2(
+            setattr(self, f'layer3_block{i}_conv2', LayerConv2MaskImportance(
                 ConfigsLayerConv2(
                     in_channels=256,
                     out_channels=256,
@@ -509,7 +509,7 @@ class ModelBaseResnet50(LayerComposite):
             setattr(self, f'layer3_block{i}_bn2', nn.BatchNorm2d(256))
 
             # Conv3
-            setattr(self, f'layer3_block{i}_conv3', LayerConv2(
+            setattr(self, f'layer3_block{i}_conv3', LayerConv2MaskImportance(
                 ConfigsLayerConv2(
                     in_channels=256,
                     out_channels=1024,
@@ -530,7 +530,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 1 with Downsampling
         ############################################
-        self.layer4_block1_conv1 = LayerConv2(
+        self.layer4_block1_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=1024,
                 out_channels=512,
@@ -544,7 +544,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer4_block1_conv1)
         self.layer4_block1_bn1 = nn.BatchNorm2d(512)
 
-        self.layer4_block1_conv2 = LayerConv2(
+        self.layer4_block1_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=512,
@@ -558,7 +558,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer4_block1_conv2)
         self.layer4_block1_bn2 = nn.BatchNorm2d(512)
 
-        self.layer4_block1_conv3 = LayerConv2(
+        self.layer4_block1_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=2048,
@@ -573,7 +573,7 @@ class ModelBaseResnet50(LayerComposite):
         self.layer4_block1_bn3 = nn.BatchNorm2d(2048)
 
         # Downsample
-        self.layer4_block1_downsample = LayerConv2(
+        self.layer4_block1_downsample = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=1024,
                 out_channels=2048,
@@ -590,7 +590,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 2
         ############################################
-        self.layer4_block2_conv1 = LayerConv2(
+        self.layer4_block2_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=2048,
                 out_channels=512,
@@ -604,7 +604,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer4_block2_conv1)
         self.layer4_block2_bn1 = nn.BatchNorm2d(512)
 
-        self.layer4_block2_conv2 = LayerConv2(
+        self.layer4_block2_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=512,
@@ -618,7 +618,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer4_block2_conv2)
         self.layer4_block2_bn2 = nn.BatchNorm2d(512)
 
-        self.layer4_block2_conv3 = LayerConv2(
+        self.layer4_block2_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=2048,
@@ -635,7 +635,7 @@ class ModelBaseResnet50(LayerComposite):
         ############################################
         # Block 3
         ############################################
-        self.layer4_block3_conv1 = LayerConv2(
+        self.layer4_block3_conv1 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=2048,
                 out_channels=512,
@@ -649,7 +649,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer4_block3_conv1)
         self.layer4_block3_bn1 = nn.BatchNorm2d(512)
 
-        self.layer4_block3_conv2 = LayerConv2(
+        self.layer4_block3_conv2 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=512,
@@ -663,7 +663,7 @@ class ModelBaseResnet50(LayerComposite):
         self.registered_layers.append(self.layer4_block3_conv2)
         self.layer4_block3_bn2 = nn.BatchNorm2d(512)
 
-        self.layer4_block3_conv3 = LayerConv2(
+        self.layer4_block3_conv3 = LayerConv2MaskImportance(
             ConfigsLayerConv2(
                 in_channels=512,
                 out_channels=2048,
@@ -681,7 +681,7 @@ class ModelBaseResnet50(LayerComposite):
         # Final Layers
         ############################################
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = LayerLinear(
+        self.fc = LayerLinearMaskImportance(
             ConfigsLayerLinear(
                 in_features=2048,
                 out_features=self.NUM_OUTPUT_CLASSES
@@ -693,7 +693,7 @@ class ModelBaseResnet50(LayerComposite):
         self.load_pretrained_weights()
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss(self)
+        total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
         return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:

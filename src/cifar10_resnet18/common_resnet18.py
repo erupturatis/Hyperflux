@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from src.layers import LayerComposite, LayerConv2, LayerLinear, LayerPrimitive
+from src.layers import LayerComposite, LayerConv2MaskImportance, LayerLinearMaskImportance, LayerPrimitive
 from typing import List, Dict, Any, Tuple, Union
 from src.others import prefix_path_with_root
 from dataclasses import dataclass

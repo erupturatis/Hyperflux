@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.layers import ConfigsNetworkMasks, LayerLinear, MaskFlipFunctionSigmoid, MaskPruningFunctionSigmoid, ConfigsLayerLinear, \
-    LayerConv2, ConfigsLayerConv2
+from src.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, MaskFlipFunctionSigmoid, MaskPruningFunctionSigmoid, ConfigsLayerLinear, \
+    LayerConv2MaskImportance, ConfigsLayerConv2
 from src.parameters_mask_processors import get_pruning_loss
 from src.metrics import get_pruned_percentage, get_flipped_percentage
 from src.others import get_device
@@ -11,7 +11,7 @@ import math
 import numpy as np
 
 class ModelCifar10Conv6(nn.Module):
-    def __init__(self, configs_network_masks: ConfigsNetworkMasks):
+    def __init__(self, configs_network_masks: ConfigsNetworkMasksImportance):
         super(ModelCifar10Conv6, self).__init__()
 
         configs_conv2d_1: ConfigsLayerConv2 = {
@@ -21,7 +21,7 @@ class ModelCifar10Conv6(nn.Module):
             'padding': 1,
             'stride': 1
         }
-        self.conv2D_1 = LayerConv2(configs_conv2d_1, configs_network_masks)
+        self.conv2D_1 = LayerConv2MaskImportance(configs_conv2d_1, configs_network_masks)
 
         configs_conv2d_2: ConfigsLayerConv2 = {
             'in_channels': 64,
@@ -30,7 +30,7 @@ class ModelCifar10Conv6(nn.Module):
             'padding': 1,
             'stride': 1
         }
-        self.conv2D_2 = LayerConv2(configs_conv2d_2, configs_network_masks)
+        self.conv2D_2 = LayerConv2MaskImportance(configs_conv2d_2, configs_network_masks)
 
         configs_conv2d_3: ConfigsLayerConv2 = {
             'in_channels': 64,
@@ -39,7 +39,7 @@ class ModelCifar10Conv6(nn.Module):
             'padding': 1,
             'stride': 1
         }
-        self.conv2D_3 = LayerConv2(configs_conv2d_3, configs_network_masks)
+        self.conv2D_3 = LayerConv2MaskImportance(configs_conv2d_3, configs_network_masks)
 
         configs_conv2d_4: ConfigsLayerConv2 = {
             'in_channels': 128,
@@ -48,7 +48,7 @@ class ModelCifar10Conv6(nn.Module):
             'padding': 1,
             'stride': 1
         }
-        self.conv2D_4 = LayerConv2(configs_conv2d_4, configs_network_masks)
+        self.conv2D_4 = LayerConv2MaskImportance(configs_conv2d_4, configs_network_masks)
 
         configs_conv2d_5: ConfigsLayerConv2 = {
             'in_channels': 128,
@@ -57,7 +57,7 @@ class ModelCifar10Conv6(nn.Module):
             'padding': 1,
             'stride': 1
         }
-        self.conv2D_5 = LayerConv2(configs_conv2d_5, configs_network_masks)
+        self.conv2D_5 = LayerConv2MaskImportance(configs_conv2d_5, configs_network_masks)
 
         configs_conv2d_6: ConfigsLayerConv2 = {
             'in_channels': 256,
@@ -66,7 +66,7 @@ class ModelCifar10Conv6(nn.Module):
             'padding': 1,
             'stride': 1
         }
-        self.conv2D_6 = LayerConv2(configs_conv2d_6, configs_network_masks)
+        self.conv2D_6 = LayerConv2MaskImportance(configs_conv2d_6, configs_network_masks)
 
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         
@@ -78,19 +78,19 @@ class ModelCifar10Conv6(nn.Module):
             'in_features': 256 * 4 * 4,
             'out_features': 256
         }
-        self.fc1 = LayerLinear(config_linear_1, configs_network_masks)
+        self.fc1 = LayerLinearMaskImportance(config_linear_1, configs_network_masks)
 
         config_linear_2: ConfigsLayerLinear = {
             'in_features': 256,
             'out_features': 256
         }
-        self.fc2 = LayerLinear(config_linear_2, configs_network_masks)
+        self.fc2 = LayerLinearMaskImportance(config_linear_2, configs_network_masks)
 
         config_linear_3: ConfigsLayerLinear = {
             'in_features': 256,
             'out_features': 10
         }
-        self.fc3 = LayerLinear(config_linear_3, configs_network_masks)
+        self.fc3 = LayerLinearMaskImportance(config_linear_3, configs_network_masks)
 
         self.registered_layers = [self.fc1, self.fc2, self.fc3, self.conv2D_1, self.conv2D_2, self.conv2D_3, self.conv2D_4, self.conv2D_5, self.conv2D_6]
 

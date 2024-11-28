@@ -5,15 +5,20 @@ from torchvision import datasets, transforms
 from src.others import get_device
 from .model_fcn import ModelMnistFNN
 import wandb
+
+from ..config_layers import configs_layers_initialization_all_kaiming_sqrt0, configs_layers_initialization_all_kaiming_sqrt5
 from ..constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from ..data_preprocessing import preprocess_mnist_data_loaders, preprocess_mnist_data_tensors_on_GPU
-from ..layers import ConfigsNetworkMasks
+from ..layers import ConfigsNetworkMasksImportance
 from ..training_common import get_model_parameters_and_masks
 
-STOP_EPOCH = 10
-EXPONENT_CONSTANT = 2
+EXPONENT_CONSTANT = 1.8
+INTERVALS = [[0,8], [12, 16], [22, 24], [30, 32], [35, 36]]
+# INTERVALS = [[0, 11]]
+ITER = 0
 
 def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Tensor, optimizer, epoch, batch_size=128):
+    global ITER
     model.train()
     criterion = nn.CrossEntropyLoss()
     device = get_device()
@@ -26,6 +31,15 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
     indices = torch.randperm(total_data_len, device=device)
     batch_indices = torch.split(indices, batch_size)
 
+    in_interval = False
+    for intr in INTERVALS:
+        if epoch <= intr[1] and intr[0] <= epoch:
+            in_interval = True
+
+    if in_interval:
+        ITER += 1
+
+
     for batch_idx, batch in enumerate(batch_indices):
         data = train_data[batch]
         target = train_labels[batch]
@@ -37,9 +51,15 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
 
         loss = criterion(output, target)
         loss_remaining_weights = model.get_remaining_parameters_loss()
-        loss_remaining_weights = loss_remaining_weights * (epoch ** EXPONENT_CONSTANT)
+        loss_remaining_weights = loss_remaining_weights * (ITER ** EXPONENT_CONSTANT)
 
-        if(epoch > STOP_EPOCH):
+        # if epoch in outside all intervals, multiply by 0
+        in_interval = False
+        for intr in INTERVALS:
+            if epoch <= intr[1] and intr[0] <= epoch:
+                in_interval = True
+
+        if not in_interval:
             loss_remaining_weights *= 0
 
         accumulated_loss += loss
@@ -49,7 +69,7 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
         average_loss_dataset += loss.item()
 
         accumulated_loss.backward()
-        optimizer.baseline()
+        optimizer.step()
 
         if (batch_idx + 1) % BATCH_PRINT_RATE == 0 or (batch_idx + 1) == len(batch_indices):
             average_loss_masks /= BATCH_PRINT_RATE
@@ -63,15 +83,6 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
             total, remaining = model.get_parameters_flipped_statistics()
             non_flip_percentage = remaining / total
             print(f'Flipped weights percentage: {non_flip_percentage*100:.2f}%')
-
-            wandb.log({
-                'epoch': epoch,
-                'train_dataset_loss': average_loss_dataset,
-                'remaining_weights_loss': average_loss_masks,
-                'pruned_percent': pruned_percent,
-                'non_flipped_percent': non_flip_percentage,
-                'batch_idx': batch_idx
-            })
 
             average_loss_masks = 0
             average_loss_dataset = 0
@@ -103,38 +114,18 @@ def test(model: ModelMnistFNN, test_data: torch.Tensor, test_labels: torch.Tenso
         f"Accuracy: {correct}/{total_data_len} ({accuracy:.0f}%)\n"
     )
 
-    wandb.log({
-        'epoch': epoch,
-        'test_loss': test_loss,
-        'accuracy': accuracy,
-    })
-
 
 def run_mnist():
     # Define transformations for the training and testing data
+    configs_layers_initialization_all_kaiming_sqrt5()
     train_data, train_labels, test_data, test_labels = preprocess_mnist_data_tensors_on_GPU()
-    model = ModelMnistFNN(ConfigsNetworkMasks(mask_pruning_enabled=True, mask_flipping_enabled=True, weights_training_enabled=True)).to(get_device())
+    model = ModelMnistFNN(ConfigsNetworkMasksImportance(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
     weight_bias_params, prune_params, flip_params = get_model_parameters_and_masks(model)
 
     lr_weight_bias = 0.005
     lr_pruning_params = 0.001
     lr_flipping_params = 0.001
-    num_epochs = 30
-
-    scheduler_decay_while_pruning = 0.8
-    scheduler_decay_after_pruning = 0.8
-
-    wandb.init(project='Dump', config={
-        'total_epochs': num_epochs,
-        'stop_pruning_epoch': STOP_EPOCH,
-        'lr_weight_bias': lr_weight_bias,
-        'lr_pruning_params': lr_pruning_params,
-        'lr_flipping_params': lr_flipping_params,
-        'exponent_constant': EXPONENT_CONSTANT,
-        'scheduler_decay_while_pruning': scheduler_decay_while_pruning,
-        'scheduler_decay_after_pruning': scheduler_decay_after_pruning,
-        'scaled_training_loss': True
-    })
+    num_epochs = 100
 
     for name, param in model.named_parameters():
         if WEIGHTS_ATTR in name or BIAS_ATTR in name:
@@ -150,22 +141,9 @@ def run_mnist():
         {'params': flip_params, 'lr': lr_flipping_params}
     ])
 
-
-    def lambda_lr_weight_bias(epoch):
-        if epoch < STOP_EPOCH:
-            return (scheduler_decay_while_pruning ** epoch)
-        else:
-            return (scheduler_decay_after_pruning ** (epoch-STOP_EPOCH))
-
-    def lambda_lr_pruning(epoch):
-        if epoch < STOP_EPOCH:
-            return (1 ** epoch)
-        else:
-            return (0.95 ** (epoch-STOP_EPOCH))
-
-    lambda_lr_weight_bias = lambda_lr_weight_bias
-    lambda_lr_pruning_params = lambda_lr_pruning
-    lambda_lr_flipping_params = lambda_lr_pruning_params
+    lambda_lr_weight_bias = lambda epoch: 0.95 ** epoch
+    lambda_lr_pruning_params = lambda epoch: 1
+    lambda_lr_flipping_params = lambda epoch: 1
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_pruning_params, lambda_lr_flipping_params])
 
     for epoch in range(1, num_epochs + 1):
