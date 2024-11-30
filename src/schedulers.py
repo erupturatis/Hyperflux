@@ -1,3 +1,5 @@
+from typing import Dict
+
 
 class PruningScheduler:
     def __init__(self, exponent_constant: float, pruning_target: float, epochs_target: int, total_parameters: int):
@@ -77,3 +79,4 @@ class PruningScheduler:
 
     def get_multiplier(self) -> int:
         return self.baseline ** self.exponent_constant
+
