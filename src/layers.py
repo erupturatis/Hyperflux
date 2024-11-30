@@ -324,8 +324,8 @@ class LayerConv2MaskImportance(LayerPrimitive):
         init = configs_get_layers_initialization("conv2d")
         init(getattr(self, WEIGHTS_ATTR))
 
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.1, b=0.3)
-        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.1, b=0.3)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.5)
+        nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.5)
 
         if hasattr(self, BIAS_ATTR):
             weights = getattr(self, WEIGHTS_ATTR)
