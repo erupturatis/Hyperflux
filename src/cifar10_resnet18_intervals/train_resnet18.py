@@ -39,6 +39,31 @@ class ArgsOthers:
     epoch: int
 
 
+INTERVALS = [
+    {
+        "type": "prune",
+        "start": 1,
+        "end":  150,
+        "target": 0.0125 # 1.25%
+    },
+    {
+        "type": "regrow",
+        "start": 151,
+        "end": 250
+    },
+    {
+        "type": "prune",
+        "start": 251,
+        "end": 500,
+        "target": 0.0050 # 0.5%
+    },
+    {
+        "type": "regrow",
+        "start": 501,
+        "end": 600
+    }
+]
+
 class MegaScheduler:
     def __init__(self, weights_optimizer, pruning_optimizer):
         """
@@ -49,24 +74,25 @@ class MegaScheduler:
         Weights learning rate
 
         """
-        self._epoch = 0
+        self._epoch = 1
+        self.regrowing_lr_decay = 0.9
         # interval 0 pruning
-        self.weights_lr0 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: 1)
+        self.weights_lr0 = torch.optim.lr_scheduler.LambdaLR(weights_optimizer, lambda epoch: 1)
         self.pruning_lr0 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: 1)
         self.pruning_scheduler0 = PruningScheduler(exponent_constant=2, pruning_target=INTERVALS[0]["target"], epochs_target=INTERVALS[0]["end"] - INTERVALS[0]["start"], total_parameters=MODEL.get_parameters_total_count())
 
         # interval 1 regrowing
-        self.weights_lr1 = CosineAnnealingLR(weights_optimizer, T_max=INTERVALS[1]["end"] - INTERVALS[1]["start"])
-        self.pruning_lr1 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: 0.9 ** epoch)
+        self.weights_lr1 = CosineAnnealingLR(weights_optimizer, T_max=INTERVALS[1]["end"] - INTERVALS[1]["start"], eta_min=1e-9)
+        self.pruning_lr1 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: self.regrowing_lr_decay ** epoch)
 
         # interval 2 pruning
-        self.weights_lr2 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: 1)
+        self.weights_lr2 = torch.optim.lr_scheduler.LambdaLR(weights_optimizer, lambda epoch: 1)
         self.pruning_lr2 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: 1)
         self.pruning_scheduler2 = PruningScheduler(exponent_constant=2, pruning_target=INTERVALS[2]["target"], epochs_target=INTERVALS[2]["end"] - INTERVALS[2]["start"], total_parameters=MODEL.get_parameters_total_count())
 
         # interval 3 regrowing
-        self.weight_lr3 = CosineAnnealingLR(weights_optimizer, T_max=INTERVALS[3]["end"] - INTERVALS[3]["start"])
-        self.pruning_lr3 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: 0.9 ** epoch)
+        self.weight_lr3 = CosineAnnealingLR(weights_optimizer, T_max=INTERVALS[3]["end"] - INTERVALS[3]["start"], eta_min=1e-9)
+        self.pruning_lr3 = torch.optim.lr_scheduler.LambdaLR(pruning_optimizer, lambda epoch: self.regrowing_lr_decay ** epoch)
 
     def get_multiplier(self):
         if INTERVALS[0]["start"] <= self._epoch <= INTERVALS[0]["end"]:
@@ -96,19 +122,17 @@ class MegaScheduler:
         if INTERVALS[0]["start"] <= self._epoch <= INTERVALS[0]["end"]:
             self.weights_lr0.step()
             self.pruning_lr0.step()
-            return None
         if INTERVALS[1]["start"] <= self._epoch <= INTERVALS[1]["end"]:
             self.weights_lr1.step()
             self.pruning_lr1.step()
-            return None
         if INTERVALS[2]["start"] <= self._epoch <= INTERVALS[2]["end"]:
             self.weights_lr2.step()
             self.pruning_lr2.step()
-            return None
         if INTERVALS[3]["start"] <= self._epoch <= INTERVALS[3]["end"]:
             self.weight_lr3.step()
             self.pruning_lr3.step()
-            return None
+
+        self._epoch += 1
 
 
 def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
@@ -147,8 +171,6 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
     mega_scheduler.record_state(remaining)
 
     scaler = GradScaler('cuda')  # Initialize GradScaler for mixed precision
-
-    print("epoch", mega_scheduler.get_multiplier())
 
     for batch_idx, batch in enumerate(batch_indices):
         data = train_data[batch].to(device, non_blocking=True)
@@ -201,7 +223,7 @@ def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
     global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, mega_scheduler
     MODEL.train()
 
-    criterion = nn.CrossEntropyLoss(label_smoothing= 0.1)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     device = get_device()
 
     train_data = args_train.train_data
@@ -302,8 +324,8 @@ def test(args_test: TestData):
         f"Remaining parameters: {remain_percent:.2f}%"
     )
 
-    # if WANDB_REGISTER:
-    #     wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
+    if WANDB_REGISTER:
+        wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
 
     return accuracy  # Return accuracy for custom table
 
@@ -319,30 +341,6 @@ mega_scheduler: MegaScheduler
 epoch_global: int = 0
 
 
-INTERVALS = [
-    {
-        "type": "prune",
-        "start": 1,
-        "end":  25,
-        "target": 0.01
-    },
-    {
-        "type": "regrow",
-        "start": 26,
-        "end": 40
-    },
-    {
-        "type": "prune",
-        "start": 41,
-        "end": 75,
-        "target": 0.005
-    },
-    {
-        "type": "regrow",
-        "start": 76,
-        "end": 100
-    }
-]
 
 def run_cifar10_resnet18_intervals():
     configs_layers_initialization_all_kaiming_sqrt5()
@@ -352,7 +350,7 @@ def run_cifar10_resnet18_intervals():
     # lr_weight_bias = 0.1
 
     lr_custom_params = 0.001
-    num_epochs = 500
+    num_epochs = INTERVALS[3]["end"]
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
@@ -370,22 +368,22 @@ def run_cifar10_resnet18_intervals():
     optimizer_pruning = torch.optim.AdamW(pruning_params, lr=lr_custom_params)
     optimizer_flipping = torch.optim.AdamW(flipping_params, lr=lr_custom_params)
 
-    scheduler_god = MegaScheduler(optimizer_weights, optimizer_pruning)
+    mega_scheduler = MegaScheduler(optimizer_weights, optimizer_pruning)
 
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
 
-    # if WANDB_REGISTER:
-    #     wandb.init(
-    #         project="Dump",
-    #         config={
-    #             "batch_size": BATCH_SIZE,
-    #             "num_epochs": num_epochs,
-    #             "lr_weight_bias": lr_weight_bias,
-    #             "lr_custom_params": lr_custom_params,
-    #         },
-    #     )
-    #     wandb.define_metric("epoch")
-    #     wandb.define_metric("*", step_metric="epoch")
+    if WANDB_REGISTER:
+        wandb.init(
+            project="Dump",
+            config={
+                "batch_size": BATCH_SIZE,
+                "num_epochs": num_epochs,
+                "lr_weight_bias": lr_weight_bias,
+                "lr_custom_params": lr_custom_params,
+            },
+        )
+        wandb.define_metric("epoch")
+        wandb.define_metric("*", step_metric="epoch")
 
     # Initialize custom ResNet model
 
@@ -400,5 +398,5 @@ def run_cifar10_resnet18_intervals():
     MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
 
     print("Training complete")
-    # wandb.finish()
+    wandb.finish()
 
