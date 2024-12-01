@@ -68,14 +68,16 @@ class PruningScheduler:
         remaining_epochs = self.epochs_target - len(self.recorded_states)
 
         print(f"Current decrease: {current_decrease * 100:.2f}%, Expected decrease: {expected_decrease * 100:.2f}%")
-        if current_decrease > expected_decrease:
+        if current_decrease > expected_decrease and expected_decrease < 1:
             print("Baseline increased !!")
             # expected deviation
             self.baseline += 1 + self.streak
             self.streak += 0.5
         else:
             self.streak = 0
-            self.streak -= 0.1
+            self.baseline -= 0.15
+            if self.baseline < 0:
+                self.baseline = 0
 
     def get_multiplier(self) -> int:
         return self.baseline ** self.exponent_constant
