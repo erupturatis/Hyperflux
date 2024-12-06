@@ -1,5 +1,6 @@
 import torch
 
+
 class MaskFlipFunctionSigmoid(torch.autograd.Function):
     @staticmethod
     def forward(ctx, mask_param):
@@ -16,11 +17,27 @@ class MaskFlipFunctionSigmoid(torch.autograd.Function):
         return grad_mask_param
 
 
+
+def set_inference(val:bool):
+    global INFERENCE
+    INFERENCE["inference"] = val
+
+INFERENCE = {
+    "inference": False,
+}
+
 class MaskPruningFunctionSigmoid(torch.autograd.Function):
     @staticmethod
     def forward(ctx, mask_param):
         mask = torch.sigmoid(mask_param)
         mask_thresholded = (mask >= 0.5).float()
+
+        inference = INFERENCE["inference"]
+        p = 0.02
+        if not inference:
+            dropout_mask = torch.bernoulli(torch.full_like(mask_thresholded, 1-p))
+            mask_thresholded *= dropout_mask
+
         ctx.save_for_backward(mask)
         return mask_thresholded
 

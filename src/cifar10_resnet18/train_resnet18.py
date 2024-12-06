@@ -10,6 +10,7 @@ from src.config_other import WANDB_REGISTER
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
 from src.layers import ConfigsNetworkMasksImportance
+from src.mask_functions import set_inference
 from src.others import get_device, ArgsDisplayModelStatistics, display_model_statistics, \
     update_args_display_model_statistics
 from src.cifar10_resnet18.model_base_resnet18 import ModelBaseResnet18, ConfigsModelBaseResnet18
@@ -98,7 +99,7 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
         # Optionally, accumulate average loss for monitoring
         average_loss_data += loss_data.detach()
-        average_loss_remaining_weights += 0
+        average_loss_remaining_weights += loss_remaining_weights.detach()
 
         # Step the optimizers using the scaled gradients
         scaler.step(optimizer_weights)
@@ -197,6 +198,7 @@ def test(args_test: TestData):
 
     MODEL.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
+    set_inference(True)
 
     test_data = args_test.test_data
     test_labels = args_test.test_labels
@@ -232,6 +234,8 @@ def test(args_test: TestData):
     if WANDB_REGISTER:
         wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
 
+    set_inference(False)
+
     return accuracy  # Return accuracy for custom table
 
 
@@ -253,8 +257,8 @@ def run_cifar10_resnet18():
     # lr_weight_bias = 0.1
 
     lr_custom_params = 0.001
-    stop_epoch = 400
-    num_epochs = 600
+    stop_epoch = 150
+    num_epochs = 200
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
@@ -264,13 +268,13 @@ def run_cifar10_resnet18():
     configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
     MODEL = ModelBaseResnet18(configs_model_base_resnet18, configs_network_masks).to(get_device())
     # MODEL.load_pretrained_pytorch()
-    MODEL.load('/data/pretrained/resnet18-cifar10-trained95')
+    MODEL.load('/data_common/resnet18-cifar10-trained95')
     pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
 
     if WANDB_REGISTER:
         wandb.init(
-            project="Dump",
+            project="resnet50_cifar10",
             config={
                 "batch_size": BATCH_SIZE,
                 "num_epochs": num_epochs,
