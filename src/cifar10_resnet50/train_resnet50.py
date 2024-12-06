@@ -41,7 +41,7 @@ class ArgsOthers:
 
 
 def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
-    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, mega_scheduler
+    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, pruning_scheduler
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing= 0.1)
@@ -159,13 +159,13 @@ AUGMENTATIONS = nn.Sequential(
     K.RandomRotation(degrees=10.0),
     K.RandomHorizontalFlip(p=0.5),
 ).to(get_device())
-mega_scheduler: PruningScheduler
+pruning_scheduler: PruningScheduler
 epoch_global: int = 0
 
 def run_cifar10_resnet50():
     configs_layers_initialization_all_kaiming_sqrt5()
 
-    global MODEL, BATCH_SIZE, epoch_global, mega_scheduler
+    global MODEL, BATCH_SIZE, epoch_global, pruning_scheduler
     lr_weight_bias = 0.001 # Adjust learning rate as needed
     lr_custom_params = 0.001
                                             

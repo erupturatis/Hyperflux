@@ -40,7 +40,7 @@ class ArgsOthers:
 
 
 def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
-    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, mega_scheduler
+    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, pruning_scheduler
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
@@ -125,7 +125,7 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
 
 def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
-    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, mega_scheduler
+    global BATCH_SIZE, AUGMENTATIONS, MODEL, epoch_global, pruning_scheduler
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing= 0.1)
@@ -229,8 +229,8 @@ def test(args_test: TestData):
         f"Remaining parameters: {remain_percent:.2f}%"
     )
 
-    # if WANDB_REGISTER:
-    #     wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
+    if WANDB_REGISTER:
+        wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
 
     return accuracy  # Return accuracy for custom table
 
@@ -242,19 +242,19 @@ AUGMENTATIONS = nn.Sequential(
     K.RandomRotation(degrees=10.0),
     K.RandomHorizontalFlip(p=0.5),
 ).to(get_device())
-mega_scheduler: PruningScheduler
+pruning_scheduler: PruningScheduler
 epoch_global: int = 0
 
 def run_cifar10_resnet18():
     configs_layers_initialization_all_kaiming_sqrt5()
-    global MODEL, BATCH_SIZE, epoch_global, mega_scheduler
+    global MODEL, BATCH_SIZE, epoch_global, pruning_scheduler
     # fine tuning and from scratch
     lr_weight_bias = 0.0001
     # lr_weight_bias = 0.1
 
     lr_custom_params = 0.001
-    stop_epoch = 300
-    num_epochs = 500
+    stop_epoch = 400
+    num_epochs = 600
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
@@ -268,18 +268,18 @@ def run_cifar10_resnet18():
     pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
 
-    # if WANDB_REGISTER:
-    #     wandb.init(
-    #         project="Dump",
-    #         config={
-    #             "batch_size": BATCH_SIZE,
-    #             "num_epochs": num_epochs,
-    #             "lr_weight_bias": lr_weight_bias,
-    #             "lr_custom_params": lr_custom_params,
-    #         },
-    #     )
-    #     wandb.define_metric("epoch")
-    #     wandb.define_metric("*", step_metric="epoch")
+    if WANDB_REGISTER:
+        wandb.init(
+            project="Dump",
+            config={
+                "batch_size": BATCH_SIZE,
+                "num_epochs": num_epochs,
+                "lr_weight_bias": lr_weight_bias,
+                "lr_custom_params": lr_custom_params,
+            },
+        )
+        wandb.define_metric("epoch")
+        wandb.define_metric("*", step_metric="epoch")
 
     # Initialize custom ResNet model
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)

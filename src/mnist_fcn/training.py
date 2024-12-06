@@ -51,7 +51,8 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
 
         loss = criterion(output, target)
         loss_remaining_weights = model.get_remaining_parameters_loss()
-        loss_remaining_weights = loss_remaining_weights * (ITER ** EXPONENT_CONSTANT)
+        # loss_remaining_weights = loss_remaining_weights * (ITER ** EXPONENT_CONSTANT)
+        loss_remaining_weights = loss_remaining_weights / 2
 
         # if epoch in outside all intervals, multiply by 0
         in_interval = False
@@ -59,8 +60,8 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
             if epoch <= intr[1] and intr[0] <= epoch:
                 in_interval = True
 
-        if not in_interval:
-            loss_remaining_weights *= 0
+        # if not in_interval:
+        #     loss_remaining_weights *= 0
 
         accumulated_loss += loss
         accumulated_loss += loss_remaining_weights

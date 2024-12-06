@@ -41,7 +41,7 @@ class ArgsOptimizers:
     optimizer: torch.optim
 
 def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
-    global MODEL, epoch_global, BATCH_SIZE, mega_scheduler
+    global MODEL, epoch_global, BATCH_SIZE, pruning_scheduler
     MODEL.train()
     criterion = nn.CrossEntropyLoss()
     device = get_device()
@@ -145,12 +145,12 @@ def test(args_test: TestData):
 
 
 MODEL: ModelCifar10Conv2
-mega_scheduler: PruningScheduler
+pruning_scheduler: PruningScheduler
 epoch_global = 0
 BATCH_SIZE = 128
 
 def run_cifar10_conv2():
-    global MODEL, epoch_global, BATCH_SIZE, mega_scheduler
+    global MODEL, epoch_global, BATCH_SIZE, pruning_scheduler
     configs_layers_initialization_all_kaiming_sqrt5()
 
     stop_epoch = 20
