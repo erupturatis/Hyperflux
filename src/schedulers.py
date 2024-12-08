@@ -124,6 +124,9 @@ class PruningSchedulerSane:
         """
 
         # we are at the end of this epoch
+        if self.epoch > self.epochs_target:
+            self.baseline = 0
+            return None
 
         expected_params = self._get_expected_parameters_percentage()
         current_params = self._get_current_parameters_percentage()

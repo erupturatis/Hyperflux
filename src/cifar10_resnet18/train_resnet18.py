@@ -303,7 +303,7 @@ def run_cifar10_resnet18():
         pruning_scheduler.step()
 
         if epoch > stop_epoch:
-            scheduler_regrowing_weights.step()
+            # scheduler_regrowing_weights.step()
             scheduler_pruning.step()
 
     MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
