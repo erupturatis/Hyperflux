@@ -30,6 +30,7 @@ class MaskPruningFunctionSigmoid(torch.autograd.Function):
     def backward(ctx, grad_output):
         mask, = ctx.saved_tensors
         # sigmoid derivative
+        # grad_mask_param = grad_output * mask * (1 - mask)
         grad_mask_param = -torch.abs(grad_output) * mask * (1 - mask)
         return grad_mask_param
 

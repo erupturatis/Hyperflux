@@ -56,7 +56,7 @@ def plot_pruning_trajectory(pruning_factors, epochs_target, pruning_target):
 if __name__ == "__main__":
     # Define pruning parameters
     pruning_target = 0.5           # Desired pruning factor at the final epoch
-    epochs_target = 400            # Total number of epochs
+    epochs_target = 200            # Total number of epochs
 
     # Initialize TrajectoryCalculator to find the optimal start_pruning_decrease
     late_aggressivity = epochs_target / 3
