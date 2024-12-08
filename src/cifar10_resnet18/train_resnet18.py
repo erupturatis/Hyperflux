@@ -253,8 +253,8 @@ def run_cifar10_resnet18():
     # lr_weight_bias = 0.1
 
     lr_custom_params = 0.001
-    stop_epoch = 400
-    num_epochs = 600
+    stop_epoch = 200
+    num_epochs = 300
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
