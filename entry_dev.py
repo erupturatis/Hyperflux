@@ -1,120 +1,85 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Define the sigmoid-based function e(c) with parameters 'k' and 'c0'
-def e(c, param, k, c0):
-    sigmoid = 1 / (1 + np.exp(-k * (c - c0)))
-    return param + (0.999 - param) * sigmoid
+from src.schedulers import expected_pruning_decrease_at_epoch, TrajectoryCalculator
 
-# Define the function f(a) using logarithms for numerical stability
-def f(a, param, k, c0):
-    # Compute log(e(k)) for k from 1 to a
-    log_e_values = [np.log(e(epoch, param, k, c0)) for epoch in range(1, a + 1)]
-    # Sum the logs
-    log_product = np.sum(log_e_values)
-    # Compute log(f(a)) = log(100) + log_product
-    log_fa = np.log(100) + log_product
-    # Exponentiate to get f(a)
-    return np.exp(log_fa)
 
-# Define the classic exponential function f_exp(a)
-def f_exp(a, lam):
-    return 100 * np.exp(-lam * a)
+def compute_pruning_trajectory(epochs_target, start_decrease, end_decrease, aggressivity_transition, late_aggressivity):
+    """
+    Computes the pruning factor f for each epoch.
 
-# Binary search to find the optimal 'param' for custom function
-def binary_search_param(target, k, c0, a, tol=1e-6, max_iter=100):
-    lower = 0.0
-    upper = 1.0
-    iteration = 0
-    best_param = None
-    best_fa = None
+    Parameters:
+        epochs_target (int): Total number of epochs.
+        start_decrease (float): Initial pruning decrease factor.
+        end_decrease (float): Final pruning decrease factor.
+        aggressivity_transition (float): Controls the steepness of the sigmoid transition.
+        late_aggressivity (float): Epoch at which the pruning aggressiveness starts to increase.
 
-    while iteration < max_iter:
-        mid = (lower + upper) / 2
-        current_fa = f(a, mid, k, c0)
+    Returns:
+        list of float: Pruning factors for each epoch.
+    """
+    pruning_factors = []
+    cumulative_log = np.log(100)  # Starting with 100%
 
-        # Debug: Print current state
-        print(f"Iteration {iteration+1}: param={mid:.6f}, f({a})={current_fa:.6f}")
+    for epoch in range(1, epochs_target + 1):
+        decrease = expected_pruning_decrease_at_epoch(
+            epoch, start_decrease, end_decrease, aggressivity_transition, late_aggressivity
+        )
+        cumulative_log += np.log(decrease)
+        expected_pruning_at_epoch = np.exp(cumulative_log)
+        print("epoch:", epoch, "expected_pruning_at_epoch:", expected_pruning_at_epoch)
+        pruning_factors.append(expected_pruning_at_epoch)
 
-        # Check if the current f(a) is close enough to the target
-        if abs(current_fa - target) < tol:
-            best_param = mid
-            best_fa = current_fa
-            break
+    return pruning_factors
 
-        # Decide which half to choose for the next iteration
-        if current_fa < target:
-            # Assuming f(a) increases with param
-            lower = mid
-        else:
-            upper = mid
+def plot_pruning_trajectory(pruning_factors, epochs_target, pruning_target):
+    """
+    Plots the pruning trajectory over epochs.
 
-        # Update the best found so far
-        if best_fa is None or abs(current_fa - target) < abs(best_fa - target):
-            best_param = mid
-            best_fa = current_fa
-
-        iteration += 1
-
-    return best_param, best_fa
-
-# Function to calculate lambda for classic exponential
-def calculate_lambda(target, epochs_num):
-    # Ensure target is positive and less than or equal to 100
-    if target <= 0 or target > 100:
-        raise ValueError("Target must be between 0 (exclusive) and 100 (inclusive).")
-    lam = -np.log(target / 100) / epochs_num
-    return lam
-
-# Function to compute f_exp(a) using the calculated lambda
-def compute_f_exp(a_values, lam):
-    return 100 * np.exp(-lam * a_values)
-
-# Function to compute f(a) for plotting with given param, k, and c0
-def compute_f_custom(a_values, param, k, c0):
-    return [f(a, param, k, c0) for a in a_values]
-
-# Example usage
-if __name__ == "__main__":
-    # Define your target for f(200)
-    target_final = 0.5  # Replace with your desired target between 1 and 100
-
-    # Define parameters for the sigmoid function
-    k = 0.05    # Controls the steepness of the transition
-    c0 = 100    # Midpoint of the transition
-
-    epochs_num = 400
-
-    # Perform binary search to find the optimal 'param' for custom function
-    print(f"Performing binary search with k={k}, c0={c0} to reach target f(200)={target_final}\n")
-    optimal_param, achieved_f200 = binary_search_param(target=target_final, k=k, c0=c0, a=epochs_num, tol=1e-6, max_iter=100)
-
-    print("\nOptimal Parameter Found for Custom Function:")
-    print(f"param = {optimal_param:.6f}")
-    print(f"f(200) = {achieved_f200:.6f} (Target: {target_final})\n")
-
-    # Calculate lambda for classic exponential
-    lam = calculate_lambda(target_final)
-    print("Parameter for Classic Exponential Function:")
-    print(f"lambda = {lam:.6f}\n")
-
-    # Generate values for a from 1 to 200
-    a_values = np.arange(1, epochs_num + 1)
-    f_custom_values = compute_f_custom(a_values, optimal_param, k, c0)
-    f_exp_values = compute_f_exp(a_values, lam)
-
-    # Plotting
-    plt.figure(figsize=(12, 7))
-    plt.plot(a_values, f_custom_values, marker='o', linestyle='-', color='b',
-             label=f'Custom Function (param = {optimal_param:.4f})')
-    plt.plot(a_values, f_exp_values, marker='x', linestyle='--', color='g',
-             label=f'Classic Exponential (λ = {lam:.4f})')
-    plt.axhline(y=target_final, color='r', linestyle='--',
-                label=f'Target f(200) = {target_final}')
-    plt.title('Comparison of Modified Custom Function and Classic Exponential Function')
-    plt.xlabel('Epoch (a)')
-    plt.ylabel('f(a)')
+    Parameters:
+        pruning_factors (list of float): Pruning factors for each epoch.
+        epochs_target (int): Total number of epochs.
+        pruning_target (float): The desired pruning factor at the final epoch.
+    """
+    epochs = np.arange(1, epochs_target + 1)
+    plt.figure(figsize=(10, 6))
+    plt.plot(epochs, pruning_factors, label='Pruning Factor f(epoch)', color='blue')
+    plt.axhline(y=pruning_target, color='red', linestyle='--', label=f'Pruning Target ({pruning_target})')
+    plt.title('Pruning Trajectory Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Pruning Factor f(epoch)')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+if __name__ == "__main__":
+    # Define pruning parameters
+    pruning_target = 0.5           # Desired pruning factor at the final epoch
+    epochs_target = 400            # Total number of epochs
+
+    # Initialize TrajectoryCalculator to find the optimal start_pruning_decrease
+    late_aggressivity = epochs_target / 3
+    aggressivity_transition = 0.05
+
+    calculator = TrajectoryCalculator(
+        pruning_target=pruning_target,
+        epochs_target=epochs_target,
+        late_aggresivity=late_aggressivity,
+        aggresivity_transition=aggressivity_transition,
+    )
+
+    start_decrease = calculator.get_start_pruning_decrease()
+    end_decrease = calculator.END_PRUNING_DECREASE
+
+    # Compute pruning trajectory
+    pruning_factors = compute_pruning_trajectory(
+        epochs_target=epochs_target,
+        start_decrease=start_decrease,
+        end_decrease=end_decrease,
+        late_aggressivity=late_aggressivity,
+        aggressivity_transition=aggressivity_transition,
+    )
+
+    # Plot the pruning trajectory
+    plot_pruning_trajectory(pruning_factors, epochs_target, pruning_target)

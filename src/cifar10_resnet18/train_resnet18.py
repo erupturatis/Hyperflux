@@ -10,13 +10,12 @@ from src.config_other import WANDB_REGISTER
 from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 from src.data_preprocessing import preprocess_cifar10_data_tensors_on_GPU, preprocess_cifar10_resnet_data_tensors_on_GPU
 from src.layers import ConfigsNetworkMasksImportance
-from src.mask_functions import set_inference
 from src.others import get_device, ArgsDisplayModelStatistics, display_model_statistics, \
     update_args_display_model_statistics
 from src.cifar10_resnet18.model_base_resnet18 import ModelBaseResnet18, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, CosineAnnealingWarmRestarts
 import kornia.augmentation as K
-from src.schedulers import PruningScheduler
+from src.schedulers import PruningScheduler, PruningSchedulerSane
 from src.training_common import get_model_parameters_and_masks
 from torch.amp import GradScaler, autocast
 @dataclass
@@ -73,8 +72,8 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
     )
 
     total, remaining = MODEL.get_parameters_pruning_statistics()
-    pruning_scheduler.record_state(remaining)
-    pruning_scheduler.step()
+    # pruning_scheduler.record_state(remaining)
+    # pruning_scheduler.step()
 
     scaler = GradScaler('cuda')  # Initialize GradScaler for mixed precision
 
@@ -198,7 +197,6 @@ def test(args_test: TestData):
 
     MODEL.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
-    set_inference(True)
 
     test_data = args_test.test_data
     test_labels = args_test.test_labels
@@ -234,8 +232,6 @@ def test(args_test: TestData):
     if WANDB_REGISTER:
         wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
 
-    set_inference(False)
-
     return accuracy  # Return accuracy for custom table
 
 
@@ -257,8 +253,8 @@ def run_cifar10_resnet18():
     # lr_weight_bias = 0.1
 
     lr_custom_params = 0.001
-    stop_epoch = 150
-    num_epochs = 200
+    stop_epoch = 400
+    num_epochs = 600
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
@@ -269,7 +265,7 @@ def run_cifar10_resnet18():
     MODEL = ModelBaseResnet18(configs_model_base_resnet18, configs_network_masks).to(get_device())
     # MODEL.load_pretrained_pytorch()
     MODEL.load('/data_common/resnet18-cifar10-trained95')
-    pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
+    pruning_scheduler = PruningSchedulerSane(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
 
     if WANDB_REGISTER:
@@ -302,6 +298,10 @@ def run_cifar10_resnet18():
         train_mixed(ArgsTrain(train_data, train_labels), ArgsOptimizers(optimizer_weights, optimizer_pruning, optimizer_flipping))
         test(TestData(test_data, test_labels))
 
+        _, remaining = MODEL.get_parameters_pruning_statistics()
+        pruning_scheduler.record_state(remaining.item())
+        pruning_scheduler.step()
+
         if epoch > stop_epoch:
             scheduler_regrowing_weights.step()
             scheduler_pruning.step()
@@ -309,4 +309,4 @@ def run_cifar10_resnet18():
     MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
 
     print("Training complete")
-    # wandb.finish()
+    wandb.finish()
