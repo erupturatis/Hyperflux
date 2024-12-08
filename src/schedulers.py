@@ -113,7 +113,10 @@ class PruningSchedulerSane:
         self.epoch += 1
 
     def _get_expected_parameters_percentage(self) -> float:
-        return self.trajectory_calculator.get_expected_pruning_at_epoch(self.epoch)
+        if self.epoch < self.epochs_target:
+            return self.trajectory_calculator.get_expected_pruning_at_epoch(self.epoch)
+        else:
+            return self.pruning_target * 1.5
 
     def _get_current_parameters_percentage(self) -> float:
         return self.recorded_states[-1] / self.total_parameters * 100
@@ -124,9 +127,9 @@ class PruningSchedulerSane:
         """
 
         # we are at the end of this epoch
-        if self.epoch > self.epochs_target:
-            self.baseline = 0
-            return None
+        # if self.epoch > self.epochs_target:
+        #     self.baseline = 0
+        #     return None
 
         expected_params = self._get_expected_parameters_percentage()
         current_params = self._get_current_parameters_percentage()
