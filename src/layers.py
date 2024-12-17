@@ -12,7 +12,7 @@ from src.config_layers import MaskPruningFunction, MaskFlipFunction, get_paramet
 from src.parameters_mask_processors import get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \
     get_parameters_flipped_statistics_sigmoid_, get_parameters_pruning_sigmoid_steep, get_parameters_total, \
     get_parameters_pruning_statistics_vanilla_
-from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
+from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
 from src.others import get_device
 import math
 import numpy as np
@@ -231,16 +231,18 @@ class LayerLinearMaskImportance(LayerPrimitive):
         # nn.init.kaiming_normal_(getattr(self, WEIGHTS_ATTR), nonlinearity='relu')
         init = configs_get_layers_initialization("fcn")
         init(getattr(self, WEIGHTS_ATTR))
-        
-        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.2, b=0.5)
+
+        # nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.5, b=1)
+        nn.init.uniform_(getattr(self, WEIGHTS_PRUNING_ATTR), a=0.3, b=0.5)
         nn.init.uniform_(getattr(self, WEIGHTS_FLIPPING_ATTR), a=0.2, b=0.3)
-
-
 
         weights = getattr(self, WEIGHTS_ATTR)
         fan_in, _ = nn.init._calculate_fan_in_and_fan_out(weights)
         bound = 1 / math.sqrt(fan_in)
         nn.init.uniform_(getattr(self, BIAS_ATTR), -bound, bound)
+
+    def debug_masks_values(self):
+        MaskPruningFunctionSigmoidDebugging.apply(getattr(self, WEIGHTS_PRUNING_ATTR), getattr(self,WEIGHTS_ATTR))
 
     def forward(self, input, inference = False):
         masked_weight = getattr(self, WEIGHTS_ATTR)
@@ -248,19 +250,33 @@ class LayerLinearMaskImportance(LayerPrimitive):
         if hasattr(self, BIAS_ATTR):
             bias = getattr(self, BIAS_ATTR)
 
-        if self.mask_pruning_enabled:
-            if inference == False:
-                mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
-            else:
-                mask_changes = MaskPruningFunctionSigmoid.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+        if not hasattr(self, 'prev_pruning_mask'):
+            self.prev_pruning_mask = torch.ones_like(getattr(self, WEIGHTS_PRUNING_ATTR), dtype=torch.int32)
 
+        if self.mask_pruning_enabled:
+            mask_changes = MaskPruningFunctionSigmoid.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
             masked_weight = masked_weight * mask_changes
+
+            # true_mask = MaskPruningFunctionSigmoidVanilla.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+            # # XOR operation to track pruning mask changes
+            # pruning_changes = (self.prev_pruning_mask.int()) ^ (true_mask.int())
+            # # Log or store metrics
+            # if not hasattr(self, 'pruning_metrics'):
+            #     self.pruning_metrics = {'flipped_state': 0}
+            # self.pruning_metrics['flipped_state'] += pruning_changes.sum()
 
         if self.mask_flipping_enabled:
             mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weight = masked_weight * mask_changes
 
         return F.linear(input, masked_weight, bias)
+
+    def get_and_reset_pruning_metrics(self):
+        self.prev_pruning_mask = torch.ones_like(getattr(self, WEIGHTS_PRUNING_ATTR), dtype=torch.int32)
+        print(self.pruning_metrics["flipped_state"])
+
+
+
 
 
 @dataclass

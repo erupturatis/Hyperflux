@@ -14,14 +14,8 @@ from ..layers import ConfigsNetworkMasksImportance
 from ..mask_functions import INFERENCE, datablob
 from ..training_common import get_model_parameters_and_masks
 
-EXPONENT_CONSTANT = 3
-# INTERVALS = [[0,8], [12, 16], [22, 24], [30, 32], [35, 36]]
-STOP_EPOCH = 30
-INTERVALS = [[0, STOP_EPOCH]]
-ITER = 0
-
 def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Tensor, optimizer, epoch, batch_size=128):
-    global ITER
+    global SCALER_NETWORK_LOSS
     model.train()
     criterion = nn.CrossEntropyLoss()
     device = get_device()
@@ -34,15 +28,6 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
     indices = torch.randperm(total_data_len, device=device)
     batch_indices = torch.split(indices, batch_size)
 
-    in_interval = False
-    for intr in INTERVALS:
-        if epoch <= intr[1] and intr[0] <= epoch:
-            in_interval = True
-
-    if in_interval:
-        ITER += 1
-
-
     for batch_idx, batch in enumerate(batch_indices):
         data = train_data[batch]
         target = train_labels[batch]
@@ -54,17 +39,7 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
 
         loss = criterion(output, target)
         loss_remaining_weights = model.get_remaining_parameters_loss()
-        loss_remaining_weights = loss_remaining_weights * (ITER ** EXPONENT_CONSTANT)
-        loss_remaining_weights = loss_remaining_weights
-
-        # if epoch in outside all intervals, multiply by 0
-        in_interval = False
-        for intr in INTERVALS:
-            if epoch <= intr[1] and intr[0] <= epoch:
-                in_interval = True
-
-        if not in_interval:
-            loss_remaining_weights *= 0
+        loss_remaining_weights *= SCALER_NETWORK_LOSS
 
         accumulated_loss += loss
         accumulated_loss += loss_remaining_weights
@@ -74,8 +49,6 @@ def train(model: ModelMnistFNN, train_data: torch.Tensor, train_labels: torch.Te
 
         accumulated_loss.backward()
         optimizer.step()
-
-
 
         if (batch_idx + 1) % BATCH_PRINT_RATE == 0 or (batch_idx + 1) == len(batch_indices) or batch_idx == 0:
             average_loss_masks /= BATCH_PRINT_RATE
@@ -124,80 +97,51 @@ def test(model: ModelMnistFNN, test_data: torch.Tensor, test_labels: torch.Tenso
     _, remaining = model.get_parameters_pruning_statistics()
     print("REMAINING PARAMS", remaining)
 
-    # evaluating mask values
-    # model.fc3.debug_masks_values()
-    # model.fc3.get_and_reset_pruning_metrics()
 
 
-
-def count_total_parameters(param_list):
-    return sum(p.numel() for p in param_list)
-
-import matplotlib.pyplot as plt
-
-def plot_gradients_evolution(datablob):
-    """
-    Plot the evolution of gradients over training for each column in the array.
-
-    Parameters:
-    - datablob (list of lists or numpy array): Array containing gradients during training.
-    """
-
-    gradients_trial2 = np.vstack(datablob)
-    print(gradients_trial2)
-    gradients = np.array(datablob)
-    print(gradients)
-    # gradients = datablob
-
-    # Check if gradients have at least one column
-    if gradients.ndim != 2 or gradients.shape[1] == 0:
-        print("Error: Input must be a 2D array with at least one column.")
-        return
-
-    num_columns = gradients.shape[1]
-    time_steps = np.arange(gradients.shape[0])
-
-    for col in range(num_columns):
-        plt.figure(figsize=(8, 4))
-        plt.plot(time_steps, gradients[:, col], label=f'Gradient Column {col+1}')
-        plt.title(f'Evolution of Gradient Column {col+1}')
-        plt.xlabel('Training Step')
-        plt.ylabel('Gradient Value')
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+import json
+def run_mnist_training_net_flow_experiment():
+    global SCALER_NETWORK_LOSS
+    arr = []
+    for i in range(-10,11):
+        SCALER_NETWORK_LOSS = 2 ** i
+        print(SCALER_NETWORK_LOSS)
+        remaining_params_count = run_mnist()
+        arr.append(remaining_params_count.item())
+        print(SCALER_NETWORK_LOSS)
+        print(arr)
+        print("Array saved:", arr)
+        with open('results.json', 'w') as file:
+            json.dump(arr, file)
+        print("Array saved to results.json:", arr)
 
 
+SCALER_NETWORK_LOSS = 1
 
 def run_mnist():
     # Define transformations for the training and testing data
     configs_layers_initialization_all_kaiming_sqrt5()
     model = ModelMnistFNN(ConfigsNetworkMasksImportance(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
-    # model = ModelMnistFNNAllToAllOther(ConfigsNetworkMasksImportance(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
     weight_bias_params, prune_params, flip_params = get_model_parameters_and_masks(model)
 
     lr_weight_bias = 0.005
-    lr_pruning_params = 0.001
+
+    # lr_pruning_params = 0.001
+    lr_pruning_params = 0.00075
 
     lr_flipping_params = 0.001
-    num_epochs = 30
-
-    params_count = count_total_parameters(weight_bias_params)
-    print(params_count)
+    num_epochs = 300
 
     optimizer = torch.optim.AdamW([
         {'params': weight_bias_params, 'lr': lr_weight_bias, 'weight_decay': 0},
         {'params': prune_params, 'lr': lr_pruning_params, 'weight_decay': 0},
-        {'params': flip_params, 'lr': lr_flipping_params},
     ])
 
-    lambda_lr_weight_bias = lambda epoch: 0.95 ** epoch
-    lambda_lr_pruning_params = lambda epoch: 0.75 ** (epoch - STOP_EPOCH) if epoch > STOP_EPOCH else 1
-    lambda_lr_flipping_params = lambda epoch: 1
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_pruning_params, lambda_lr_flipping_params])
+    lambda_lr_weight_bias = lambda epoch: 0.99 ** epoch
+    lambda_lr_pruning = lambda epoch: 1
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda_lr_weight_bias, lambda_lr_pruning])
 
     train_data, train_labels, test_data, test_labels = preprocess_mnist_data_tensors_on_GPU()
-
     for epoch in range(1, num_epochs + 1):
         # Toggle mask as needed
         train(model, train_data, train_labels, optimizer, epoch)
@@ -207,6 +151,7 @@ def run_mnist():
     print("Training complete")
     _, remaining = model.get_parameters_pruning_statistics()
     print(remaining)
+    return remaining
 
     wandb.finish()
 
