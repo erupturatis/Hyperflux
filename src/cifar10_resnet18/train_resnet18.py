@@ -15,7 +15,7 @@ from src.others import get_device, ArgsDisplayModelStatistics, display_model_sta
 from src.cifar10_resnet18.model_base_resnet18 import ModelBaseResnet18, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, CosineAnnealingWarmRestarts
 import kornia.augmentation as K
-from src.schedulers import PruningScheduler
+from src.schedulers import PruningScheduler, PruningSchedulerSane
 from src.training_common import get_model_parameters_and_masks
 from torch.amp import GradScaler, autocast
 @dataclass
@@ -72,8 +72,8 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
     )
 
     total, remaining = MODEL.get_parameters_pruning_statistics()
-    pruning_scheduler.record_state(remaining)
-    pruning_scheduler.step()
+    # pruning_scheduler.record_state(remaining)
+    # pruning_scheduler.step()
 
     scaler = GradScaler('cuda')  # Initialize GradScaler for mixed precision
 
@@ -98,7 +98,7 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
 
         # Optionally, accumulate average loss for monitoring
         average_loss_data += loss_data.detach()
-        average_loss_remaining_weights += 0
+        average_loss_remaining_weights += loss_remaining_weights.detach()
 
         # Step the optimizers using the scaled gradients
         scaler.step(optimizer_weights)
@@ -253,8 +253,8 @@ def run_cifar10_resnet18():
     # lr_weight_bias = 0.1
 
     lr_custom_params = 0.001
-    stop_epoch = 400
-    num_epochs = 600
+    stop_epoch = 200
+    num_epochs = 300
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
@@ -264,13 +264,13 @@ def run_cifar10_resnet18():
     configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
     MODEL = ModelBaseResnet18(configs_model_base_resnet18, configs_network_masks).to(get_device())
     # MODEL.load_pretrained_pytorch()
-    MODEL.load('/data/pretrained/resnet18-cifar10-trained95')
-    pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
+    MODEL.load('/data_common/resnet18-cifar10-trained95')
+    pruning_scheduler = PruningSchedulerSane(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
     train_data, train_labels, test_data, test_labels = preprocess_cifar10_resnet_data_tensors_on_GPU()
 
     if WANDB_REGISTER:
         wandb.init(
-            project="Dump",
+            project="resnet50_cifar10",
             config={
                 "batch_size": BATCH_SIZE,
                 "num_epochs": num_epochs,
@@ -298,11 +298,17 @@ def run_cifar10_resnet18():
         train_mixed(ArgsTrain(train_data, train_labels), ArgsOptimizers(optimizer_weights, optimizer_pruning, optimizer_flipping))
         test(TestData(test_data, test_labels))
 
+        _, remaining = MODEL.get_parameters_pruning_statistics()
+        pruning_scheduler.record_state(remaining.item())
+        pruning_scheduler.step()
+
         if epoch > stop_epoch:
-            scheduler_regrowing_weights.step()
-            scheduler_pruning.step()
+            # scheduler_regrowing_weights.step()
+            # scheduler_pruning.step()
+            pass
+
 
     MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
 
     print("Training complete")
-    # wandb.finish()
+    wandb.finish()
