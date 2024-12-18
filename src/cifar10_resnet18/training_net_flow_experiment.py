@@ -97,16 +97,16 @@ def train_mixed(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
         # Update the scaler for the next iteration
         scaler.update()
 
-        if (batch_idx + 1) % BATCH_PRINT_RATE == 0 or (batch_idx + 1) * BATCH_SIZE >= total_data_len:
-            update_args_display_model_statistics(
-                args_display,
-                [average_loss_data, average_loss_remaining_weights],
-                batch_idx,
-                epoch_global
-            )
-            display_model_statistics(args_display)
-            average_loss_data = torch.tensor(0.0, device=device)
-            average_loss_remaining_weights = torch.tensor(0.0, device=device)
+        # if (batch_idx + 1) % BATCH_PRINT_RATE == 0 or (batch_idx + 1) * BATCH_SIZE >= total_data_len:
+        #     update_args_display_model_statistics(
+        #         args_display,
+        #         [average_loss_data, average_loss_remaining_weights],
+        #         batch_idx,
+        #         epoch_global
+        #     )
+        #     display_model_statistics(args_display)
+        #     average_loss_data = torch.tensor(0.0, device=device)
+        #     average_loss_remaining_weights = torch.tensor(0.0, device=device)
 
 
 def test(args_test: TestData):
@@ -185,7 +185,7 @@ def run_cifar10_resnet18():
 
     lr_weight_bias = 0.0001
     lr_custom_params = 0.001
-    num_epochs = 3
+    num_epochs = 200
 
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
@@ -205,6 +205,7 @@ def run_cifar10_resnet18():
 
     for epoch in range(1, num_epochs + 1):
         epoch_global = epoch
+        print("EPOCH ", epoch_global)
         train_mixed(ArgsTrain(train_data, train_labels), ArgsOptimizers(optimizer_weights, optimizer_pruning, None))
         test(TestData(test_data, test_labels))
 
