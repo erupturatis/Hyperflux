@@ -1,4 +1,5 @@
 from src.cifar10_resnet18_intervals.train_resnet18 import run_cifar10_resnet18_intervals
+from src.mnist_fcn.training_pruning_curve_experiment import run_mnist_pruning_curve_experiment
 from src.pipelines import pipeline_mnist, pipeline_cifar10_resnet18, pipeline_cifar10_conv2, pipeline_cifar10_resnet50, \
     pipeline_cifar10_resnet18_vanilla_testing, pipeline_mnist_probabilistic, pipeline_mnist_averaged_tests, \
     pipeline_resnet18_averaged_tests
@@ -8,7 +9,8 @@ import torch
 if __name__ == '__main__':
     # pipeline_mnist_probabilistic()
     # pipeline_mnist()
-    pipeline_resnet18_averaged_tests()
+    # pipeline_resnet18_averaged_tests()
+    run_mnist_pruning_curve_experiment()
     # pipeline_mnist_averaged_tests()
     # pipeline_cifar10_resnet18()
     # run_cifar10_resnet18_intervals()

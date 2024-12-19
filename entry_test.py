@@ -1,68 +1,78 @@
+import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+from scipy.optimize import curve_fit
 
-# Define a professional template for the plots
-plt.style.use('seaborn-v0_8-paper')  # Clean base style for publications
+values = [266200.0, 203649.0, 108281.0, 79973.0, 64483.0, 54274.0, 46628.0, 40656.0,
+          36093.0, 32585.0, 29757.0, 27300.0, 25188.0, 23422.0, 21937.0, 20668.0,
+          19508.0, 18475.0, 17630.0, 16789.0, 16138.0, 15403.0, 14882.0, 14254.0,
+          13790.0, 13317.0, 12861.0, 12460.0, 12050.0, 11699.0, 11375.0, 11032.0,
+          10741.0, 10435.0, 10184.0, 10001.0, 9716.0, 9482.0, 9252.0, 9035.0, 8849.0,
+          8674.0, 8508.0, 8307.0, 8163.0, 7962.0, 7816.0, 7679.0, 7551.0, 7416.0,
+          7312.0, 7148.0, 7046.0, 6929.0, 6817.0, 6716.0, 6567.0, 6511.0, 6420.0,
+          6327.0, 6217.0, 6175.0, 6053.0, 6004.0, 5889.0, 5827.0, 5778.0, 5680.0,
+          5599.0, 5556.0, 5459.0, 5408.0, 5373.0, 5276.0, 5246.0, 5191.0, 5166.0,
+          5036.0, 5060.0, 4995.0, 4926.0, 4884.0, 4858.0, 4809.0, 4740.0, 4735.0,
+          4686.0, 4633.0, 4597.0, 4581.0, 4583.0, 4530.0, 4492.0, 4427.0, 4369.0,
+          4342.0, 4363.0, 4332.0, 4269.0, 4273.0, 4261.0, 4190.0, 4127.0, 4125.0,
+          4097.0, 4103.0, 4076.0, 4053.0, 4043.0, 4033.0, 3976.0, 3954.0, 3946.0,
+          3911.0, 3873.0, 3875.0, 3869.0, 3848.0, 3869.0, 3833.0, 3785.0, 3769.0,
+          3784.0, 3729.0, 3745.0, 3732.0, 3718.0, 3687.0, 3698.0, 3691.0, 3657.0,
+          3630.0, 3641.0, 3649.0, 3633.0, 3607.0, 3585.0, 3548.0, 3544.0, 3543.0,
+          3543.0, 3492.0, 3499.0, 3541.0, 3458.0, 3512.0, 3474.0, 3462.0, 3454.0,
+          3439.0, 3409.0, 3436.0, 3409.0, 3388.0, 3379.0, 3380.0, 3373.0, 3369.0,
+          3340.0, 3354.0, 3348.0, 3345.0, 3300.0, 3312.0, 3274.0, 3275.0, 3291.0,
+          3257.0, 3254.0, 3259.0, 3215.0, 3216.0, 3262.0, 3231.0, 3235.0, 3226.0,
+          3214.0, 3239.0, 3192.0, 3168.0, 3169.0, 3157.0, 3131.0, 3158.0, 3174.0,
+          3176.0, 3134.0, 3135.0, 3158.0, 3154.0, 3136.0, 3149.0, 3143.0, 3124.0,
+          3166.0, 3151.0, 3112.0, 3140.0, 3168.0, 3122.0, 3098.0, 3101.0, 3098.0,
+          3099.0, 3094.0, 3039.0, 3112.0, 3094.0, 3095.0, 3047.0, 3084.0, 3084.0,
+          3084.0, 3046.0, 3058.0, 3057.0, 3035.0, 3071.0, 3077.0, 3039.0, 3046.0,
+          3046.0, 3017.0, 3040.0, 3024.0, 3018.0, 2998.0, 3045.0, 3034.0, 3023.0,
+          3023.0, 3001.0, 2998.0, 3001.0, 2989.0, 3011.0, 2992.0, 2982.0, 2970.0,
+          3002.0, 2990.0, 2985.0, 2930.0, 2954.0, 2961.0, 2964.0, 2952.0, 2958.0,
+          2980.0, 2959.0, 2932.0, 2944.0, 2968.0, 2936.0, 2939.0, 2969.0, 2975.0,
+          2950.0, 2948.0, 2948.0, 2949.0, 2938.0, 2960.0, 2961.0, 2940.0, 2933.0,
+          2933.0, 2919.0, 2936.0, 2960.0, 2934.0, 2946.0, 2961.0, 2947.0, 2939.0,
+          2908.0, 2932.0, 2942.0, 2936.0, 2944.0, 2950.0, 2957.0, 2946.0, 2943.0,
+          2969.0, 2930.0, 2919.0, 2967.0, 2918.0, 2948.0, 2924.0, 2956.0, 2922.0,
+          2886.0, 2901.0, 2895.0, 2935.0, 2947.0, 2948.0, 2958.0, 2936.0]
 
-# Customize additional parameters for a professional appearance
-def set_plot_style():
-    plt.rcParams.update({
-        'font.size': 10,                  # General font size
-        'font.family': 'serif',           # Use serif fonts
-        'text.usetex': False,             # Use LaTeX if needed for labels
-        'axes.titlesize': 12,             # Title font size
-        'axes.labelsize': 10,             # Axis label font size
-        'axes.linewidth': 0.8,            # Axis line width
-        'xtick.labelsize': 8,             # X-axis tick label font size
-        'ytick.labelsize': 8,             # Y-axis tick label font size
-        'legend.fontsize': 8,             # Legend font size
-        'legend.frameon': True,           # Add a frame to the legend
-        'legend.framealpha': 0.9,         # Legend transparency
-        'legend.loc': 'best',             # Automatically place legend
-        'lines.linewidth': 1.5,           # Line width
-        'lines.markersize': 6,            # Marker size
-        'grid.color': 'gray',             # Grid color
-        'grid.alpha': 0.6,                # Grid transparency
-        'grid.linewidth': 0.5,            # Grid line width
-        'figure.figsize': (6.4, 4.8),     # Default figure size
-        'savefig.dpi': 300,               # High resolution for saving figures
-        'savefig.format': 'pdf',          # Save figures as PDF by default
-    })
+# Epochs
+epochs = np.arange(len(values))
+x_values = np.array(epochs) + 1  # shift by 1 to avoid zero for log scale
+y_values = np.array(values)
 
-# Apply the style
-set_plot_style()
+# Combined model: power-law modulated by a logistic decay plus a baseline
 
-# Example plot
-x = [1, 2, 3, 4, 5]
-y = [1, 4, 9, 16, 25]
+def power_law_with_offset(x, c, alpha, L):
+    return c * x**(-alpha) + L
 
-fig, ax = plt.subplots()
+# Initial guess for parameters: c ~ scale, alpha ~ exponent, L ~ offset
+p0 = [1e5, 0.5, 3000]
 
-# Plot data
-ax.plot(x, y, label='Example Line', color='blue', marker='o')
+# Fit the model
+popt, pcov = curve_fit(power_law_with_offset, x_values+1, y_values, p0=p0, maxfev=10000)
+c_fit, alpha_fit, L_fit = popt
 
-# Titles and labels
-ax.set_title('Professional Research Plot Example')
-ax.set_xlabel('X-axis Label')
-ax.set_ylabel('Y-axis Label')
+# Generate a smooth curve for plotting
+x_fit = np.linspace(1, len(y_values), 1000)
+y_fit = power_law_with_offset(x_fit, c_fit, alpha_fit, L_fit)
 
-# Add a grid
-ax.grid(True)
+# Plot the data and the fitted curve
+plt.figure(figsize=(10,6))
+plt.plot(x_values, y_values, 'b.', label='Data')
+plt.plot(x_fit, y_fit, 'r-', label='Fitted: power-law + offset')
 
-# Customize ticks
-ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda y, _: f'{y:.1f}'))
-
-# Add legend
-ax.legend()
-
-# Tight layout for better spacing
-plt.tight_layout()
-
-# Save or show the plot
-plt.savefig('research_plot.pdf')  # PDF format
-plt.savefig('research_plot.svg')  # SVG format
-plt.savefig('research_plot.eps')  # EPS format
+plt.xscale('log')
+plt.yscale('log')
+plt.title('Values Over Epochs (Power Law + Offset Fit)')
+plt.xlabel('Epochs')
+plt.ylabel('Values')
+plt.legend()
+plt.grid(True)
 plt.show()
 
-# Save the figure in different vector formats
+print("Fitted parameters:")
+print("c =", c_fit)
+print("alpha =", alpha_fit)
+print("L =", L_fit)
