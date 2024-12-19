@@ -103,7 +103,7 @@ import json
 def run_mnist_training_net_flow_experiment():
     global SCALER_NETWORK_LOSS
     arr = []
-    for i in range(-10,11):
+    for i in range(-15,11):
         SCALER_NETWORK_LOSS = 2 ** i
         print(SCALER_NETWORK_LOSS)
         remaining_params_count = run_mnist()
@@ -126,11 +126,12 @@ def run_mnist():
 
     lr_weight_bias = 0.005
 
-    # lr_pruning_params = 0.001
-    lr_pruning_params = 0.00075
+    # lr_pruning_params = 0.00100
+    lr_pruning_params = 0.00050
+    # lr_pruning_params = 0.00025
 
     lr_flipping_params = 0.001
-    num_epochs = 300
+    num_epochs = 400
 
     optimizer = torch.optim.AdamW([
         {'params': weight_bias_params, 'lr': lr_weight_bias, 'weight_decay': 0},
