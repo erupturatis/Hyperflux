@@ -103,6 +103,12 @@ def test(model: ModelMnistFNN, test_data: torch.Tensor, test_labels: torch.Tenso
 SCALER_NETWORK_LOSS = 2
 
 def run_mnist_pruning_curve_experiment():
+    global SCALER_NETWORK_LOSS
+    for i in range(-2,3):
+        SCALER_NETWORK_LOSS = 2 ** i
+        run_mnist_with_scaler_loss()
+
+def run_mnist_with_scaler_loss():
     # Define transformations for the training and testing data
     configs_layers_initialization_all_kaiming_sqrt5()
     model = ModelMnistFNN(ConfigsNetworkMasksImportance(mask_pruning_enabled=True, mask_flipping_enabled=False, weights_training_enabled=True)).to(get_device())
@@ -111,7 +117,7 @@ def run_mnist_pruning_curve_experiment():
     lr_weight_bias = 0.005
     lr_pruning_params = 0.001
 
-    num_epochs = 300
+    num_epochs = 1000
 
     optimizer = torch.optim.AdamW([
         {'params': weight_bias_params, 'lr': lr_weight_bias, 'weight_decay': 0},
@@ -132,9 +138,8 @@ def run_mnist_pruning_curve_experiment():
         scheduler.step()
         _, remaining = model.get_parameters_pruning_statistics()
         arr.append(remaining.item())
-        with open('results_pruning_curve.json', 'w') as file:
+        with open(f'results_pruning_curve{SCALER_NETWORK_LOSS}.json', 'w') as file:
             json.dump(arr, file)
-
 
 # 774 params -> 96.67 (0.20%) 30 epochs, stop epoch 15
 # 773 params -> 96.70 (0.29%) 30 epochs, stop epoch 15

@@ -3,6 +3,10 @@
 /wandb
 **/wandb
 /entry_test
+/**.pdf
+/**.svg
+/**.png
+/**.jpeg
 
 **/.idea
 /__pycache__

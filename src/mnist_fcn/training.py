@@ -14,7 +14,7 @@ from ..layers import ConfigsNetworkMasksImportance
 from ..mask_functions import INFERENCE, datablob
 from ..training_common import get_model_parameters_and_masks
 
-EXPONENT_CONSTANT = 2
+EXPONENT_CONSTANT = 1.5
 # INTERVALS = [[0,8], [12, 16], [22, 24], [30, 32], [35, 36]]
 STOP_EPOCH = 30
 INTERVALS = [[0, STOP_EPOCH]]
