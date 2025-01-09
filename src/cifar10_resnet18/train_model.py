@@ -17,7 +17,7 @@ from torch.amp import GradScaler, autocast
 from src.infrastructure.wandb_functions import wandb_initalize
 
 def train_mixed():
-    global MODEL, epoch_global, pruning_scheduler, dataset_context, training_display, training_context
+    global MODEL, epoch_global,  dataset_context, training_display, training_context
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
@@ -34,7 +34,7 @@ def train_mixed():
 
         with autocast('cuda'):
             output = MODEL(data)
-            loss_remaining_weights = MODEL.get_remaining_parameters_loss() * 1
+            loss_remaining_weights = MODEL.get_remaining_parameters_loss() * training_context.params.l0_gamma_scaler
             loss_data = criterion(output, target)
             loss = loss_remaining_weights + loss_data
 
@@ -43,7 +43,7 @@ def train_mixed():
         scaler.step(optimizer_pruning)
         scaler.update()
 
-        training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])
+        training_display.record_losses([loss_data.item(), loss_remaining_weights.item()], training_context)
 
 
 # def train(args_train: ArgsTrain, args_optimizers: ArgsOptimizers):
@@ -206,7 +206,7 @@ def initialize_stages_context():
     regrowing_end = 600
 
     regrowth_stage_length = regrowing_end - pruning_end
-    pruning_scheduler = PressureScheduler(pressure_exponent_constant=2, sparsity_target=0.5, epochs_target=pruning_end)
+    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.75, sparsity_target=0.5, epochs_target=pruning_end)
 
     scheduler_decay_after_pruning = 0.9
     scheduler_regrowing_weights = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
@@ -225,7 +225,6 @@ def initialize_stages_context():
     )
 
 MODEL: ModelBaseResnet18
-pruning_scheduler: PressureScheduler
 training_context: TrainingContext
 dataset_context: DatasetSmallContext
 stages_context: StagesContext
@@ -235,7 +234,7 @@ BATCH_PRINT_RATE = 100
 
 def run_cifar10_resnet18():
     configs_layers_initialization_all_kaiming_sqrt5()
-    global MODEL, epoch_global, pruning_scheduler, dataset_context, training_display, training_context, stages_context
+    global MODEL, epoch_global,  dataset_context, training_display, training_context, stages_context
 
     initialize_model()
     initialize_training_context()

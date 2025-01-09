@@ -3,6 +3,8 @@ from typing import List, TYPE_CHECKING
 from src.infrastructure.others import round_float, get_model_sparsity_percent
 from dataclasses import dataclass
 
+from src.infrastructure.training_context.training_context import TrainingContext
+
 if TYPE_CHECKING:
     from src.infrastructure.layers import LayerComposite
 
@@ -26,7 +28,7 @@ class TrainingDisplay:
         for loss_name in self.args.average_losses_names:
             self.losses.append([])
 
-    def record_losses(self, average_losses: List[float]):
+    def record_losses(self, average_losses: List[float], training_context: TrainingContext = None):
         for idx, loss in enumerate(average_losses):
             self.losses[idx].append(loss)
 
@@ -53,4 +55,7 @@ class TrainingDisplay:
                 iterated_samples = total_data_len
             print(f"Train Epoch: {epoch} [{iterated_samples}/{total_data_len}] Sparsity: {sparsity}")
             print(loss_string)
+            if training_context is not None:
+                print("Gamma:", training_context.params.l0_gamma_scaler)
+
             self._initalize_losses_array()

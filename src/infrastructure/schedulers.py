@@ -1,6 +1,9 @@
 from typing import Dict
 import numpy as np
 
+from src.infrastructure.others import prefix_path_with_root
+
+
 class PressureScheduler:
     step_size = 0.3
     def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int):
@@ -35,16 +38,20 @@ class PressureScheduler:
 
         if current_sparsity > expected_sparsity:
             # network has too many params, prune more aggresive
-            print("Baseline increased !!")
             # expected deviation
             self.gamma += self.step_size + self.inertia_positive
+            print("Pressure increased !!", self.gamma)
             self.inertia_positive += self.step_size/4
             self.inertia_negative = 0
         else:
             # Ease up presssure
             self.gamma -= self.step_size + self.inertia_negative
+            print("Easing up pressure !!", self.gamma)
             self.inertia_negative += self.step_size/4
             self.inertia_positive = 0
+
+            if self.gamma < 0:
+                self.gamma = 0
 
     def get_multiplier(self) -> int:
         return self.gamma ** self.EXP
