@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.config_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
+from src.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
     get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization, \
     get_parameters_pruning_statistics_vanilla_network
 from src.parameters_mask_processors import get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \

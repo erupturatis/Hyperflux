@@ -1,7 +1,6 @@
 from typing import Dict
 import numpy as np
 
-
 class PruningScheduler:
     def __init__(self, exponent_constant: float, pruning_target: float, epochs_target: int, total_parameters: int):
         self.baseline = 0

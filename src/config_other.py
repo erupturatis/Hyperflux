@@ -1,2 +1,0 @@
-
-WANDB_REGISTER = True

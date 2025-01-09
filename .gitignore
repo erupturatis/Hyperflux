@@ -1,4 +1,6 @@
 /venv
+/tests
+**/local
 /.idea
 /wandb
 **/wandb
