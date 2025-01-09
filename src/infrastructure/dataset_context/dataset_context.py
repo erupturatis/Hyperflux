@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import List, Tuple
+from typing import Tuple
 import kornia.augmentation as K
 from abc import ABC, abstractmethod
-from src.dataset_context.data_preprocessing import cifar10_preprocess, mnist_preprocess
-from src.others import get_device
+from src.infrastructure.dataset_context.data_preprocessing import cifar10_preprocess, mnist_preprocess
 import torch
+from src.infrastructure.others import get_device
 import torch.nn as nn
 from dataclasses import dataclass
 

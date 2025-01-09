@@ -1,38 +1,28 @@
 from dataclasses import dataclass
 import torch
 import torch.nn as nn
-import wandb
-from src.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
-from src.configs_general import WANDB_REGISTER
-from src.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
-from src.training_display import TrainingDisplay, ArgsTrainingDisplay
-from src.layers import ConfigsNetworkMasksImportance
-from src.others import get_device, get_model_sparsity_percent
+from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
+from src.infrastructure.constants import LR_FLOW_PARAMS
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
+from src.infrastructure.stages_context.stages_context import StagesContext, StagesContextArgs
+from src.infrastructure.training_context.training_context import TrainingContext, TrainingContextParams
+from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
+from src.infrastructure.layers import ConfigsNetworkMasksImportance
+from src.infrastructure.others import get_device, get_model_sparsity_percent
 from src.cifar10_resnet18.model_class import ModelBaseResnet18, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-from src.schedulers import PruningScheduler, PruningSchedulerSane
-from src.training_common import get_model_parameters_and_masks
+from src.infrastructure.schedulers import PressureScheduler, PressureScheduler
+from src.infrastructure.training_common import get_model_parameters_and_masks
 from torch.amp import GradScaler, autocast
-from src.wandb_functions import wandb_initalize
+from src.infrastructure.wandb_functions import wandb_initalize
 
-@dataclass
-class ArgsOptimizers:
-    optimizer_weights: torch.optim
-    optimizer_pruning: torch.optim
-    optimizer_flipping: torch.optim
-
-@dataclass
-class ArgsOthers:
-    epoch: int
-
-
-def train_mixed(args_optimizers: ArgsOptimizers):
-    global MODEL, epoch_global, pruning_scheduler, dataset_context, training_display
+def train_mixed():
+    global MODEL, epoch_global, pruning_scheduler, dataset_context, training_display, training_context
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-    optimizer_weights = args_optimizers.optimizer_weights
-    optimizer_pruning = args_optimizers.optimizer_pruning
+    optimizer_weights = training_context.get_optimizer_weights()
+    optimizer_pruning = training_context.get_optimizer_flow_mask()
 
     scaler = GradScaler('cuda')
 
@@ -184,58 +174,84 @@ def initalize_training_display():
         )
     )
 
-def initalize_dataset_context():
+def initialize_dataset_context():
     global dataset_context
     dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_cifar10())
 
+
+def initialize_training_context():
+    global training_context
+
+    lr_weights_finetuning = 0.0001
+    lr_flow_params = LR_FLOW_PARAMS
+
+    weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)
+    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=1e-4)
+    optimizer_flow_mask = torch.optim.AdamW(pruning_params, lr=lr_flow_params)
+
+    training_context = TrainingContext(
+        TrainingContextParams(
+            lr_weights=lr_weights_finetuning,
+            lr_flow_mask=LR_FLOW_PARAMS,
+            l0_gamma_scaler=0,
+            optimizer_weights=optimizer_weights,
+            optimizer_flow_mask=optimizer_flow_mask
+        )
+    )
+
+def initialize_stages_context():
+    global stages_context, training_context
+
+    pruning_end = 400
+    regrowing_end = 600
+
+    regrowth_stage_length = regrowing_end - pruning_end
+    pruning_scheduler = PressureScheduler(pressure_exponent_constant=2, sparsity_target=0.5, epochs_target=pruning_end)
+
+    scheduler_decay_after_pruning = 0.9
+    scheduler_regrowing_weights = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
+    scheduler_flow_params = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter)
+
+    stages_context = StagesContext(
+        StagesContextArgs(
+            pruning_epoch_end=pruning_end,
+            regrowth_epoch_end=regrowing_end,
+            scheduler_gamma=pruning_scheduler,
+
+            scheduler_weights_pruning=None,
+            scheduler_flow_params_regrowth=scheduler_flow_params,
+            scheduler_weights_regrowth=scheduler_regrowing_weights,
+        )
+    )
+
 MODEL: ModelBaseResnet18
-pruning_scheduler: PruningScheduler
+pruning_scheduler: PressureScheduler
+training_context: TrainingContext
 dataset_context: DatasetSmallContext
+stages_context: StagesContext
 training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 def run_cifar10_resnet18():
     configs_layers_initialization_all_kaiming_sqrt5()
-    global MODEL, epoch_global, pruning_scheduler, dataset_context, training_display
-
-    lr_weight_bias = 0.0001
-    lr_custom_params = 0.001
-    stop_epoch = 200
-    num_epochs = 300
+    global MODEL, epoch_global, pruning_scheduler, dataset_context, training_display, training_context, stages_context
 
     initialize_model()
+    initialize_training_context()
+    initialize_stages_context()
     wandb_initalize()
-
-    pruning_scheduler = PruningSchedulerSane(exponent_constant=2, pruning_target=0.005, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
-    weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr_weight_bias, params= weight_bias_params, momentum=0.9, weight_decay=1e-4)
-    optimizer_pruning = torch.optim.AdamW(pruning_params, lr=lr_custom_params)
-    optimizer_flipping = torch.optim.AdamW(flipping_params, lr=lr_custom_params)
-    scheduler_decay_after_pruning = 0.9
-
-    scheduler_regrowing_weights = CosineAnnealingLR(optimizer_weights, T_max=(num_epochs - stop_epoch))
-    scheduler_pruning = LambdaLR(optimizer_pruning, lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter)
-
-    initalize_dataset_context()
+    initialize_dataset_context()
     initalize_training_display()
 
-    for epoch in range(1, num_epochs + 1):
+    for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
-        print("EPOCH GLOBAL:", epoch_global)
         dataset_context.init_data_split()
-        train_mixed(ArgsOptimizers(optimizer_weights, optimizer_pruning, optimizer_flipping))
+        train_mixed()
         test()
 
-        # _, remaining = MODEL.get_parameters_pruning_statistics()
-        # pruning_scheduler.record_state(remaining.item())
-        # pruning_scheduler.step()
-        #
-        # if epoch > stop_epoch:
-        #     # scheduler_regrowing_weights.step()
-        #     # scheduler_pruning.step()
-        #     pass
-
+        stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
+        stages_context.step(training_context)
 
     # MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
 

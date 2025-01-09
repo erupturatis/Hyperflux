@@ -1,10 +1,10 @@
-from src.dataset_context.dataset_context import DatasetSmallContext, DatasetContextAbstract
-from typing import List, Tuple, TYPE_CHECKING
-from src.others import round_float, get_model_sparsity_percent
+from src.infrastructure.dataset_context.dataset_context import DatasetContextAbstract
+from typing import List, TYPE_CHECKING
+from src.infrastructure.others import round_float, get_model_sparsity_percent
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
-    from src.layers import LayerComposite
+    from src.infrastructure.layers import LayerComposite
 
 @dataclass
 class ArgsTrainingDisplay:
@@ -45,7 +45,6 @@ class TrainingDisplay:
 
             loss_string = ""
             for idx, loss_name in enumerate(self.args.average_losses_names):
-                print(f"{loss_name}: {self.losses[idx][idx]}")
                 loss_string += loss_name + ": " + str(round_float(sum(self.losses[idx]) / batch_print_rate)) + " "
 
             iterated_samples = batch_index * batch_size

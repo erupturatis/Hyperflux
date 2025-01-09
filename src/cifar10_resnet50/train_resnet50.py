@@ -2,9 +2,9 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 import wandb
-from src.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
+from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.configs_general import WANDB_REGISTER
-from src.dataset_context.data_preprocessing import cifar10_preprocess
+from src.infrastructure.dataset_context import cifar10_preprocess
 from src.layers import ConfigsNetworkMasksImportance
 from src.cifar10_resnet50.model_base_resnet50 import ModelBaseResnet50, ConfigsModelBaseResnet50
 
@@ -12,7 +12,7 @@ from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 import kornia.augmentation as K
 
 from src.others import get_device
-from src.schedulers import PruningScheduler
+from src.infrastructure.schedulers import PressureScheduler
 from src.training_common import get_model_parameters_and_masks
 
 @dataclass
@@ -155,7 +155,7 @@ AUGMENTATIONS = nn.Sequential(
     K.RandomRotation(degrees=10.0),
     K.RandomHorizontalFlip(p=0.5),
 ).to(get_device())
-pruning_scheduler: PruningScheduler
+pruning_scheduler: PressureScheduler
 epoch_global: int = 0
 
 def run_cifar10_resnet50():
@@ -179,7 +179,7 @@ def run_cifar10_resnet50():
     )
     configs_model_base_resnet50 = ConfigsModelBaseResnet50(num_classes=10)
     MODEL = ModelBaseResnet50(configs_model_base_resnet50, configs_network_masks).to(get_device())
-    pruning_scheduler = PruningScheduler(exponent_constant=2, pruning_target=0.004, epochs_target=stop_epoch, total_parameters=MODEL.get_parameters_total_count())
+    pruning_scheduler = PressureScheduler(pressure_exponent_constant=2, sparsity_target=0.004, epochs_target=stop_epoch, sparsity_percent=MODEL.get_parameters_total_count())
 
     if WANDB_REGISTER:
         wandb.init(

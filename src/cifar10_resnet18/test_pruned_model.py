@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import torchvision.models as models
 import torch
 import torch.nn as nn
-from src.dataset_context.data_preprocessing import cifar10_preprocess
+from src.infrastructure.dataset_context import cifar10_preprocess
 from src.others import get_device, prefix_path_with_root
 import kornia.augmentation as K
 

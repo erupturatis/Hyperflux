@@ -1,11 +1,11 @@
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import torch
-from src.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_ATTR, WEIGHTS_FLIPPING_ATTR
+from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_ATTR, WEIGHTS_FLIPPING_ATTR
 if TYPE_CHECKING:
-    from src.layers import  LayerPrimitive
+    from src.infrastructure.layers import  LayerPrimitive
 
-from src.others import get_device
-from torch import nn
+from src.infrastructure.others import get_device
+
 
 def get_parameters_flipped_statistics_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
     total = 0

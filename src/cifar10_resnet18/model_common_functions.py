@@ -2,12 +2,11 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
-from src.constants import SAVED_MODELS_PATH
-from src.layers import LayerComposite, LayerConv2MaskImportance, LayerLinearMaskImportance, LayerPrimitive
-from typing import List, Dict, Any, Tuple, Union
-from src.others import prefix_path_with_root
+from src.infrastructure.constants import SAVED_MODELS_PATH
+from src.infrastructure.layers import LayerComposite, LayerPrimitive
+from typing import List
+from src.infrastructure.others import prefix_path_with_root
 from dataclasses import dataclass
 if TYPE_CHECKING:
     from src.cifar10_resnet18.model_class import ModelBaseResnet18

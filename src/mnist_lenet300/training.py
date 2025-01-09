@@ -5,8 +5,8 @@ from src.others import get_device
 from .model_fcn import ModelMnistFNN
 import wandb
 
-from ..configs_layers import configs_layers_initialization_all_kaiming_sqrt5
-from src.dataset_context.data_preprocessing import mnist_preprocess
+from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
+from src.infrastructure.dataset_context import mnist_preprocess
 from ..layers import ConfigsNetworkMasksImportance
 from ..mask_functions import INFERENCE
 from ..training_common import get_model_parameters_and_masks

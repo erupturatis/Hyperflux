@@ -1,6 +1,6 @@
-from src.pipelines import pipeline_mnist, pipeline_cifar10_resnet18
 import torch
+from src.cifar10_resnet18.train_model import run_cifar10_resnet18
 
 if __name__ == '__main__':
-    pipeline_cifar10_resnet18()
+    run_cifar10_resnet18()
     pass

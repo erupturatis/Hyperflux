@@ -1,4 +1,4 @@
-from src.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER
+from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER
 
 # Registered layers
 RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES = [

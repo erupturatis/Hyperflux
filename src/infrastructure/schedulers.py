@@ -1,97 +1,18 @@
 from typing import Dict
 import numpy as np
 
-class PruningScheduler:
-    def __init__(self, exponent_constant: float, pruning_target: float, epochs_target: int, total_parameters: int):
-        self.baseline = 0
-        self.exponent_constant = exponent_constant
-        self.pruning_target = pruning_target
+class PressureScheduler:
+    step_size = 0.3
+    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int):
+        self.gamma = 0
+
+        self.pruning_target = sparsity_target
         self.epochs_target = epochs_target
-        self.total_parameters = total_parameters
-        self.streak = 0
-
+        self.sparsity_target = sparsity_target
         self.recorded_states = []
-
-    def record_state(self, remaining_weights: float):
-        """
-        Appends current number of remaining weights to the list of recorded states
-        """
-        self.recorded_states.append(remaining_weights)
-
-
-    def get_previous_decrease(self) -> float:
-        """
-        Get the percentage decrease from the previous state to the current state
-        """
-        if len(self.recorded_states) < 2:
-            return -1
-
-        if len(self.recorded_states) == 2:
-            return self.recorded_states[-1] / self.recorded_states[-2]
-
-        return ((self.recorded_states[-1] / self.recorded_states[-2]) + (self.recorded_states[-2] / self.recorded_states[-3]))/ 2
-
-    def get_expected_percentage_decrease(self) -> float:
-        """
-        current * (percentage ** remaining_epochs) = desired
-        percentage = (desired / current) ** (1 / remaining_epochs)
-        """
-        desired_remaining_parameters = self.total_parameters * self.pruning_target
-        remaining_epochs = self.epochs_target - len(self.recorded_states)
-        current_parameters = self.recorded_states[-1]
-        return (desired_remaining_parameters / current_parameters) ** (1 / remaining_epochs)
-
-
-    def get_remaining_epochs(self) -> int:
-        return self.epochs_target - len(self.recorded_states)
-
-    def step(self) -> None:
-        """
-        Attempts to predict the final number of weights that will remain after the pruning process, given current pace
-
-        Formula for decreases
-        params * decrease = pruned params
-        So 0.8 is more aggressive than 0.9
-        """
-        if self.get_remaining_epochs() <= 0:
-            self.baseline = 0
-            return None
-
-        current_decrease = self.get_previous_decrease()
-        if current_decrease == -1:
-            print("Not enough data to predict")
-            return None
-
-        expected_decrease = self.get_expected_percentage_decrease()
-
-        desired_remaining_parameters = self.total_parameters * self.pruning_target
-        remaining_epochs = self.epochs_target - len(self.recorded_states)
-
-        print(f"Current decrease: {current_decrease * 100:.2f}%, Expected decrease: {expected_decrease * 100:.2f}%")
-        if current_decrease > expected_decrease and expected_decrease < 1:
-            print("Baseline increased !!")
-            # expected deviation
-            self.baseline += 0.3 + self.streak
-            self.streak += 0.1
-        else:
-            self.streak = 0
-            self.baseline -= 0.15
-            if self.baseline < 0:
-                self.baseline = 0
-
-    def get_multiplier(self) -> int:
-        return self.baseline ** self.exponent_constant
-
-class PruningSchedulerSane:
-    def __init__(self, exponent_constant: float, pruning_target: float, epochs_target: int, total_parameters: int):
-        self.baseline = 0
-        self.exponent_constant = exponent_constant
-        self.pruning_target = pruning_target * 100 # 100 for the sake of compatibility with the other scheduler
-        self.epochs_target = epochs_target
-        self.total_parameters = total_parameters
-        self.streak = 0
-        self.recorded_states = []
-        self.epoch = 0
+        self.inertia_positive = 0
+        self.inertia_negative = 0
+        self.EXP = pressure_exponent_constant
 
         late_aggressivity = epochs_target / 3
         aggressivity_transition = 0.05
@@ -103,53 +24,30 @@ class PruningSchedulerSane:
             aggresivity_transition=aggressivity_transition
         )
 
-    def record_state(self, remaining_weights: int):
-        """
-        Recorded states represent the number of params at the end of epoch self.epoch
-        """
-        print(f"Remaining weights: {remaining_weights}")
-        self.recorded_states.append(remaining_weights)
-        self.epoch += 1
+    def _get_expected_sparsity(self, epoch:int) -> float:
+        if epoch <= self.epochs_target:
+            return self.trajectory_calculator.get_expected_pruning_at_epoch(epoch)
 
-    def _get_expected_parameters_percentage(self) -> float:
-        if self.epoch < self.epochs_target:
-            return self.trajectory_calculator.get_expected_pruning_at_epoch(self.epoch)
-        else:
-            return self.pruning_target * 1.5
+    def step(self, epoch: int, current_sparsity: float) -> None:
+        expected_sparsity = self._get_expected_sparsity(epoch)
 
-    def _get_current_parameters_percentage(self) -> float:
-        return self.recorded_states[-1] / self.total_parameters * 100
+        print("Current params", current_sparsity , "Expected params", expected_sparsity )
 
-    def step(self) -> None:
-        """
-        Adjusts basline such that network params match expected params
-        """
-
-        # we are at the end of this epoch
-        # if self.epoch > self.epochs_target:
-        #     self.baseline = 0
-        #     return None
-
-        expected_params = self._get_expected_parameters_percentage()
-        current_params = self._get_current_parameters_percentage()
-
-        print("Current status normalized: Current params", current_params , "Expected params", expected_params )
-
-        if current_params > expected_params:
+        if current_sparsity > expected_sparsity:
             # network has too many params, prune more aggresive
             print("Baseline increased !!")
             # expected deviation
-            self.baseline += 0.3 + self.streak
-            self.streak += 0.1
+            self.gamma += self.step_size + self.inertia_positive
+            self.inertia_positive += self.step_size/4
+            self.inertia_negative = 0
         else:
             # Ease up presssure
-            self.streak = 0
-            self.baseline -= 0.15
-            if self.baseline < 0:
-                self.baseline = 0
+            self.gamma -= self.step_size + self.inertia_negative
+            self.inertia_negative += self.step_size/4
+            self.inertia_positive = 0
 
     def get_multiplier(self) -> int:
-        return self.baseline ** self.exponent_constant
+        return self.gamma ** self.EXP
 
 
 def expected_pruning_decrease_at_epoch(epoch, start_decrease, end_decrease, aggressivity_transition, late_aggressivity):

@@ -10,7 +10,7 @@ from src.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance,
     get_remaining_parameters_loss_masks_importance, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive
 from src.others import get_device
-from src.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
+from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
 
 class ModelMnistFNN(LayerComposite):
     def __init__(self, config_network_mask: ConfigsNetworkMasksImportance):

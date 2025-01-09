@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from src.others import get_device
+from src.infrastructure.others import get_device
 
 mean_cifar10, std_cifar10 = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
 

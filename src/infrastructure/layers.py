@@ -1,4 +1,3 @@
-from typing import TypedDict
 from typing import List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -6,17 +5,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
+from src.infrastructure.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
     get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization, \
     get_parameters_pruning_statistics_vanilla_network
-from src.parameters_mask_processors import get_parameters_pruning_sigmoid_, get_parameters_pruning_statistics_sigmoid_, \
-    get_parameters_flipped_statistics_sigmoid_, get_parameters_pruning_sigmoid_steep, get_parameters_total, \
-    get_parameters_pruning_statistics_vanilla_
-from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
-from src.others import get_device
+from src.infrastructure.parameters_mask_processors import get_parameters_pruning_sigmoid_steep, get_parameters_total
+from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
+from src.infrastructure.others import get_device
 import math
-import numpy as np
-from src.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, WEIGHTS_BASE_ATTR
+from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, WEIGHTS_BASE_ATTR
 
 
 class ConfigsNetworkMasksProbabilitiesPruneSign(TypedDict):

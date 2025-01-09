@@ -10,3 +10,4 @@ CONV2D_LAYER = 'conv2d'
 FULLY_CONNECTED_LAYER = 'fully_connected'
 
 SAVED_MODELS_PATH = '/networks_saved'
+LR_FLOW_PARAMS = 0.001

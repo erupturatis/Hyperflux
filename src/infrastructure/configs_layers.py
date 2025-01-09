@@ -1,12 +1,9 @@
-from src.layer_initializations import kaiming_sqrt5, kaiming_sqrt0, bad_initialization
-from src.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid, MaskPruningFunctionLeaky, \
-    MaskFlipFunctionLeaky, MaskPruningFunctionLinear, MaskPruningFunctionSigmoidSampled, MaskFlipFunctionTanh
-from src.parameters_mask_processors import get_parameters_pruning_leaky, get_parameters_pruning_statistics_leaky, \
-    get_parameters_flipped_statistics_leaky, get_parameters_pruning_sigmoid_, \
-    get_parameters_pruning_statistics_sigmoid_, \
+from src.infrastructure.layer_initializations import kaiming_sqrt5, kaiming_sqrt0, bad_initialization
+from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
+from src.infrastructure.parameters_mask_processors import get_parameters_pruning_statistics_sigmoid_, \
     get_parameters_flipped_statistics_sigmoid_, get_parameters_pruning_statistics_vanilla_, \
     get_parameters_pruning_step_aproximation_sigmoid_
-from typing import Dict, Union
+from typing import Dict
 
 # MaskPruningFunction = MaskPruningFunctionLeaky
 # MaskFlipFunction = MaskFlipFunctionLeaky
