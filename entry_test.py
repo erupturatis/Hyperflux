@@ -5,7 +5,7 @@ import json
 
 values = []
 
-with open('results_mnist_pruning_vs_epochs.json', 'r') as file:
+with open('experiments_outputs/results_mnist_pruning_vs_epochs_g0.5.json', 'r') as file:
     values = json.load(file)
 
 values = [(val / values[0])*100 for val in values]

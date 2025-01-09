@@ -1,84 +1,63 @@
 import numpy as np
+import json
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-import json
 
-# Load data from JSON file
-with open('results_mnist_pruning_vs_epochs.json', 'r') as file:
-    values = json.load(file)
+# Define a saturating power-law function with t0
+def saturating_power_law(x, L, A, alpha, t0):
+    return L + A * (x + t0)**(-alpha)
 
-# Normalize values
-values = [(val / values[0]) * 100 for val in values]
-values = values[:900]
+def load_and_fit(filename):
+    with open(filename, 'r') as file:
+        values = json.load(file)
 
-# Prepare data for fitting
-epochs = np.arange(len(values))
-x_values = epochs + 1  # Shift by 1 to avoid zero in log
-y_values = values
+    # Normalize your data if needed
+    NUMBER_PARAMS = 266100
+    values = [(val / NUMBER_PARAMS) * 100 for val in values]
+    values = values[10:]
 
-# Define the model: Power Law + Exponential + Offset
-def power_law_exp_with_offset(x, c, alpha, beta, k, L):
-    return c * x**(-alpha) + beta * np.exp(-k * x) + L
+    x_data = np.arange(1, len(values) + 1)  # epochs from 1..N
+    y_data = np.array(values, dtype=float)
 
-# Initial guess for parameters [c, alpha, beta, k, L]
-p0 = [1, 1, -2, 0.1, 1.2]
+    # Initial guesses and bounds. Adjust if you see fit problems.
+    p0 = [0.1, 10.0, 1.0, 1.0]  # Including t0
+    bounds = ([0, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf])  # Bounds for all params
 
-# Fit the model
-popt, pcov = curve_fit(
-    power_law_exp_with_offset, x_values, y_values, p0=p0, maxfev=10000
-)
-c_fit, alpha_fit, beta_fit, k_fit, L_fit = popt
+    try:
+        popt, pcov = curve_fit(saturating_power_law, x_data, y_data, p0=p0, bounds=bounds)
+        return x_data, y_data, popt
+    except RuntimeError as e:
+        print(f"Fit did not converge for {filename}: {e}")
+        return x_data, y_data, None
 
-# Generate curve for plotting
-x_fit = np.linspace(1, len(y_values), 1000)
-y_fit = power_law_exp_with_offset(x_fit, c_fit, alpha_fit, beta_fit, k_fit, L_fit)
+def plot_all(files, gammas):
+    plt.figure(figsize=(10,6))
+    colors = ['blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta', 'yellow', 'pink', 'brown']
 
-# Sample relevant data points
-sample_indices = np.logspace(0, np.log10(len(y_values) - 1), num=20, dtype=int)
-sample_x = x_values[sample_indices]
-sample_y = np.array(y_values)[sample_indices]
+    for i, (f, g) in enumerate(zip(files, gammas)):
+        x, y, popt = load_and_fit(f)
+        if popt is None:
+            continue
 
-# Plot the fit and sampled points
-plt.figure(figsize=(10, 6))
-plt.plot(x_fit, y_fit, color='blue', linestyle='--', linewidth=2, alpha=0.8)
-plt.scatter(sample_x, sample_y, color='blue', s=50, label="Lenet-300, $\gamma=2.0$", alpha=0.9)
+        # Generate fine-grained fit curve
+        x_fit = np.linspace(1, len(y), 500)
+        y_fit = saturating_power_law(x_fit, *popt)
 
-# Apply logarithmic scales
-plt.xscale('log')
-plt.yscale('log')
+        # Downsample points for clarity
+        sample_indices = np.logspace(0, np.log10(len(y)-1), num=200, dtype=int)
+        plt.scatter(x[sample_indices], y[sample_indices],
+                    color=colors[i], label=f"$\\gamma={g}$", s=50)
+        plt.plot(x_fit, y_fit, color=colors[i], linestyle='--', alpha=0.8)
 
-# Set limits
-plt.xlim(1, 1000)
-plt.ylim(1e-2, 1e2)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('Epochs')
+    plt.ylabel('Sparsity Level (%)')
+    plt.legend()
+    plt.grid(True, linestyle='--', linewidth=0.5)
+    plt.show()
 
-# Custom ticks for both axes
-x_ticks = [1, 10, 50, 100, 200, 500, 1000]
-x_labels = [f"{xtick}" for xtick in x_ticks]
-plt.xticks(x_ticks, x_labels, fontsize=12)
-
-y_ticks = [0.01, 0.1, 1, 10, 100]
-y_labels = [f"{ytick}" for ytick in y_ticks]
-plt.yticks(y_ticks, y_labels, fontsize=12)
-
-# Customize labels
-plt.xlabel("Epochs", fontsize=14)
-plt.ylabel("Sparsity Level %", fontsize=14)
-
-# Add legend
-plt.legend(fontsize=12, loc='lower left')
-
-# Add grid and adjust layout
-plt.grid(True, linestyle='--', linewidth=0.5)
-plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
-
-# Save and show plot
-plt.savefig("log_log_sampled_fit_plot.pdf", bbox_inches='tight', dpi=300)
-plt.show()
-
-# Print fitted parameters
-print("Fitted parameters:")
-print(f"c     = {c_fit:.4g}")
-print(f"alpha = {alpha_fit:.4g}")
-print(f"beta  = {beta_fit:.4g}")
-print(f"k     = {k_fit:.4g}")
-print(f"L     = {L_fit:.4g}")
+# Example usage
+gammas = [0.5, 1, 4, 8, 16, 32, 64]
+files = [f"results_mnist_pruning_vs_epochs_g{gamma}_batch.json" for gamma in gammas]
+plot_all(files, gammas)

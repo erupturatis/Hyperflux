@@ -64,8 +64,9 @@ def get_parameters_pruning_step_aproximation_sigmoid_(layer_primitive: 'LayerPri
     mask_pruning = getattr(layer_primitive, WEIGHTS_PRUNING_ATTR)
 
     total += weights.numel()
-    # sigmoids += torch.sigmoid(mask_pruning).sum()
-    sigmoids += torch.sigmoid(mask_pruning * (mask_pruning > -0.3).float()).sum()
+    # sigmoids += mask_pruning.sum()
+    sigmoids += (mask_pruning * (mask_pruning > -0.3).float()).sum()
+    # sigmoids += torch.sigmoid(mask_pruning * (mask_pruning > -0.3).float()).sum()
     return total, sigmoids
 
 def get_parameters_pruning_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:

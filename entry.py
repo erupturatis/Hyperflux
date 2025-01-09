@@ -10,8 +10,8 @@ if __name__ == '__main__':
     # pipeline_mnist_probabilistic()
     # pipeline_mnist()
     # pipeline_resnet18_averaged_tests()
-    run_mnist_pruning_curve_experiment()
+    # run_mnist_pruning_curve_experiment()
     # pipeline_mnist_averaged_tests()
-    # pipeline_cifar10_resnet18()
+    pipeline_cifar10_resnet18()
     # run_cifar10_resnet18_intervals()
     pass

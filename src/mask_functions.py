@@ -117,7 +117,8 @@ class MaskPruningFunctionSigmoid(torch.autograd.Function):
         mask, _ = ctx.saved_tensors
 
         mask = torch.sigmoid(mask)
-        grad_mask_param = grad_output * mask * (1 - mask)
+        grad_mask_param = grad_output * 1
+        # grad_mask_param = grad_output * mask * (1 - mask)
 
         return grad_mask_param
 
