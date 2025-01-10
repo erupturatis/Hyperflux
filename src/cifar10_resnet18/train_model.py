@@ -253,7 +253,7 @@ def run_cifar10_resnet18():
         stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
 
-    # MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
+    MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
 
     print("Training complete")
     wandb_finish()

@@ -31,22 +31,16 @@ LENET300_MNIST_UNREGISTERED_LAYERS_ATTRIBUTES = [
 
 LENET300_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
     {'custom_name': 'fc1', 'standard_name': 'fc1.weight'},
-    {'custom_name': 'fc1_bias', 'standard_name': 'fc1.bias'},
 
     {'custom_name': 'fc2', 'standard_name': 'fc2.weight'},
-    {'custom_name': 'fc2_bias', 'standard_name': 'fc2.bias'},
 
     {'custom_name': 'fc3', 'standard_name': 'fc3.weight'},
-    {'custom_name': 'fc3_bias', 'standard_name': 'fc3.bias'},
 ]
 
 LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = [
     {'standard_name': 'fc1.weight', 'custom_name': 'fc1'},
-    {'standard_name': 'fc1.bias', 'custom_name': 'fc1_bias'},
 
     {'standard_name': 'fc2.weight', 'custom_name': 'fc2'},
-    {'standard_name': 'fc2.bias', 'custom_name': 'fc2_bias'},
 
     {'standard_name': 'fc3.weight', 'custom_name': 'fc3'},
-    {'standard_name': 'fc3.bias', 'custom_name': 'fc3_bias'},
 ]

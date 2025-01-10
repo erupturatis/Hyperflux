@@ -16,7 +16,6 @@ from src.infrastructure.training_common import get_model_parameters_and_masks
 from src.infrastructure.training_context.training_context import TrainingContext, TrainingContextParams
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
-from ..cifar10_resnet50.train_resnet50 import ArgsTrain
 
 def train():
     global MODEL, epoch_global,  dataset_context, training_display, training_context
@@ -79,12 +78,12 @@ def test():
 def initialize_model():
     global MODEL
     configs_network_masks = ConfigsNetworkMasksImportance(
-        mask_pruning_enabled=True,
+        mask_pruning_enabled=False,
         mask_flipping_enabled=False,
         weights_training_enabled=True,
     )
-    model = ModelLenet300(configs_network_masks).to(get_device())
-    # MODEL.load('...')
+    MODEL = ModelLenet300(configs_network_masks).to(get_device())
+    MODEL.load('lenet300_mnist')
 
 def get_epoch() -> int:
     global epoch_global
@@ -104,11 +103,11 @@ def initalize_training_display():
 
 def initialize_dataset_context():
     global dataset_context
-    dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_mnist())
+    dataset_context = DatasetSmallContext(dataset=DatasetSmallType.MNIST, configs=dataset_context_configs_mnist())
 
 
 def initialize_training_context():
-    global training_context
+    global training_context, MODEL
 
     lr_weight_training = 0.005
     # lr_weights_finetuning = 0.0001
@@ -131,11 +130,11 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = 50
-    regrowing_end = 100
+    pruning_end = 30
+    regrowing_end = 30
 
     regrowth_stage_length = regrowing_end - pruning_end
-    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.75, sparsity_target=0.5, epochs_target=pruning_end)
+    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.75, sparsity_target=100, epochs_target=pruning_end)
 
     scheduler_decay_after_pruning = 0.9
     scheduler_decay_during_pruning = 0.75
@@ -166,6 +165,7 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 def run_lenet300_mnist():
+    global epoch_global
     configs_layers_initialization_all_kaiming_sqrt5()
 
     initialize_model()
@@ -185,6 +185,8 @@ def run_lenet300_mnist():
         stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
 
+
+    # MODEL.save("lenet300_mnist")
     wandb_finish()
 
 # 774 params -> 96.67 (0.20%) 30 epochs, stop epoch 15

@@ -2,21 +2,6 @@ from typing import List
 import torch
 import torch.nn as nn
 from dataclasses import dataclass
-from src.others import get_device, prefix_path_with_root
-from src.layers import (
-    LayerConv2MaskImportance,
-    ConfigsNetworkMasksImportance,
-    LayerLinearMaskImportance,
-    LayerComposite,
-    LayerPrimitive,
-    get_layers_primitive,
-    get_remaining_parameters_loss_masks_importance,
-    get_layer_composite_pruning_statistics,
-    ConfigsLayerConv2,
-    ConfigsLayerLinear,
-    get_layer_composite_flipped_statistics,
-    get_parameters_total_count,
-)
 
 @dataclass
 class ConfigsModelBaseResnet50:

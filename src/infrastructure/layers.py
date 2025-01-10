@@ -253,14 +253,6 @@ class LayerLinearMaskImportance(LayerPrimitive):
             mask_changes = MaskPruningFunctionSigmoid.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
             masked_weight = masked_weight * mask_changes
 
-            # true_mask = MaskPruningFunctionSigmoidVanilla.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
-            # # XOR operation to track pruning mask changes
-            # pruning_changes = (self.prev_pruning_mask.int()) ^ (true_mask.int())
-            # # Log or store metrics
-            # if not hasattr(self, 'pruning_metrics'):
-            #     self.pruning_metrics = {'flipped_state': 0}
-            # self.pruning_metrics['flipped_state'] += pruning_changes.sum()
-
         if self.mask_flipping_enabled:
             mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weight = masked_weight * mask_changes

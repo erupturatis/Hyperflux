@@ -9,6 +9,9 @@ from src.infrastructure.others import get_device
 from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, FULLY_CONNECTED_LAYER
 from src.mnist_lenet300.model_attributes import LENET300_MNIST_UNREGISTERED_LAYERS_ATTRIBUTES, \
     LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES
+from src.mnist_lenet300.model_functions import forward_pass_lenet300, save_model_weights_lenet300, \
+    load_model_weights_lenet300_from_path
+
 
 class ModelLenet300(LayerComposite):
     def __init__(self, config_network_mask: ConfigsNetworkMasksImportance):
@@ -23,10 +26,10 @@ class ModelLenet300(LayerComposite):
                 layer = LayerLinearMaskImportance(
                     configs_linear=ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
-                        out_features=layer_attr['out_features']
+                        out_features=layer_attr['out_features'],
+                        bias_enabled=layer_attr['bias_enabled'],
                     ),
                     configs_network=config_network_mask,
-                    bias=layer_attr.get('bias_enabled', True)
                 )
             else:
                 raise ValueError(f"Unsupported registered layer type: {type_}")
@@ -48,4 +51,10 @@ class ModelLenet300(LayerComposite):
         return get_layer_composite_flipped_statistics(self)
 
     def forward(self, x, inference=False):
-        return forward_pass_resnet18(self, x, inference)
+        return forward_pass_lenet300(self, x, inference)
+
+    def save(self, path: str):
+        save_model_weights_lenet300(self, path, skip_array=[])
+
+    def load(self, path: str):
+        load_model_weights_lenet300_from_path(self, path, skip_array=[])

@@ -16,7 +16,6 @@ from fontTools.config import Config
 from src.mnist_lenet300.model_attributes import LENET300_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 
-
 def forward_pass_lenet300(self: 'LayerComposite', x: torch.Tensor, inference=False) -> torch.Tensor:
     x = x.view(-1, 28 * 28)
     x = F.relu(self.fc1(x, inference=inference))
@@ -24,8 +23,8 @@ def forward_pass_lenet300(self: 'LayerComposite', x: torch.Tensor, inference=Fal
     x = self.fc3(x, inference=inference)
     return x
 
-def save_model_weights_lenet300(model: 'LayerComposite', filepath: str, skip_array: List = []):
-    import torch
+def save_model_weights_lenet300(model: 'LayerComposite', model_name: str, skip_array: List = []):
+    filepath = SAVED_MODELS_PATH + "/" + model_name
     filepath = prefix_path_with_root(filepath)
     state_dict = {}
 
