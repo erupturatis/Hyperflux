@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from src.cifar10_resnet18.model_class import ModelBaseResnet18
 
 from src.cifar10_resnet18.model_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES, CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
-    STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
+    RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 
 
 @dataclass
@@ -157,7 +157,7 @@ def save_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, 
     state_dict = {}
 
     # Iterate over the mapping array
-    for mapping in CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING:
+    for mapping in RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING:
         custom_name = mapping['custom_name']
         standard_name = mapping['standard_name']
         if custom_name in skip_array:
@@ -195,7 +195,7 @@ def load_model_weights_resnet18_cifar10(model: 'LayerComposite', model_dict, ski
     state_dict = model_dict
 
     # Iterate over the mapping array
-    for mapping in STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING:
+    for mapping in RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING:
         standard_name = mapping['standard_name']
         custom_name = mapping['custom_name']
         if custom_name in skip_array:

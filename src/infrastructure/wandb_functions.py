@@ -20,5 +20,5 @@ def wandb_snapshot():
     #         wandb.log({"epoch": epoch_global, "test_loss": test_loss, "accuracy": accuracy, "remaining_parameters": remain_percent})
     pass
 
-def wandb_end():
+def wandb_finish():
     wandb.finish()

@@ -30,7 +30,7 @@ BATCH_SIZE_MNIST = 128
 def dataset_context_configs_cifar10() -> DatasetContextConfigs:
     return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_10, augmentations=AUGMENTATIONS_CIFAR_10)
 
-def database_context_configs_mnist() -> DatasetContextConfigs:
+def dataset_context_configs_mnist() -> DatasetContextConfigs:
     return DatasetContextConfigs(batch_size=BATCH_SIZE_MNIST, augmentations=None)
 
 class DatasetContextAbstract(ABC):

@@ -107,7 +107,7 @@ RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES = [
 
 ]
 
-CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
+RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
     # Initial convolutional layer and batch norm
     {'custom_name': 'conv1', 'standard_name': 'conv1.weight'},
     {'custom_name': 'bn1', 'standard_name': 'bn1'},
@@ -170,7 +170,7 @@ CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
     {'custom_name': 'fc', 'standard_name': 'fc.weight'},
 ]
 
-STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = [
+RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = [
     {'standard_name': 'conv1.weight', 'custom_name': 'conv1'},
     {'standard_name': 'bn1', 'custom_name': 'bn1'},
 

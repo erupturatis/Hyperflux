@@ -14,7 +14,8 @@ from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler, PressureScheduler
 from src.infrastructure.training_common import get_model_parameters_and_masks
 from torch.amp import GradScaler, autocast
-from src.infrastructure.wandb_functions import wandb_initalize
+from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
+
 
 def train_mixed():
     global MODEL, epoch_global,  dataset_context, training_display, training_context
@@ -255,3 +256,4 @@ def run_cifar10_resnet18():
     # MODEL.save("/data/pretrained/resnet18-cifar10-pruned")
 
     print("Training complete")
+    wandb_finish()

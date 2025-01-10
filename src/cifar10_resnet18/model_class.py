@@ -2,7 +2,7 @@ import torchvision.models as models
 from typing import List
 import torch
 import torch.nn as nn
-from src.cifar10_resnet18.model_common_functions import forward_pass_resnet18, load_model_weights_resnet18_cifar10_from_path, load_model_weights_resnet18_cifar10, save_model_weights_resnet18_cifar10, \
+from src.cifar10_resnet18.model_functions import forward_pass_resnet18, load_model_weights_resnet18_cifar10_from_path, load_model_weights_resnet18_cifar10, save_model_weights_resnet18_cifar10, \
     ConfigsModelBaseResnet18
 from src.cifar10_resnet18.model_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
