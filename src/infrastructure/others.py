@@ -1,10 +1,9 @@
 from calendar import month
 import torch
 import os
-from typing import List, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from src.layers import LayerComposite
+from src.infrastructure.constants import SAVED_RESULTS_PATH
+
 
 def get_device():
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,6 +24,12 @@ def prefix_path_with_root(path):
 def round_float(value: float, digits: int = 4) -> float:
     return round(value, digits)
 
+import json
+def save_array_experiment(filename, arr):
+    path = prefix_path_with_root(SAVED_RESULTS_PATH)
+    path = path + "/" + filename
+    with open(path, 'w') as file:
+        json.dump(arr, file)
 
 
 def get_model_sparsity_percent(model) -> float:

@@ -1,7 +1,8 @@
 /venv
 /tests
 **/local
-/test
+**/test.py
+**/tests.py
 /.idea
 /wandb
 **/wandb

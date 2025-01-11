@@ -10,7 +10,7 @@ from src.infrastructure.constants import LR_FLOW_PARAMS_ADAM, LR_FLOW_PARAMS_ADA
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
     dataset_context_configs_cifar10, dataset_context_configs_mnist
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
-from src.infrastructure.others import get_device, get_model_sparsity_percent
+from src.infrastructure.others import get_device, get_model_sparsity_percent, save_array_experiment
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.stages_context.stages_context import StagesContext, StagesContextArgs
 from src.infrastructure.training_common import get_model_parameters_and_masks
@@ -19,15 +19,16 @@ from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDis
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
 
 def train():
-    global MODEL, epoch_global,  dataset_context, training_display, training_context
-    global ITER
+    global MODEL, epoch_global,  dataset_context, training_display, training_context, BATCH_RECORD_FREQ, sparsity_levels_recording
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss()
     optimizer_weights = training_context.get_optimizer_weights()
     optimizer_pruning = training_context.get_optimizer_flow_mask()
 
+    iter_count = 0
     while dataset_context.any_data_training_available():
+        iter_count += 1
         data, target = dataset_context.get_training_data_and_labels()
 
         optimizer_weights.zero_grad()
@@ -35,8 +36,7 @@ def train():
 
         output = MODEL(data)
 
-        loss_remaining_weights = MODEL.get_remaining_parameters_loss() * training_context.params.l0_gamma_scaler
-
+        loss_remaining_weights = MODEL.get_remaining_parameters_loss() * PRESSURE
         loss_data = criterion(output, target)
         loss = loss_remaining_weights + loss_data
 
@@ -45,6 +45,10 @@ def train():
         optimizer_pruning.step()
 
         training_display.record_losses([loss_data.item(), loss_remaining_weights.item()], training_context)
+        if iter_count % BATCH_RECORD_FREQ == 0:
+            sparsity_levels_recording.append(get_model_sparsity_percent(MODEL))
+            iter_count = 0
+
 
 def test():
     global MODEL, epoch_global, dataset_context
@@ -114,8 +118,8 @@ def initialize_training_context():
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, flipping_params = get_model_parameters_and_masks(MODEL)
-    optimizer_weights = torch.optim.AdamW(lr=lr_weights, params=weight_bias_params, weight_decay=0)
-    optimizer_flow_mask = torch.optim.AdamW(lr=lr_flow_params, params=flow_params, weight_decay=0)
+    optimizer_weights = torch.optim.Adam(lr=lr_weights, params=weight_bias_params, weight_decay=0)
+    optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
     # reset weights are applied after pruning and before regrowth, they are the starting point for the regrowth schedulers
     training_context = TrainingContext(
@@ -132,8 +136,8 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = 50
-    regrowing_end = 100
+    pruning_end = 300
+    regrowing_end = pruning_end
 
     regrowth_stage_length = regrowing_end - pruning_end
 
@@ -141,13 +145,8 @@ def initialize_stages_context():
     flow_params_lr_decay_after_pruning = 0.95
 
     # initial learning rates are taking from optimizers, regrowth lrs are reset in the stages context before regrowing starts
-
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
-
-    # weights_params_lr_decay_during_pruning = 0.95
-    # scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda iter: weights_params_lr_decay_during_pruning ** iter)
-    # scheduler_weights_lr_during_regrowth = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda iter: weights_params_lr_decay_during_pruning ** (iter + pruning_end))
 
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: flow_params_lr_decay_after_pruning ** iter)
 
@@ -171,8 +170,25 @@ stages_context: StagesContext
 training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
+PRESSURE = 0
 
-def run_lenet300_mnist():
+BATCH_RECORD_FREQ = 100
+sparsity_levels_recording = []
+
+def _init_data_arrays():
+    global sparsity_levels_recording
+    sparsity_levels_recording = []
+
+def run_lenet300_mnist_adam_sparsity_curve(arg:float, power_start:int, power_end:int):
+    global PRESSURE, sparsity_levels_recording
+    for pw in range(power_start, power_end+1):
+        PRESSURE = arg ** pw
+        _init_data_arrays()
+        _run_lenet300_mnist_adam()
+        save_array_experiment(f"mnist_lenet300_adam_{PRESSURE}.json", sparsity_levels_recording)
+
+
+def _run_lenet300_mnist_adam():
     global epoch_global
     configs_layers_initialization_all_kaiming_sqrt5()
     config_adam_setup()
@@ -182,8 +198,6 @@ def run_lenet300_mnist():
     initialize_stages_context()
     initialize_dataset_context()
     initalize_training_display()
-
-    wandb_initalize()
 
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
@@ -196,4 +210,3 @@ def run_lenet300_mnist():
 
 
     # MODEL.save("lenet300_mnist")
-    wandb_finish()
