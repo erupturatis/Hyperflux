@@ -1,3 +1,4 @@
+from src.infrastructure.configs_general import VERBOSE_BATCHES
 from src.infrastructure.dataset_context.dataset_context import DatasetContextAbstract
 from typing import List, TYPE_CHECKING
 from src.infrastructure.others import round_float, get_model_sparsity_percent
@@ -28,8 +29,8 @@ class TrainingDisplay:
         for loss_name in self.args.average_losses_names:
             self.losses.append([])
 
-    def record_losses(self, average_losses: List[float], training_context: TrainingContext = None):
-        for idx, loss in enumerate(average_losses):
+    def record_losses(self, losses_per_batch: List[float], training_context: TrainingContext = None):
+        for idx, loss in enumerate(losses_per_batch):
             self.losses[idx].append(loss)
 
         # at print rate losses we print and reinitialize everything
@@ -47,15 +48,16 @@ class TrainingDisplay:
 
             loss_string = ""
             for idx, loss_name in enumerate(self.args.average_losses_names):
-                loss_string += loss_name + ": " + str(round_float(sum(self.losses[idx]) / batch_print_rate)) + " "
+                loss_string += loss_name + ": " + str(round_float(sum(self.losses[idx]) / batch_print_rate)) + " | "
 
             iterated_samples = batch_index * batch_size
             if iterated_samples > total_data_len:
                 # This happens in our last batch where we don't iterate all the samples because there are no more left
                 iterated_samples = total_data_len
-            print(f"Train Epoch: {epoch} [{iterated_samples}/{total_data_len}] Sparsity: {sparsity}")
-            print(loss_string)
-            if training_context is not None:
-                print("Gamma:", training_context.params.l0_gamma_scaler)
+
+            final_message = f"Train Epoch: {epoch} [{iterated_samples}/{total_data_len}] | Sparsity: {sparsity}"
+            if VERBOSE_BATCHES:
+                final_message += f"| " + loss_string
+            print(final_message)
 
             self._initalize_losses_array()

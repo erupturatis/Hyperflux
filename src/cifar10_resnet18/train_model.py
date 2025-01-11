@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
-from src.infrastructure.constants import LR_FLOW_PARAMS
+from src.infrastructure.constants import LR_FLOW_PARAMS_ADAM
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
 from src.infrastructure.stages_context.stages_context import StagesContext, StagesContextArgs
 from src.infrastructure.training_context.training_context import TrainingContext, TrainingContextParams
@@ -184,7 +184,7 @@ def initialize_training_context():
     global training_context
 
     lr_weights_finetuning = 0.0001
-    lr_flow_params = LR_FLOW_PARAMS
+    lr_flow_params = LR_FLOW_PARAMS_ADAM
 
     weight_bias_params, pruning_params, flipping_params = get_model_parameters_and_masks(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=1e-4)
@@ -193,7 +193,7 @@ def initialize_training_context():
     training_context = TrainingContext(
         TrainingContextParams(
             lr_weights=lr_weights_finetuning,
-            lr_flow_mask=LR_FLOW_PARAMS,
+            lr_flow_params=LR_FLOW_PARAMS_ADAM,
             l0_gamma_scaler=0,
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
@@ -219,9 +219,9 @@ def initialize_stages_context():
             regrowth_epoch_end=regrowing_end,
             scheduler_gamma=pruning_scheduler,
 
-            scheduler_weights_pruning=None,
+            scheduler_weights_lr_during_pruning=None,
             scheduler_flow_params_regrowth=scheduler_flow_params,
-            scheduler_weights_regrowth=scheduler_regrowing_weights,
+            scheduler_weights_lr_during_regrowth=scheduler_regrowing_weights,
         )
     )
 

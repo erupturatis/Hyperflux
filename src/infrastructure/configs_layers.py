@@ -5,24 +5,9 @@ from src.infrastructure.parameters_mask_processors import get_parameters_pruning
     get_parameters_pruning_step_aproximation_sigmoid_
 from typing import Dict
 
-# MaskPruningFunction = MaskPruningFunctionLeaky
-# MaskFlipFunction = MaskFlipFunctionLeaky
-# get_parameters_pruning = get_parameters_pruning_leaky
-# get_parameters_pruning_statistics = get_parameters_pruning_statistics_leaky
-# get_parameters_flipped_statistics = get_parameters_flipped_statistics_leaky
-
-# MaskPruningFunction = MaskPruningFunctionLeaky
-# MaskFlipFunction = MaskFlipFunctionLeaky
-# get_parameters_pruning = get_parameters_pruning_leaky
-# get_parameters_pruning_statistics = get_parameters_pruning_statistics_leaky
-# get_parameters_flipped_statistics = get_parameters_flipped_statistics_leaky
-
 MaskPruningFunction = MaskPruningFunctionSigmoid
-# MaskPruningFunction = MaskPruningFunctionSigmoidSampled
 MaskFlipFunction = MaskFlipFunctionSigmoid
-# MaskFlipFunction = MaskFlipFunctionTanh
 
-# get_parameters_pruning = get_parameters_pruning_sigmoid_
 get_parameters_pruning = get_parameters_pruning_step_aproximation_sigmoid_
 
 get_parameters_pruning_statistics = get_parameters_pruning_statistics_sigmoid_

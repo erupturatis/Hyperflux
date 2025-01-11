@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 import torch
-from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_ATTR, WEIGHTS_FLIPPING_ATTR
+from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_ATTR, WEIGHTS_FLIPPING_ATTR, get_flow_params_init
+
 if TYPE_CHECKING:
     from src.infrastructure.layers import  LayerPrimitive
 
@@ -65,9 +66,9 @@ def get_parameters_pruning_step_aproximation_sigmoid_(layer_primitive: 'LayerPri
 
     total += weights.numel()
     # sigmoids += mask_pruning.sum()
-    # sigmoids += (mask_pruning * (mask_pruning > -0.3).float()).sum()
-    # sigmoids += torch.sigmoid(mask_pruning * (mask_pruning > -0.3).float()).sum()
-    sigmoids += torch.sigmoid(mask_pruning).sum()
+    sigmoids += (mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
+    # sigmoids += torch.sigmoid(mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
+    # sigmoids += torch.sigmoid(mask_pruning).sum()
     return total, sigmoids
 
 def get_parameters_pruning_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:

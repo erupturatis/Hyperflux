@@ -12,7 +12,6 @@ from src.mnist_lenet300.model_attributes import LENET300_MNIST_UNREGISTERED_LAYE
 from src.mnist_lenet300.model_functions import forward_pass_lenet300, save_model_weights_lenet300, \
     load_model_weights_lenet300_from_path
 
-
 class ModelLenet300(LayerComposite):
     def __init__(self, config_network_mask: ConfigsNetworkMasksImportance):
         super(ModelLenet300, self).__init__()

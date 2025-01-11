@@ -9,8 +9,9 @@ from dataclasses import dataclass
 
 @dataclass
 class TrainingContextParams:
-    lr_weights: float
-    lr_flow_mask: float
+    lr_weights_reset: float
+    lr_flow_params_reset: float
+
     l0_gamma_scaler: float
 
     optimizer_weights: torch.optim.Optimizer
@@ -31,10 +32,10 @@ class TrainingContext:
 
     def reset_param_groups_to_defaults(self) -> None:
         for param_group in self.params.optimizer_weights.param_groups:
-            param_group['lr'] = self.params.lr_weights
+            param_group['lr'] = self.params.lr_weights_reset
 
         for param_group in self.params.optimizer_flow_mask.param_groups:
-            param_group['lr'] = self.params.lr_flow_mask
+            param_group['lr'] = self.params.lr_flow_params_reset
 
         self.params.l0_gamma_scaler = 0
 

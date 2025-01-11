@@ -1,8 +1,9 @@
 from typing import Dict
 import numpy as np
 
+from src.infrastructure.configs_general import VERBOSE_SCHEDULER
+from src.infrastructure.constants import SCHEDULER_MESSAGE
 from src.infrastructure.others import prefix_path_with_root
-
 
 class PressureScheduler:
     step_size = 0.3
@@ -17,9 +18,10 @@ class PressureScheduler:
         self.inertia_negative = 0
         self.EXP = pressure_exponent_constant
 
-        late_aggressivity = epochs_target / 3
-        aggressivity_transition = 0.05
-        # calculate target trajectory
+        # Empirically found formulas, work well for any setup
+        late_aggressivity = epochs_target / 2
+        aggressivity_transition = 6 / epochs_target
+
         self.trajectory_calculator = TrajectoryCalculator(
             pruning_target=self.pruning_target,
             epochs_target=self.epochs_target,
@@ -34,24 +36,28 @@ class PressureScheduler:
     def step(self, epoch: int, current_sparsity: float) -> None:
         expected_sparsity = self._get_expected_sparsity(epoch)
 
-        print("Current params", current_sparsity , "Expected params", expected_sparsity )
+        if VERBOSE_SCHEDULER:
+            print(SCHEDULER_MESSAGE + "Current params", current_sparsity , "Expected params", expected_sparsity )
 
         if current_sparsity > expected_sparsity:
             # network has too many params, prune more aggresive
             # expected deviation
             self.gamma += self.step_size + self.inertia_positive
-            print("Pressure increased !!", self.gamma)
             self.inertia_positive += self.step_size/4
             self.inertia_negative = 0
+            if VERBOSE_SCHEDULER:
+                print(SCHEDULER_MESSAGE + "SCHEDULER::Increasing pressure ", self.gamma)
         else:
             # Ease up presssure
             self.gamma -= self.step_size + self.inertia_negative
-            print("Easing up pressure !!", self.gamma)
             self.inertia_negative += self.step_size/4
             self.inertia_positive = 0
 
             if self.gamma < 0:
                 self.gamma = 0
+
+            if VERBOSE_SCHEDULER:
+                print(SCHEDULER_MESSAGE + "SCHEDULER::Decreasing pressure ", self.gamma)
 
     def get_multiplier(self) -> int:
         return self.gamma ** self.EXP
@@ -143,7 +149,6 @@ class TrajectoryCalculator:
                 self.aggressivity_transition,
                 self.late_aggressivity
             )
-            # print(f"Iteration {iteration+1}: start_decrease={mid_start:.6f}, f({self.epochs_target})={current_end_pruning:.6f}")
 
             if abs(current_end_pruning - self.pruning_target) < MARGIN_ERROR:
                 best_start_decrease = mid_start

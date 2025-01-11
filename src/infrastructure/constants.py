@@ -10,4 +10,39 @@ CONV2D_LAYER = 'conv2d'
 FULLY_CONNECTED_LAYER = 'fully_connected'
 
 SAVED_MODELS_PATH = '/networks_saved'
-LR_FLOW_PARAMS = 0.001
+
+LR_FLOW_PARAMS = {
+    "value": 0.0
+}
+LR_FLOW_PARAMS_RESET = {
+    "value": 0.0
+}
+FLOW_PARAMS_INITIALIZATION = {
+    "value": 0.0
+}
+
+def config_sgd_setup():
+    pass
+
+def config_adam_setup():
+    global LR_FLOW_PARAMS, LR_FLOW_PARAMS_RESET, LR_FLOW_PARAMS_ADAM_RESET, LR_FLOW_PARAMS_ADAM, FLOW_PARAMS_INITIALIZATION
+    LR_FLOW_PARAMS["value"] = LR_FLOW_PARAMS_ADAM
+    LR_FLOW_PARAMS_RESET["value"] = LR_FLOW_PARAMS_ADAM_RESET
+    FLOW_PARAMS_INITIALIZATION["value"] = FLOW_PARAMS_INITIALIZATION_ADAM
+
+def get_lr_flow_params():
+    return LR_FLOW_PARAMS["value"]
+
+def get_lr_flow_params_reset():
+    return LR_FLOW_PARAMS_RESET["value"]
+
+def get_flow_params_init():
+    return FLOW_PARAMS_INITIALIZATION["value"]
+
+
+LR_FLOW_PARAMS_ADAM = 0.00075
+LR_FLOW_PARAMS_ADAM_RESET = LR_FLOW_PARAMS_ADAM / 10
+FLOW_PARAMS_INITIALIZATION_ADAM = 0.2
+
+GRADIENT_IDENTITY_SCALER = 0.25
+SCHEDULER_MESSAGE = "SCHEDULER::"

@@ -1,6 +1,9 @@
 import numpy as np
 import torch
 
+from src.infrastructure.constants import GRADIENT_IDENTITY_SCALER
+
+
 class MaskFlipFunctionTanh(torch.autograd.Function):
     @staticmethod
     def forward(ctx, mask_param):
@@ -117,8 +120,8 @@ class MaskPruningFunctionSigmoid(torch.autograd.Function):
         mask, _ = ctx.saved_tensors
 
         mask = torch.sigmoid(mask)
-        # grad_mask_param = grad_output * 1
-        grad_mask_param = grad_output * mask * (1 - mask)
+        grad_mask_param = grad_output * 1 * GRADIENT_IDENTITY_SCALER
+        # grad_mask_param = grad_output * mask * (1 - mask)
 
         return grad_mask_param
 

@@ -4,19 +4,19 @@ from typing import Tuple
 import kornia.augmentation as K
 from abc import ABC, abstractmethod
 import torch
+from src.infrastructure.configs_general import VERBOSE_STAGES, EXTRA_VERBOSE_STAGES
 from src.infrastructure.others import get_device
 import torch.nn as nn
 from dataclasses import dataclass
-
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_context.training_context import TrainingContext
 
 
 @dataclass
 class StagesContextArgs:
-    scheduler_weights_pruning: torch.optim.lr_scheduler.LRScheduler
+    scheduler_weights_lr_during_pruning: torch.optim.lr_scheduler.LRScheduler
 
-    scheduler_weights_regrowth: torch.optim.lr_scheduler.LRScheduler
+    scheduler_weights_lr_during_regrowth: torch.optim.lr_scheduler.LRScheduler
     scheduler_flow_params_regrowth: torch.optim.lr_scheduler.LRScheduler
 
     scheduler_gamma: PressureScheduler
@@ -30,27 +30,29 @@ class StagesContext:
         self.sparsity_percent = 100
         self.args = args
 
-        if self.args.scheduler_weights_pruning == None:
+        if self.args.scheduler_weights_lr_during_pruning == None:
             warnings.warn("Scheduler weights pruning is disabled")
-        if self.args.scheduler_weights_regrowth == None:
+        if self.args.scheduler_weights_lr_during_regrowth == None:
             warnings.warn("Scheduler weights regrowth is disabled")
         if self.args.scheduler_flow_params_regrowth == None:
             warnings.warn("Scheduler flow params regrowth is disabled")
         if self.args.scheduler_gamma == None:
             warnings.warn("Scheduler gamma is disabled")
 
+
+
     def update_context(self, epoch: int, sparsity_percent: float):
         self.epoch = epoch
         self.sparsity_percent = sparsity_percent
 
     def step(self, training_context: TrainingContext):
-        print("Start epoch lr", training_context.params.optimizer_weights.param_groups[0]['lr'])
-        print("Start epoch lr2", training_context.params.optimizer_flow_mask.param_groups[0]['lr'])
+        if VERBOSE_STAGES:
+            print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
 
         if self.epoch <= self.args.pruning_epoch_end:
             # run weights scheduler
-            if self.args.scheduler_weights_pruning is not None:
-                self.args.scheduler_weights_pruning.step()
+            if self.args.scheduler_weights_lr_during_pruning is not None:
+                self.args.scheduler_weights_lr_during_pruning.step()
 
             # run gamma scheduler
             self.args.scheduler_gamma.step(self.epoch, self.sparsity_percent)
@@ -58,12 +60,17 @@ class StagesContext:
             training_context.set_gamma(gamma)
 
         if self.epoch == self.args.pruning_epoch_end + 1:
-            # here regrowing just starts, we reset param groups
+            # sets optimizer parameters to reset values
             training_context.reset_param_groups_to_defaults()
+            self.args.scheduler_weights_lr_during_regrowth.base_lrs[0] = training_context.params.lr_weights_reset
+            self.args.scheduler_flow_params_regrowth.base_lrs[0] = training_context.params.lr_flow_params_reset
+
+        if EXTRA_VERBOSE_STAGES:
+            print("Learning rates mid, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
 
         if self.epoch >= self.args.pruning_epoch_end + 1 and self.epoch <= self.args.regrowth_epoch_end:
-            if self.args.scheduler_weights_regrowth is not None:
-                self.args.scheduler_weights_regrowth.step()
+            if self.args.scheduler_weights_lr_during_regrowth is not None:
+                self.args.scheduler_weights_lr_during_regrowth.step()
 
             # we decay flow params lr, to stop flipping and limit regrowing
             if self.args.scheduler_flow_params_regrowth is not None:
@@ -72,8 +79,8 @@ class StagesContext:
             # we remove pressure
             training_context.set_gamma(0)
 
-        print("End epoch lr", training_context.params.optimizer_weights.param_groups[0]['lr'])
-        print("End epoch lr2", training_context.params.optimizer_flow_mask.param_groups[0]['lr'])
+        if VERBOSE_STAGES:
+            print("Learning rates end, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
 
 
 
