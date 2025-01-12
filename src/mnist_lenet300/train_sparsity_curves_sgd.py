@@ -17,7 +17,6 @@ from src.infrastructure.training_common import get_model_parameters_and_masks
 from src.infrastructure.training_context.training_context import TrainingContext, TrainingContextParams
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
-from .train_sparsity_curves_adam import BATCH_RECORD_FREQ
 
 
 def train():
@@ -144,14 +143,8 @@ def initialize_stages_context():
     pruning_scheduler = PressureScheduler(pressure_exponent_constant=1, sparsity_target=0.2, epochs_target=pruning_end)
     flow_params_lr_decay_after_pruning = 0.95
 
-    # initial learning rates are taking from optimizers, regrowth lrs are reset in the stages context before regrowing starts
-
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
-
-    # weights_params_lr_decay_during_pruning = 0.95
-    # scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda iter: weights_params_lr_decay_during_pruning ** iter)
-    # scheduler_weights_lr_during_regrowth = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda iter: weights_params_lr_decay_during_pruning ** (iter + pruning_end))
 
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: flow_params_lr_decay_after_pruning ** iter)
 
@@ -178,6 +171,7 @@ BATCH_PRINT_RATE = 100
 
 PRESSURE: float = 0
 sparsity_levels_recording =[]
+BATCH_RECORD_FREQ = 128
 
 def _init_data_arrays():
     global sparsity_levels_recording

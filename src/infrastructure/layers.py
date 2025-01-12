@@ -211,10 +211,6 @@ class LayerLinearMaskImportance(LayerPrimitive):
             mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
             masked_weight = masked_weight * mask_changes
 
-        if self.mask_flipping_enabled:
-            mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
-            masked_weight = masked_weight * mask_changes
-
         return masked_weight
 
     def init_parameters(self):
@@ -282,10 +278,6 @@ class LayerConv2MaskImportance(LayerPrimitive):
         masked_weights = getattr(self, WEIGHTS_ATTR)
         if self.mask_pruning_enabled:
             mask_changes = MaskPruningFunction.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
-            masked_weights = masked_weights * mask_changes
-
-        if self.mask_flipping_enabled:
-            mask_changes = MaskFlipFunction.apply(getattr(self, WEIGHTS_FLIPPING_ATTR))
             masked_weights = masked_weights * mask_changes
 
         return masked_weights

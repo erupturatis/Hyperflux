@@ -19,7 +19,7 @@ from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDis
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
 
 def train():
-    global MODEL, epoch_global,  dataset_context, training_display, training_context, BATCH_RECORD_FREQ, sparsity_levels_recording
+    global MODEL, epoch_global,  dataset_context, training_display, training_context, BATCH_RECORD_FREQ, sparsity_levels_recording, PRESSURE
     MODEL.train()
 
     criterion = nn.CrossEntropyLoss()
@@ -85,7 +85,6 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = ModelLenet300(configs_network_masks).to(get_device())
-    # MODEL.load('lenet300_mnist')
 
 def get_epoch() -> int:
     global epoch_global

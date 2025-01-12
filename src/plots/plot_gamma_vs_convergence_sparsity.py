@@ -17,14 +17,14 @@ def variable_exponent_model(x, c, alpha0, alpha1):
     return c * np.exp(- (alpha0 * lx + alpha1 * lx * lx))
 
 saved_results_path = prefix_path_with_root(SAVED_RESULTS_PATH)
-exponents = list(range(-1, 9))
+exponents = list(range(-6, 9))
 gamma_values = []
 final_sparsity = []
 
 for exponent in exponents:
     gamma = 2 ** exponent
     gamma_str = "{:.15f}".format(gamma).rstrip('0').rstrip('.') if '.' in "{:.15f}".format(gamma) else "{:.15f}".format(gamma)
-    filename = f"results_mnist_pruning_vs_epochs_g{gamma_str}.json"
+    filename = f"mnist_lenet300_adam_{gamma_str}.json"
     file_path = os.path.join(saved_results_path, filename)
     if not os.path.isfile(file_path):
         print(f"Warning: File '{filename}' does not exist in '{saved_results_path}'. Skipping this gamma value.")
@@ -76,6 +76,8 @@ try:
     alpha1 = -d_fit
     print(f"Fitted parameters: c = {c_fit:.4f}, α0 = {alpha0:.4f}, α1 = {alpha1:.4f}")
     gamma_curve = np.logspace(np.log10(gamma_fit.min()), np.log10(gamma_fit.max()), 100)
+    alpha0 = 0.68
+    alpha1 = 0.0
     sparsity_curve = variable_exponent_model(gamma_curve, c_fit, alpha0, alpha1)
 except Exception as e:
     print(f"Curve fitting failed: {e}")

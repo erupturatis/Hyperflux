@@ -171,7 +171,7 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 def run_lenet300_mnist_adam():
-    global epoch_global
+    global epoch_global, MODEL
     configs_layers_initialization_all_kaiming_sqrt5()
     config_adam_setup()
 

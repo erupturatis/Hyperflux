@@ -6,7 +6,7 @@ from src.cifar10_resnet18.model_functions import forward_pass_resnet18, load_mod
     ConfigsModelBaseResnet18
 from src.cifar10_resnet18.model_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
-from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER
+from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER, N_SCALER
 from src.infrastructure.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
     get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
     ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count
@@ -71,7 +71,7 @@ class ModelBaseResnet18(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid =  get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid / total
+        return sigmoid * N_SCALER
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
