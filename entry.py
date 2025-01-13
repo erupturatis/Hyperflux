@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # run_lenet300_mnist_adam_sparsity_curve(2, -1, 0)
     # run_lenet300_mnist_sgd_sparsity_curve(2, -1, 0)
 
-    run_cifar10_resnet18_sgd_sparsity_curve(2,-6,8)
-    run_cifar10_resnet18_adam_sparsity_curve(2,-6,8)
+    # run_cifar10_resnet18_sgd_sparsity_curve(2,-6,8)
+    run_cifar10_resnet18_adam_sparsity_curve(2,-9,5)
 
     pass
