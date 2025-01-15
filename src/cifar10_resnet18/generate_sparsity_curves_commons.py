@@ -1,10 +1,10 @@
 import torch
 from torch.amp import GradScaler, autocast
 import torch.nn as nn
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
-from src.infrastructure.others import get_device, get_model_sparsity_percent, save_array_experiment
-from src.cifar10_resnet18.model_class import ModelBaseResnet18, ConfigsModelBaseResnet18
-from typing import List, Tuple
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext
+from src.infrastructure.others import get_model_sparsity_percent
+from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18
+from typing import List
 
 from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve
 from src.infrastructure.training_display import TrainingDisplay

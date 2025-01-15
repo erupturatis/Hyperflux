@@ -1,10 +1,9 @@
 import torchvision.models as models
 import torch
-from src.cifar10_resnet18.model_attributes import RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
-from src.cifar10_resnet18.model_class import ModelBaseResnet18
+from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
     dataset_context_configs_cifar10
-from src.infrastructure.others import prefix_path_with_root, get_device, get_sparsity
+from src.infrastructure.others import prefix_path_with_root, get_device
 from torch import nn
 
 dataset_context: DatasetSmallContext

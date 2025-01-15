@@ -2,10 +2,10 @@ import torchvision.models as models
 from typing import List
 import torch
 import torch.nn as nn
-from src.cifar10_resnet18.model_functions import forward_pass_resnet18, load_model_weights_resnet18_cifar10_from_path, load_model_weights_resnet18_cifar10, save_model_weights_resnet18_cifar10, \
+from src.common_files_experiments.resnet18_small_images_functions import forward_pass_resnet18, load_model_weights_resnet18_cifar10_from_path, load_model_weights_resnet18_cifar10, save_model_weights_resnet18_cifar10, \
     ConfigsModelBaseResnet18
-from src.cifar10_resnet18.model_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
+from src.common_files_experiments.resnet18_small_images_attributes import RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES
 from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER, N_SCALER
 from src.infrastructure.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
     get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
@@ -25,7 +25,7 @@ class ModelBaseResnet18(LayerComposite):
 
         self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
 
-        for layer_attr in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -55,7 +55,7 @@ class ModelBaseResnet18(LayerComposite):
             setattr(self, name, layer)
             self.registered_layers.append(layer)
 
-        for layer_attr in RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 

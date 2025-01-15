@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 
-from src.cifar10_resnet18.model_class import ModelBaseResnet18
+from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext
-from src.infrastructure.others import get_device, get_model_sparsity_percent
+from src.infrastructure.others import get_model_sparsity_percent
 from torch.amp import GradScaler, autocast
 
 from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain

@@ -1,8 +1,7 @@
 import torch
 from src.cifar10_resnet18.generate_sparsity_curves_commons import test_curves, train_mixed_curves
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
-from src.infrastructure.constants import LR_FLOW_PARAMS_ADAM, config_adam_setup, LR_FLOW_PARAMS_RESET, \
-    get_lr_flow_params_reset, get_lr_flow_params, config_sgd_setup, BASELINE_RESNET18_CIFAR10
+from src.infrastructure.constants import get_lr_flow_params, config_sgd_setup, BASELINE_RESNET18_CIFAR10
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
 from src.infrastructure.stages_context.stages_context import StagesContextSparsityCurve, StagesContextSparsityCurveArgs
 from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve, \
@@ -10,10 +9,10 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent, save_array_experiment
-from src.cifar10_resnet18.model_class import ModelBaseResnet18, ConfigsModelBaseResnet18
-from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
+from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18, ConfigsModelBaseResnet18
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from src.infrastructure.training_common import get_model_parameters_and_masks
-from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
+
 
 def initialize_model():
     global MODEL

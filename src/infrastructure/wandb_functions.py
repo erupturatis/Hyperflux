@@ -42,4 +42,5 @@ def wandb_snapshot(epoch: int, accuracy: float, test_loss: float, sparsity: floa
         wandb.log({"epoch": epoch, "test_loss": test_loss, "accuracy": accuracy, "sparsity": sparsity, "others": others})
 
 def wandb_finish():
-    wandb.finish()
+    if WANDB_REGISTER:
+        wandb.finish()

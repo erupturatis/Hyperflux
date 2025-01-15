@@ -1,10 +1,7 @@
-from dataclasses import dataclass
 import torch
-import torch.nn as nn
-from src.cifar10_resnet18.train_pruned_commons import train_mixed, test_model
+from src.common_files_experiments.train_pruned import train_mixed, test_model
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
-from src.infrastructure.constants import LR_FLOW_PARAMS_ADAM, config_adam_setup, LR_FLOW_PARAMS_RESET, \
-    get_lr_flow_params_reset, get_lr_flow_params, PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10
+from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
 from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs
 from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
@@ -12,12 +9,12 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent
-from src.cifar10_resnet18.model_class import ModelBaseResnet18, ConfigsModelBaseResnet18
+from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-from src.infrastructure.schedulers import PressureScheduler, PressureScheduler
+from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_common import get_model_parameters_and_masks
-from torch.amp import GradScaler, autocast
-from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags, wandb_snapshot
+from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
+
 
 def initialize_model():
     global MODEL

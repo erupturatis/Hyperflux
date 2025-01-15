@@ -1,6 +1,6 @@
 import torch
 
-from src.cifar10_resnet18.run_existing_models import run_cifar10_resnet18_existing_model
+from src.cifar10_resnet18.run_existing_model import run_cifar10_resnet18_existing_model
 from src.cifar10_resnet18.train_model_scratch import train_cifar10_resnet18_from_scratch
 from src.cifar10_resnet18.train_pruned_model_adam import train_cifar10_resnet18_sparse_model_adam
 from src.infrastructure.constants import PRUNED_MODELS_PATH

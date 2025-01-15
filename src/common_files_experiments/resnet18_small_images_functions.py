@@ -3,17 +3,17 @@ from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
 
-from src.infrastructure.constants import PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
+from src.infrastructure.constants import BASELINE_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, LayerPrimitive
 from typing import List
 from src.infrastructure.others import prefix_path_with_root
 from dataclasses import dataclass
 if TYPE_CHECKING:
-    from src.cifar10_resnet18.model_class import ModelBaseResnet18
+    from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18
 
-from src.cifar10_resnet18.model_attributes import RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
-    RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+from src.common_files_experiments.resnet18_small_images_attributes import RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
+    RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 
 
 @dataclass
@@ -23,13 +23,13 @@ class ConfigsModelBaseResnet18:
 def forward_pass_resnet18(self: 'LayerComposite', x: torch.Tensor) -> torch.Tensor:
     # Ensures all layers used in forward are registered in these 2 arrays
     registered_layers_object = SimpleNamespace()
-    for layer in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
+    for layer in RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES:
         name = layer['name']
         layer = getattr(self, name)
         setattr(registered_layers_object, name, layer)
 
     unregistered_layers_object = SimpleNamespace()
-    for layer in RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES:
+    for layer in RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES:
         name = layer['name']
         layer = getattr(self, name)
         setattr(unregistered_layers_object, name, layer)
@@ -157,7 +157,7 @@ def save_model_weights_resnet18_cifar10(model: 'LayerComposite', filepath: str, 
     state_dict = {}
 
     # Iterate over the mapping array
-    for mapping in RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING:
+    for mapping in RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING:
         custom_name = mapping['custom_name']
         standard_name = mapping['standard_name']
         if custom_name in skip_array:
@@ -195,7 +195,7 @@ def load_model_weights_resnet18_cifar10(model: 'LayerComposite', model_dict, ski
     state_dict = model_dict
 
     # Iterate over the mapping array
-    for mapping in RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING:
+    for mapping in RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING:
         standard_name = mapping['standard_name']
         custom_name = mapping['custom_name']
         if custom_name in skip_array:
