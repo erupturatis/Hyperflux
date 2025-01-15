@@ -1,21 +1,16 @@
 import torch
-from src.cifar10_resnet18.train_model_adam import run_cifar10_resnet18_adam
-from src.cifar10_resnet18.train_sparsity_curves_adam import run_cifar10_resnet18_adam_sparsity_curve
-from src.cifar10_resnet18.train_sparsity_curves_sgd import run_cifar10_resnet18_sgd_sparsity_curve
-from src.mnist_lenet300.train_model_adam import run_lenet300_mnist_adam
-from src.mnist_lenet300.train_model_sgd import run_lenet300_mnist_sgd
-from src.mnist_lenet300.train_sparsity_curves_adam import run_lenet300_mnist_adam_sparsity_curve
-from src.mnist_lenet300.train_sparsity_curves_sgd import run_lenet300_mnist_sgd_sparsity_curve
+
+from src.cifar10_resnet18.run_existing_models import run_cifar10_resnet18_existing_model
+from src.cifar10_resnet18.train_model_scratch import train_cifar10_resnet18_from_scratch
+from src.cifar10_resnet18.train_pruned_model_adam import train_cifar10_resnet18_sparse_model_adam
+from src.infrastructure.constants import PRUNED_MODELS_PATH
 
 if __name__ == '__main__':
-    # run_cifar10_resnet18()
-    # run_lenet300_mnist_adam()
-    # run_lenet300_mnist_sgd()
-
-    # run_lenet300_mnist_adam_sparsity_curve(2, -1, 0)
-    # run_lenet300_mnist_sgd_sparsity_curve(2, -1, 0)
-
-    run_cifar10_resnet18_sgd_sparsity_curve(2,-6,8)
-    run_cifar10_resnet18_adam_sparsity_curve(2,-6,8)
+    # train_cifar10_resnet18_sparse_model_adam()
+    run_cifar10_resnet18_existing_model(folder=PRUNED_MODELS_PATH, model_name="resnet18c")
 
     pass
+
+"""
+R18 scratch, trainAdam, runExisting, generateCurveAdam 
+"""

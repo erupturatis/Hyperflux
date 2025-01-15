@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
 
-from src.infrastructure.constants import SAVED_MODELS_PATH
+from src.infrastructure.constants import PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, LayerPrimitive
 from typing import List
 from src.infrastructure.others import prefix_path_with_root
@@ -226,7 +226,7 @@ def load_model_weights_resnet18_cifar10(model: 'LayerComposite', model_dict, ski
             print(f"Unhandled layer type for layer '{custom_name}': {type(layer)}")
 
 def load_model_weights_resnet18_cifar10_from_path(model: 'LayerComposite', model_name: str, skip_array: List = []):
-    filepath = SAVED_MODELS_PATH + "/" + model_name
+    filepath = BASELINE_MODELS_PATH + "/" + model_name
     filepath = prefix_path_with_root(filepath)
     state_dict = torch.load(filepath)
     load_model_weights_resnet18_cifar10(model, state_dict, skip_array)

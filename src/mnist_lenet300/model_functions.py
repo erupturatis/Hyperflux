@@ -2,7 +2,7 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
-from src.infrastructure.constants import SAVED_MODELS_PATH
+from src.infrastructure.constants import PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, LayerPrimitive
 from typing import List
 from src.infrastructure.others import prefix_path_with_root
@@ -24,7 +24,7 @@ def forward_pass_lenet300(self: 'LayerComposite', x: torch.Tensor, inference=Fal
     return x
 
 def save_model_weights_lenet300(model: 'LayerComposite', model_name: str, skip_array: List = []):
-    filepath = SAVED_MODELS_PATH + "/" + model_name
+    filepath = PRUNED_MODELS_PATH + "/" + model_name
     filepath = prefix_path_with_root(filepath)
     state_dict = {}
 
@@ -75,7 +75,7 @@ def load_model_weights_lenet300(model: 'LayerComposite', model_dict, skip_array:
             print(f"Unhandled layer type for layer '{custom_name}': {type(layer)}")
 
 def load_model_weights_lenet300_from_path(model: 'LayerComposite', model_name: str, skip_array: List = []):
-    filepath = SAVED_MODELS_PATH + "/" + model_name
+    filepath = PRUNED_MODELS_PATH + "/" + model_name
     filepath = prefix_path_with_root(filepath)
     state_dict = torch.load(filepath)
     load_model_weights_lenet300(model, state_dict, skip_array)

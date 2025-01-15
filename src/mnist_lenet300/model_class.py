@@ -6,7 +6,7 @@ from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinear
     get_remaining_parameters_loss_masks_importance, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive
 from src.infrastructure.others import get_device
-from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, FULLY_CONNECTED_LAYER
+from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, FULLY_CONNECTED_LAYER, N_SCALER
 from src.mnist_lenet300.model_attributes import LENET300_MNIST_UNREGISTERED_LAYERS_ATTRIBUTES, \
     LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES
 from src.mnist_lenet300.model_functions import forward_pass_lenet300, save_model_weights_lenet300, \
@@ -38,7 +38,7 @@ class ModelLenet300(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid / total
+        return sigmoid * N_SCALER
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)

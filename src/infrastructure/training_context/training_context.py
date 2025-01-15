@@ -8,7 +8,18 @@ import torch.nn as nn
 from dataclasses import dataclass
 
 @dataclass
-class TrainingContextParams:
+class TrainingContextBaselineTrainArgs:
+    optimizer_weights: torch.optim.Optimizer
+
+class TrainingContextBaselineTrain:
+    def __init__(self, args: TrainingContextBaselineTrainArgs):
+        self.params = args
+
+    def get_optimizer_weights(self) -> torch.optim.Optimizer:
+        return self.params.optimizer_weights
+
+@dataclass
+class TrainingContextPrunedTrainArgs:
     lr_weights_reset: float
     lr_flow_params_reset: float
 
@@ -17,8 +28,8 @@ class TrainingContextParams:
     optimizer_weights: torch.optim.Optimizer
     optimizer_flow_mask: torch.optim.Optimizer
 
-class TrainingContext:
-    def __init__(self, params: TrainingContextParams):
+class TrainingContextPrunedTrain:
+    def __init__(self, params: TrainingContextPrunedTrainArgs):
         self.params = params
 
     def get_optimizer_weights(self) -> torch.optim.Optimizer:
@@ -40,6 +51,17 @@ class TrainingContext:
         self.params.l0_gamma_scaler = 0
 
 
+@dataclass
+class TrainingContextSparsityCurveArgs:
+    optimizer_weights: torch.optim.Optimizer
+    optimizer_flow_mask: torch.optim.Optimizer
 
+class TrainingContextSparsityCurve:
+    def __init__(self, params: TrainingContextSparsityCurveArgs):
+        self.params = params
 
+    def get_optimizer_weights(self) -> torch.optim.Optimizer:
+        return self.params.optimizer_weights
 
+    def get_optimizer_flow_mask(self) -> torch.optim.Optimizer:
+        return self.params.optimizer_flow_mask

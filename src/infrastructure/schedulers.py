@@ -6,10 +6,10 @@ from src.infrastructure.constants import SCHEDULER_MESSAGE
 from src.infrastructure.others import prefix_path_with_root
 
 class PressureScheduler:
-    step_size = 0.3
-    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int):
+    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float = 0.3):
         self.gamma = 0
 
+        self.step_size = step_size
         self.pruning_target = sparsity_target
         self.epochs_target = epochs_target
         self.sparsity_target = sparsity_target

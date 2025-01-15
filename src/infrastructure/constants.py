@@ -9,8 +9,13 @@ MASK_MERGED_ATTR = 'mask_merged'
 CONV2D_LAYER = 'conv2d'
 FULLY_CONNECTED_LAYER = 'fully_connected'
 
-SAVED_MODELS_PATH = '/networks_saved'
-SAVED_RESULTS_PATH = '/experiments_outputs'
+PRUNED_MODELS_PATH = '/networks_pruned'
+BASELINE_MODELS_PATH = '/networks_baseline'
+
+EXPERIMENTS_RESULTS_PATH = '/experiments_outputs'
+
+BASELINE_RESNET18_CIFAR10 = "resnet18_cifar10_trained_94.75%"
+BASELINE_LENET300_MNIST = "lenet300_mnist_98.3%"
 
 LR_FLOW_PARAMS = {
     "value": 0.0

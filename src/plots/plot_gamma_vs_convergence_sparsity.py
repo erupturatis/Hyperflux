@@ -6,7 +6,7 @@ import glob
 import os
 import torch
 from itertools import cycle
-from src.infrastructure.constants import SAVED_RESULTS_PATH
+from src.infrastructure.constants import EXPERIMENTS_RESULTS_PATH
 from src.infrastructure.others import prefix_path_with_root
 
 def log_model(x, a, b, d):
@@ -92,7 +92,7 @@ def process_dataset(base_filename_pattern, exponents, saved_results_path):
         return gamma_sorted, final_sparsity_sorted, None, None
 
 def main():
-    saved_results_path = prefix_path_with_root(SAVED_RESULTS_PATH)
+    saved_results_path = prefix_path_with_root(EXPERIMENTS_RESULTS_PATH)
 
     # Define the range of exponents from -9 to 9 inclusive
     exponents = list(range(-9, 10))
