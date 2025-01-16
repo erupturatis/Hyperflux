@@ -18,7 +18,7 @@ from src.infrastructure.training_context.training_context import TrainingContext
     TrainingContextPrunedTrainArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
-from ..common_files_experiments.train_pruned_commons import train_mixed_common, test_model_common
+from ..common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
 
 
 def initialize_model():
@@ -135,13 +135,13 @@ def run_lenet300_mnist_sgd():
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-        train_mixed_common(
+        train_mixed_pruned(
             dataset_context=dataset_context,
             training_context=training_context,
             model=MODEL,
             training_display=training_display,
         )
-        acc = test_model_common(
+        acc = test_pruned(
             dataset_context=dataset_context,
             model=MODEL,
             epoch=get_epoch()

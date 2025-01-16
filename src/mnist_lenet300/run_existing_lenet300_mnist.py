@@ -1,7 +1,7 @@
 import torchvision.models as models
 import torch
 
-from src.cifar10_resnet18.resnet18_cifar10_attributes import RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+from src.resnet18_cifar10.resnet18_cifar10_attributes import RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.common_files_experiments.test_existing_model import test_existing_model
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
     dataset_context_configs_cifar10, dataset_context_configs_mnist

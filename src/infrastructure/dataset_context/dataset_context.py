@@ -3,7 +3,8 @@ from typing import Tuple
 import kornia.augmentation as K
 from abc import ABC, abstractmethod
 from src.infrastructure.constants import DATA_PATH, IMAGENET_PATH
-from src.infrastructure.dataset_context.data_preprocessing import cifar10_preprocess, mnist_preprocess
+from src.infrastructure.dataset_context.data_preprocessing import cifar10_preprocess, mnist_preprocess, \
+    cifar100_preprocess
 import torch
 from src.infrastructure.others import get_device
 import torch.nn as nn
@@ -46,8 +47,18 @@ _AUGMENTATIONS_CIFAR_10 = nn.Sequential(
     K.RandomHorizontalFlip(p=0.5),
 ).to(get_device())
 
+_AUGMENTATIONS_CIFAR_100 = nn.Sequential(
+    K.RandomCrop((32, 32), padding=4),
+    K.RandomRotation(degrees=10.0),
+    K.RandomHorizontalFlip(p=0.5),
+).to(get_device())
+
 BATCH_SIZE_CIFAR_10 = 128
+BATCH_SIZE_CIFAR_100 = 128
 BATCH_SIZE_MNIST = 128
+
+def dataset_context_configs_cifar100() -> DatasetContextConfigs:
+    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_100, augmentations=_AUGMENTATIONS_CIFAR_100)
 
 def dataset_context_configs_cifar10() -> DatasetContextConfigs:
     return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_10, augmentations=_AUGMENTATIONS_CIFAR_10)
@@ -122,7 +133,7 @@ class DatasetSmallContext(DatasetContextAbstract):
         if dataset == DatasetSmallType.MNIST:
             self.train_data, self.train_labels, self.test_data, self.test_labels = mnist_preprocess()
         if dataset == DatasetSmallType.CIFAR100:
-            pass
+            self.train_data, self.train_labels, self.test_data, self.test_labels = cifar100_preprocess()
 
         self.total_training_batches = len(self.train_labels) // self.configs.batch_size
         self.total_test_batches = len(self.test_labels) // self.configs.batch_size

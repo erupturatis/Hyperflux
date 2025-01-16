@@ -4,7 +4,7 @@ import torch.nn as nn
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetContextAbstract
 from src.infrastructure.layers import LayerComposite
 from src.infrastructure.others import get_model_sparsity_percent
-from src.cifar10_resnet18.resnet18_cifar10_class import Resnet18Cifar10
+from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
 from typing import List
 
 from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve
