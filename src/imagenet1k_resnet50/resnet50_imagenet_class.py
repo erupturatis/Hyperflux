@@ -1,32 +1,27 @@
 from typing import List
 import torch
 import torch.nn as nn
-from dataclasses import dataclass
-
-from src.imagenet1k_resnet50.common_resnet50 import load_model_weights
-from src.imagenet1k_resnet50.resnet50_imagenet_attributes import RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
-from src.infrastructure.constants import N_SCALER
+from src.common_files_experiments.load_save import save_model_weights, load_model_weights
+from src.imagenet1k_resnet50.resnet50_imagenet_forward import forward_pass_resnet50_imagenet
+from src.common_files_experiments.resnet50_vanilla_attributes import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
+    RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss, \
     get_layers_primitive
 
 
-@dataclass
-class ConfigsModelBaseResnet50:
-    num_classes: int
-
-class ModelBaseResnet50(LayerComposite):
-    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet50, configs_network_masks: ConfigsNetworkMasksImportance):
-        super(ModelBaseResnet50, self).__init__()
+class Resnet50Imagenet(LayerComposite):
+    def __init__(self, configs_network_masks: ConfigsNetworkMasksImportance):
+        super(Resnet50Imagenet, self).__init__()
         self.registered_layers = []
 
         # Hardcoded activations
         self.relu = nn.ReLU(inplace=True)
-        self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
 
         # Initialize registered layers
-        for layer_attr in RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -57,7 +52,7 @@ class ModelBaseResnet50(LayerComposite):
             self.registered_layers.append(layer)
 
         # Initialize unregistered layers
-        for layer_attr in RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -90,12 +85,24 @@ class ModelBaseResnet50(LayerComposite):
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
-    def load_weights(self, model, skip_array = []):
-        load_model_weights(model, skip_array)
-
-    def save_weights(self, path : str):
-        save_model_weights(self, path, skip_array = [])
-        
     def forward(self, x):
-        return forward_pass_resnet50(self, x)
-    
+        return forward_pass_resnet50_imagenet(self, x)
+
+    def save(self, name: str):
+        save_model_weights(
+            model=self,
+            model_name=name,
+            folder_name=PRUNED_MODELS_PATH,
+            network_to_standard_mapping=RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
+            skip_array=[]
+        )
+
+    def load(self, path: str):
+        load_model_weights(
+            model=self,
+            model_name=path,
+            folder_name=PRUNED_MODELS_PATH,
+            standard_to_network_dict=RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
+            skip_array=[]
+        )
+

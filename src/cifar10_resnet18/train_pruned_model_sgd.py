@@ -1,5 +1,5 @@
 import torch
-from src.common_files_experiments.train_pruned_commons import train_mixed, test_model
+from src.common_files_experiments.train_pruned_commons import train_mixed_common, test_model_common
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.infrastructure.constants import get_lr_flow_params_reset, get_lr_flow_params, config_sgd_setup, \
     BASELINE_RESNET18_CIFAR10, PRUNED_MODELS_PATH
@@ -9,7 +9,7 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent
-from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18, ConfigsModelBaseResnet18
+from src.cifar10_resnet18.resnet18_cifar10_class import Resnet18Cifar10, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_common import get_model_parameters_and_masks
@@ -22,7 +22,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
-    MODEL = ModelBaseResnet18(configs_model_base_resnet18, configs_network_masks).to(get_device())
+    MODEL = Resnet18Cifar10(configs_model_base_resnet18, configs_network_masks).to(get_device())
     MODEL.load(BASELINE_RESNET18_CIFAR10)
 
 def get_epoch() -> int:
@@ -94,7 +94,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: ModelBaseResnet18
+MODEL: Resnet18Cifar10
 training_context: TrainingContextPrunedTrain
 dataset_context: DatasetSmallContext
 stages_context: StagesContextPrunedTrain
@@ -126,13 +126,13 @@ def train_cifar10_resnet18_sparse_model_sgd():
         epoch_global = epoch
         dataset_context.init_data_split()
 
-        train_mixed(
+        train_mixed_common(
             dataset_context=dataset_context,
             training_context=training_context,
             model=MODEL,
             training_display=training_display,
         )
-        acc = test_model(
+        acc = test_model_common(
             dataset_context=dataset_context,
             model=MODEL,
             epoch=get_epoch()

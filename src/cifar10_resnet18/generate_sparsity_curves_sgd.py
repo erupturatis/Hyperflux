@@ -9,7 +9,7 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent, save_array_experiment
-from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18, ConfigsModelBaseResnet18
+from src.cifar10_resnet18.resnet18_cifar10_class import Resnet18Cifar10, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from src.infrastructure.training_common import get_model_parameters_and_masks
 
@@ -21,7 +21,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
-    MODEL = ModelBaseResnet18(configs_model_base_resnet18, configs_network_masks).to(get_device())
+    MODEL = Resnet18Cifar10(configs_model_base_resnet18, configs_network_masks).to(get_device())
     MODEL.load(BASELINE_RESNET18_CIFAR10)
 
 def get_epoch() -> int:
@@ -74,7 +74,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: ModelBaseResnet18
+MODEL: Resnet18Cifar10
 training_context: TrainingContextSparsityCurve
 dataset_context: DatasetSmallContext
 stages_context: StagesContextSparsityCurve

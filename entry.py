@@ -7,7 +7,7 @@ from src.infrastructure.constants import PRUNED_MODELS_PATH
 
 if __name__ == '__main__':
     # train_cifar10_resnet18_sparse_model_adam()
-    run_cifar10_resnet18_existing_model(folder=PRUNED_MODELS_PATH, model_name="resnet18c")
+    run_cifar10_resnet18_existing_model(folder=PRUNED_MODELS_PATH, model_name="resnet18c2")
 
     pass
 

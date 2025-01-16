@@ -1,25 +1,19 @@
 from types import SimpleNamespace
-from typing import  List
 import torch
-import torch.nn as nn
-from dataclasses import dataclass
-import torchvision.models as models
-
-from src.imagenet1k_resnet50.resnet50_imagenet_attributes import RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_IMAGENET_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
-from src.infrastructure.layers import LayerPrimitive
+from src.common_files_experiments.resnet50_vanilla_attributes import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES
 
 
-def forward_pass_resnet50(self: 'LayerComposite', x: torch.Tensor) -> torch.Tensor:
+def forward_pass_resnet50_imagenet(self: 'LayerComposite', x: torch.Tensor) -> torch.Tensor:
     # Ensures all layers used in forward are registered in these 2 arrays
     registered_layers_object = SimpleNamespace()
-    for layer_attr in RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES:
+    for layer_attr in RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES:
         name = layer_attr['name']
         layer = getattr(self, name)
         setattr(registered_layers_object, name, layer)
 
     unregistered_layers_object = SimpleNamespace()
-    for layer_attr in RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES:
+    for layer_attr in RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES:
         name = layer_attr['name']
         layer = getattr(self, name)
         setattr(unregistered_layers_object, name, layer)

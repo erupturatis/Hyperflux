@@ -1,10 +1,10 @@
 from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER
 
 # Registered layers
-RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES = [
+RESNET18_VANILLA_REGISTERED_LAYERS_ATTRIBUTES = [
     # Initial convolutional layer
     {"name": "conv1", "type": CONV2D_LAYER, "in_channels": 3, "out_channels": 64,
-     "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
+     "kernel_size": 7, "stride": 2, "padding": 3, "bias_enabled": False},
 
     # Layer 1 - Block 1
     {"name": "layer1_block1_conv1", "type": CONV2D_LAYER, "in_channels": 64,
@@ -61,12 +61,11 @@ RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES = [
      "out_channels": 512, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
 
     # Fully connected layer
-    {"name": "fc", "type": FULLY_CONNECTED_LAYER, "in_features": 512, "out_features": 10}
+    {"name": "fc", "type": FULLY_CONNECTED_LAYER, "in_features": 512, "out_features": 1000}
 ]
 
-
 # Unregistered layers (e.g., batch norms, activations, pooling)
-RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES = [
+RESNET18_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES = [
     # Initial batch normalization
     {"name": "bn1", "type": "BatchNorm2d", "num_features": 64},
 
@@ -104,10 +103,9 @@ RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES = [
     # Layer 4 - Block 2
     {"name": "layer4_block2_bn1", "type": "BatchNorm2d", "num_features": 512},
     {"name": "layer4_block2_bn2", "type": "BatchNorm2d", "num_features": 512},
-
 ]
 
-RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
+RESNET18_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
     # Initial convolutional layer and batch norm
     {'custom_name': 'conv1', 'standard_name': 'conv1.weight'},
     {'custom_name': 'bn1', 'standard_name': 'bn1'},
@@ -170,7 +168,7 @@ RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = [
     {'custom_name': 'fc', 'standard_name': 'fc.weight'},
 ]
 
-RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = [
+RESNET18_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = [
     {'standard_name': 'conv1.weight', 'custom_name': 'conv1'},
     {'standard_name': 'bn1', 'custom_name': 'bn1'},
 

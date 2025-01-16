@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 
-from src.common_files_experiments.resnet18_small_images_class import ModelBaseResnet18
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext
+from src.infrastructure.dataset_context.dataset_context import DatasetContextAbstract
 from src.infrastructure.others import get_model_sparsity_percent
 from torch.amp import GradScaler, autocast
 
@@ -10,7 +9,7 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay
 from src.infrastructure.wandb_functions import wandb_snapshot
 
-def train_mixed(model: ModelBaseResnet18, dataset_context: DatasetSmallContext, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
+def train_mixed_common(model: nn.Module, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
     model.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
@@ -38,7 +37,7 @@ def train_mixed(model: ModelBaseResnet18, dataset_context: DatasetSmallContext, 
 
         training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])
 
-def test_model(model: ModelBaseResnet18, dataset_context: DatasetSmallContext, epoch):
+def test_model_common(model: nn.Module, dataset_context: DatasetContextAbstract, epoch: int):
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
 

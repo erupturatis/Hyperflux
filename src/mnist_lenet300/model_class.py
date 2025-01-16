@@ -2,7 +2,7 @@ import torch
 from typing import List
 
 from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, ConfigsLayerLinear, \
-    get_remaining_parameters_loss_masks_importance, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
+    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive
 from src.infrastructure.constants import FULLY_CONNECTED_LAYER, N_SCALER
 from src.mnist_lenet300.model_attributes import LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES
@@ -42,9 +42,6 @@ class ModelLenet300(LayerComposite):
 
     def get_parameters_pruning_statistics(self) -> any:
         return get_layer_composite_pruning_statistics(self)
-
-    def get_parameters_flipped_statistics(self) -> any:
-        return get_layer_composite_flipped_statistics(self)
 
     def forward(self, x, inference=False):
         return forward_pass_lenet300(self, x, inference)

@@ -229,7 +229,7 @@ MODEL: ModelBaseResnet50
 pruning_scheduler: PruningScheduler
 epoch_global: int = 0
 
-def run_imagenet_resnet50():
+def run_imagenet_resnet50_deprecated():
     print(f"Number of GPUs available: {torch.cuda.device_count()}") 
     configs_layers_initialization_all_kaiming_sqrt5()
 
@@ -248,7 +248,7 @@ def run_imagenet_resnet50():
 
 
 
-    dataset = load_dataset("ILSVRC/imagenet-1k", cache_dir = "/mnt/QNAP/eubar/data")  
+    dataset = load_dataset("ILSVRC/imagenet-1k", cache_dir = "/mnt/QNAP/eubar/data")
     train_dataset = ImageNetDataset(dataset['train'], transform = train_transforms)
     val_dataset = ImageNetDataset(dataset['validation'], transform = val_transforms)
     

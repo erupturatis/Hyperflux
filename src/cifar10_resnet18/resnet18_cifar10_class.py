@@ -1,23 +1,22 @@
-import torchvision.models as models
 from typing import List
 import torch
 import torch.nn as nn
 
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
-from src.common_files_experiments.resnet18_small_images_functions import forward_pass_resnet18, ConfigsModelBaseResnet18
-from src.common_files_experiments.resnet18_small_images_attributes import \
-    RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
-    RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+from src.cifar10_resnet18.resnet18_cifar10_forward import forward_pass_resnet18_cifar10
+from src.cifar10_resnet18.resnet18_cifar10_attributes import \
+    RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
+    RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER, N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
     get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
-    ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count
+    ConfigsLayerLinear, get_parameters_total_count
 
 
-class ModelBaseResnet18(LayerComposite):
-    def __init__(self, configs_model_base_resnet: ConfigsModelBaseResnet18, configs_network_masks: ConfigsNetworkMasksImportance):
-        super(ModelBaseResnet18, self).__init__()
+class Resnet18Cifar10(LayerComposite):
+    def __init__(self, configs_network_masks: ConfigsNetworkMasksImportance):
+        super(Resnet18Cifar10, self).__init__()
         self.registered_layers = []
 
         # hardcoded activations
@@ -26,9 +25,7 @@ class ModelBaseResnet18(LayerComposite):
             output_size=(1,1)
         )
 
-        self.NUM_OUTPUT_CLASSES = configs_model_base_resnet.num_classes
-
-        for layer_attr in RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -58,7 +55,7 @@ class ModelBaseResnet18(LayerComposite):
             setattr(self, name, layer)
             self.registered_layers.append(layer)
 
-        for layer_attr in RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -87,22 +84,22 @@ class ModelBaseResnet18(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_resnet18(self, x)
+        return forward_pass_resnet18_cifar10(self, x)
 
-    def save(self, name: str):
+    def save(self, name: str, folder:str):
         save_model_weights(
             model=self,
             model_name=name,
-            folder_name=PRUNED_MODELS_PATH,
-            network_to_standard_mapping=RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
+            folder_name=folder,
+            network_to_standard_mapping=RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
             skip_array=[]
         )
 
-    def load(self, path: str):
+    def load(self, path: str, folder: str):
         load_model_weights(
             model=self,
             model_name=path,
-            folder_name=PRUNED_MODELS_PATH,
-            standard_to_network_dict=RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
+            folder_name=folder,
+            standard_to_network_dict=RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
             skip_array=[]
         )
