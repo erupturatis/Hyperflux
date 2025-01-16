@@ -6,8 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.infrastructure.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
-    get_parameters_pruning_statistics, get_parameters_flipped_statistics, configs_get_layers_initialization, \
-    get_parameters_pruning_statistics_vanilla_network
+    get_parameters_pruning_statistics,  configs_get_layers_initialization
 from src.infrastructure.parameters_mask_processors import get_parameters_pruning_sigmoid_steep, get_parameters_total
 from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
 from src.infrastructure.others import get_device
@@ -15,10 +14,6 @@ import math
 from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, \
     WEIGHTS_BASE_ATTR, get_flow_params_init
 
-
-class ConfigsNetworkMasksProbabilitiesPruneSign(TypedDict):
-    mask_probabilities_enabled: bool
-    weights_training_enabled: bool
 
 class ConfigsNetworkMasksImportance(TypedDict):
     mask_pruning_enabled: bool
@@ -57,29 +52,6 @@ class LayerComposite(nn.Module, ABC):
     # @abstractmethod
     # def get_parameters_pruning_statistics(self) -> any:
     #     pass
-
-def get_layer_composite_flipped_statistics(self: LayerComposite) -> tuple[float, float]:
-    layers = get_layers_primitive(self)
-    total = 0
-    remaining = 0
-    for layer in layers:
-        layer_total, layer_remaining = get_parameters_flipped_statistics(layer)
-        total += layer_total
-        remaining += layer_remaining
-
-    return total, remaining
-
-
-def get_layer_composite_pruning_statistics_vanilla(self: LayerComposite) -> tuple[float, float]:
-    layers = get_layers_primitive(self)
-    total = 0
-    remaining = 0
-    for layer in layers:
-        layer_total, layer_remaining = get_parameters_pruning_statistics_vanilla_network(layer)
-        total += layer_total
-        remaining += layer_remaining
-
-    return total, remaining
 
 def get_parameters_probabilities_statistics(layer: LayerPrimitive) -> tuple[int, int, int]:
     if not hasattr(layer, WEIGHTS_PRUNING_ATTR):
@@ -158,9 +130,9 @@ def get_remaining_parameters_loss_masks_importance(self: LayerComposite) -> tupl
     total = 0
     activations = torch.tensor(0, device=get_device(), dtype=torch.float)
     for layer in layers:
-        layer_total, layer_sigmoid = get_parameters_pruning(layer)
+        layer_total, layer_remaining = get_parameters_pruning(layer)
         total += layer_total
-        activations += layer_sigmoid
+        activations += layer_remaining
 
     return total, activations
 

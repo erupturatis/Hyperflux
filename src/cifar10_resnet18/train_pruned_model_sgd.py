@@ -1,5 +1,5 @@
 import torch
-from src.common_files_experiments.train_pruned import train_mixed, test_model
+from src.common_files_experiments.train_pruned_commons import train_mixed, test_model
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.infrastructure.constants import get_lr_flow_params_reset, get_lr_flow_params, config_sgd_setup, \
     BASELINE_RESNET18_CIFAR10, PRUNED_MODELS_PATH

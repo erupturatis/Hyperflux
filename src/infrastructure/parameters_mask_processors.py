@@ -28,7 +28,7 @@ def get_parameters_pruning_statistics_vanilla_(layer_primitive: 'LayerPrimitive'
     remaining += (weights != 0).float().sum()
     return total, remaining
 
-def get_parameters_pruning_statistics_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
+def get_parameters_pruning_statistics_step_(layer_primitive: 'LayerPrimitive') -> tuple[float, float]:
     total = 0
     remaining = 0
 
@@ -36,7 +36,6 @@ def get_parameters_pruning_statistics_sigmoid_(layer_primitive: 'LayerPrimitive'
     mask_pruning = getattr(layer_primitive, WEIGHTS_PRUNING_ATTR)
 
     total += weights.numel()
-    # remaining += (torch.sigmoid(mask_pruning) >= 0.5).float().sum()
     remaining += (mask_pruning >= 0).float().sum()
     return total, remaining
 
@@ -57,19 +56,18 @@ def get_parameters_total(layer_primitive: 'LayerPrimitive') -> int:
     total += weights.numel()
     return total
 
-def get_parameters_pruning_step_aproximation_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
+def get_parameters_pruning_step_aproximation_constant_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
     total = 0
-    sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)
+    remaining = torch.tensor(0, device=get_device(), dtype=torch.float)
 
     weights = getattr(layer_primitive, WEIGHTS_ATTR)
     mask_pruning = getattr(layer_primitive, WEIGHTS_PRUNING_ATTR)
 
     total += weights.numel()
-    # sigmoids += mask_pruning.sum()
-    sigmoids += (mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
-    # sigmoids += torch.sigmoid(mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
-    # sigmoids += torch.sigmoid(mask_pruning).sum()
-    return total, sigmoids
+    # remaining += mask_pruning.sum()
+    remaining += (mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
+
+    return total, remaining
 
 def get_parameters_pruning_sigmoid_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
     total = 0

@@ -14,7 +14,7 @@ from src.infrastructure.others import get_device, get_model_sparsity_percent
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs
 from src.infrastructure.training_common import get_model_parameters_and_masks
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, TrainingContextSparsityCurveArgs
+from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, TrainingContextPrunedTrainArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
 
@@ -117,7 +117,7 @@ def initialize_training_context():
 
     # reset weights are applied after pruning and before regrowth, they are the starting point for the regrowth schedulers
     training_context = TrainingContextPrunedTrain(
-        TrainingContextSparsityCurveArgs(
+        TrainingContextPrunedTrainArgs(
             lr_weights_reset=lr_weights_finetuning,
             lr_flow_params_reset=get_lr_flow_params_reset(),
 

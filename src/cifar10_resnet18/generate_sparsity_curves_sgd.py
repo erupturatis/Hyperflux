@@ -1,5 +1,5 @@
 import torch
-from src.cifar10_resnet18.generate_sparsity_curves_commons import test_curves, train_mixed_curves
+from src.common_files_experiments.generate_sparsity_curves_commons import test_curves, train_mixed_curves
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.infrastructure.constants import get_lr_flow_params, config_sgd_setup, BASELINE_RESNET18_CIFAR10
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10

@@ -2,11 +2,14 @@ import torchvision.models as models
 from typing import List
 import torch
 import torch.nn as nn
-from src.common_files_experiments.resnet18_small_images_functions import forward_pass_resnet18, load_model_weights_resnet18_cifar10_from_path, load_model_weights_resnet18_cifar10, save_model_weights_resnet18_cifar10, \
-    ConfigsModelBaseResnet18
-from src.common_files_experiments.resnet18_small_images_attributes import RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES, \
-    RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES
-from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER, N_SCALER
+
+from src.common_files_experiments.load_save import save_model_weights, load_model_weights
+from src.common_files_experiments.resnet18_small_images_functions import forward_pass_resnet18, ConfigsModelBaseResnet18
+from src.common_files_experiments.resnet18_small_images_attributes import \
+    RESNET18_SMALL_IMAGES_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET18_SMALL_IMAGES_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
+    RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER, N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
     get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
     ConfigsLayerLinear, get_layer_composite_flipped_statistics, get_parameters_total_count
@@ -70,17 +73,14 @@ class ModelBaseResnet18(LayerComposite):
 
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid =  get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid * N_SCALER
+        total, remaining =  get_remaining_parameters_loss_masks_importance(self)
+        return remaining * N_SCALER
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def get_parameters_pruning_statistics(self) -> any:
         return get_layer_composite_pruning_statistics(self)
-
-    def get_parameters_flipped_statistics(self) -> any:
-        return get_layer_composite_flipped_statistics(self)
 
     def get_parameters_total_count(self) -> int:
         total = get_parameters_total_count(self)
@@ -89,14 +89,20 @@ class ModelBaseResnet18(LayerComposite):
     def forward(self, x):
         return forward_pass_resnet18(self, x)
 
-    def save(self, path: str):
-        save_model_weights_resnet18_cifar10(self, path, skip_array=[])
+    def save(self, name: str):
+        save_model_weights(
+            model=self,
+            model_name=name,
+            folder_name=PRUNED_MODELS_PATH,
+            network_to_standard_mapping=RESNET18_SMALL_IMAGES_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
+            skip_array=[]
+        )
 
     def load(self, path: str):
-        load_model_weights_resnet18_cifar10_from_path(self, path, skip_array=[])
-
-    def load_pretrained_pytorch(self):
-        resnet18 = models.resnet18(pretrained=True)
-        pretrained_dict = resnet18.state_dict()
-        load_model_weights_resnet18_cifar10(self, pretrained_dict, skip_array=['conv1', 'bn1', 'fc'])
-        print("Loading successful")
+        load_model_weights(
+            model=self,
+            model_name=path,
+            folder_name=PRUNED_MODELS_PATH,
+            standard_to_network_dict=RESNET18_SMALL_IMAGES_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
+            skip_array=[]
+        )
