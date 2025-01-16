@@ -5,13 +5,13 @@ from src.infrastructure.layers import LayerPrimitive
 from src.infrastructure.others import prefix_path_with_root
 
 
-def save_model_weights(model: 'LayerComposite', model_name: str, folder_name:str, network_to_standard_mapping: Dict, skip_array: List = []):
+def save_model_weights(model: 'LayerComposite', model_name: str, folder_name:str, custom_to_standard_mapping: Dict, skip_array: List = []):
     filepath = folder_name + "/" + model_name
     filepath = prefix_path_with_root(filepath)
     _save_model_weights(
         model=model,
         filepath=filepath,
-        network_to_standard_mapping=network_to_standard_mapping,
+        network_to_standard_mapping=custom_to_standard_mapping,
         skip_array=skip_array
     )
 
@@ -82,9 +82,9 @@ def _load_model_weights(model: 'LayerComposite', model_dict, standard_to_network
         else:
             print(f"Unhandled layer type for layer '{custom_name}': {type(layer)}")
 
-def load_model_weights(model: 'LayerComposite', model_name: str, folder_name:str, standard_to_network_dict: Dict, skip_array: List = []):
+def load_model_weights(model: 'LayerComposite', model_name: str, folder_name:str, standard_to_custom_mapping: Dict, skip_array: List = []):
     filepath = folder_name + "/" + model_name
     filepath = prefix_path_with_root(filepath)
     state_dict = torch.load(filepath)
-    _load_model_weights(model, state_dict, standard_to_network_dict, skip_array)
+    _load_model_weights(model, state_dict, standard_to_custom_mapping, skip_array)
 

@@ -111,6 +111,7 @@ def _run_cifar10_resnet18_adam():
     for epoch in range(1, stages_context.args.epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
+
         sparsity_levels_recording = train_mixed_curves(
             dataset_context=dataset_context,
             model=MODEL,

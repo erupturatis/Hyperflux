@@ -1,7 +1,8 @@
 import torch
 from torch.amp import GradScaler, autocast
 import torch.nn as nn
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetContextAbstract
+from src.infrastructure.layers import LayerComposite
 from src.infrastructure.others import get_model_sparsity_percent
 from src.cifar10_resnet18.resnet18_cifar10_class import Resnet18Cifar10
 from typing import List
@@ -10,7 +11,7 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay
 
 
-def test_curves(model: Resnet18Cifar10, dataset_context: DatasetSmallContext):
+def test_curves(model: 'LayerComposite', dataset_context: DatasetContextAbstract):
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
 
@@ -40,7 +41,7 @@ def test_curves(model: Resnet18Cifar10, dataset_context: DatasetSmallContext):
         f"Remaining parameters: {remain_percent:.2f}%"
     )
 
-def train_mixed_curves(model: Resnet18Cifar10, training_context: TrainingContextSparsityCurve, dataset_context: DatasetSmallContext, PRESSURE:float, training_display: TrainingDisplay, sparsity_levels_recording: List[float], BATCH_RECORD_FREQ: int) -> List[float]:
+def train_mixed_curves(model: 'LayerComposite', training_context: TrainingContextSparsityCurve, dataset_context: DatasetContextAbstract, PRESSURE:float, training_display: TrainingDisplay, sparsity_levels_recording: List[float], BATCH_RECORD_FREQ: int) -> List[float]:
     model.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)

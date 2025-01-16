@@ -91,7 +91,7 @@ class Resnet18Cifar10(LayerComposite):
             model=self,
             model_name=name,
             folder_name=folder,
-            network_to_standard_mapping=RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
+            custom_to_standard_mapping=RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
             skip_array=[]
         )
 
@@ -100,6 +100,6 @@ class Resnet18Cifar10(LayerComposite):
             model=self,
             model_name=path,
             folder_name=folder,
-            standard_to_network_dict=RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
+            standard_to_custom_mapping=RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
             skip_array=[]
         )
