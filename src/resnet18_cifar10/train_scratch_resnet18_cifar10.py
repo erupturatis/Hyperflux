@@ -84,7 +84,7 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-def train_cifar10_resnet18_from_scratch():
+def train_resnet18_cifar10_from_scratch():
     global MODEL, epoch_global
     configs_layers_initialization_all_kaiming_sqrt5()
 

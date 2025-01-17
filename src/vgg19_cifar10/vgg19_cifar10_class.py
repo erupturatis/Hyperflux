@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 from types import SimpleNamespace
 
+from src.common_files_experiments.forward_functions import forward_pass_vgg19
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
-from src.vgg19_cifar10.vgg19_cifar10_forward import forward_pass_vgg19_cifar10
 from src.vgg19_cifar10.vgg19_cifar10_attributes import (
     VGG19_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES,
     VGG19_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES,
@@ -96,7 +96,7 @@ class VGG19Cifar10(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_vgg19_cifar10(self, x)
+        return forward_pass_vgg19(self, x, VGG19_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES)
 
     def save(self, name: str, folder: str):
         save_model_weights(

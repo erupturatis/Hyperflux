@@ -102,13 +102,13 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 sparsity_configs = {
-    "pruning_end": 3,
-    "regrowing_end": 3,
+    "pruning_end": 50,
+    "regrowing_end": 100,
     "target_sparsity": 0.5,
     "lr_flow_params_decay_regrowing": 0.95
 }
 
-def train_resnet18_cifar10_sparse_model():
+def train_resnet18_cifar100_sparse_model():
     global MODEL, epoch_global
 
     configs_layers_initialization_all_kaiming_sqrt5()

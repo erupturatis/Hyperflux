@@ -1,5 +1,5 @@
 from src.common_files_experiments.attributes_mutations import Mutation, mutate_attributes
-from src.common_files_experiments.resnet18_vanilla_attributes import RESNET18_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
+from src.common_files_experiments.vanilla_attributes_resnet18 import RESNET18_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING, \
     RESNET18_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING
 from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER

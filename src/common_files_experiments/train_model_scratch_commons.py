@@ -10,6 +10,41 @@ from src.infrastructure.training_display import TrainingDisplay
 from src.infrastructure.wandb_functions import wandb_snapshot, wandb_snapshot_baseline
 
 
+def train_mixed_baseline_debug(model: nn.Module, dataset_context: DatasetContextAbstract, training_context: TrainingContextBaselineTrain, training_display: TrainingDisplay):
+    model.train()
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer_weights = training_context.get_optimizer_weights()
+
+    scaler = GradScaler('cuda')
+    while dataset_context.any_data_training_available():
+        data, target = dataset_context.get_training_data_and_labels()
+
+        optimizer_weights.zero_grad()
+
+        with autocast('cuda'):
+            output = model(data)
+            loss_data = criterion(output, target)
+
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(f"Before backward: {name} grad: {param.grad}")
+
+        scaler.scale(loss_data).backward()
+
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(f"After backward: {name} grad: {param.grad}")
+
+        scaler.step(optimizer_weights)
+        scaler.update()
+
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(f"Updated parameter: {name}, value: {param.data}")
+
+        training_display.record_losses([loss_data.item()])
+
+
 def train_mixed_baseline(model: nn.Module, dataset_context: DatasetContextAbstract, training_context: TrainingContextBaselineTrain, training_display: TrainingDisplay):
     model.train()
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)

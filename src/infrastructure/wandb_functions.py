@@ -34,7 +34,7 @@ def wandb_initalize(experiment: Experiment, type: Tags, configs: Dict = None, ot
 
 def wandb_snapshot_baseline(epoch:int, accuracy: float, test_loss:float, others: Dict = None):
     if WANDB_REGISTER:
-        print("REGISERED DATA")
+        # print("REGISERED DATA")
         wandb.log({"epoch": epoch, "test_loss": test_loss, "accuracy": accuracy, "others": others})
 
 def wandb_snapshot(epoch: int, accuracy: float, test_loss: float, sparsity: float, others: Dict = None):

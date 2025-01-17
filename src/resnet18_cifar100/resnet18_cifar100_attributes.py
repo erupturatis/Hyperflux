@@ -1,5 +1,5 @@
 from src.common_files_experiments.attributes_mutations import Mutation, mutate_attributes
-from src.common_files_experiments.resnet18_vanilla_attributes import (
+from src.common_files_experiments.vanilla_attributes_resnet18 import (
     RESNET18_VANILLA_REGISTERED_LAYERS_ATTRIBUTES,
     RESNET18_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES,
     RESNET18_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
@@ -32,8 +32,8 @@ replace_fc = Mutation(
     replacement_dict={
         "name": "fc",
         "type": FULLY_CONNECTED_LAYER,
-        "in_features": 512,   # Remains the same as ResNet18's fc layer
-        "out_features": 100,  # Changed from 1000 (ImageNet) to 100 for CIFAR-100
+        "in_features": 512,
+        "out_features": 100,
         "bias_enabled": True
     }
 )

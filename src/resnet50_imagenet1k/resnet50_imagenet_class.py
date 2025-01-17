@@ -1,15 +1,18 @@
 from typing import List
 import torch
 import torch.nn as nn
+
+from src.common_files_experiments.forward_functions import forward_pass_resnet50
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
-from src.resnet50_imagenet1k.resnet50_imagenet_forward import forward_pass_resnet50_imagenet
-from src.common_files_experiments.resnet50_vanilla_attributes import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
+from src.common_files_experiments.vanilla_attributes_resnet50 import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss, \
     get_layers_primitive
+from src.resnet50_imagenet1k.resnet50_imagenet_attributes import RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES, \
+    RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
 
 
 class Resnet50Imagenet(LayerComposite):
@@ -21,7 +24,7 @@ class Resnet50Imagenet(LayerComposite):
         self.relu = nn.ReLU(inplace=True)
 
         # Initialize registered layers
-        for layer_attr in RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -52,7 +55,7 @@ class Resnet50Imagenet(LayerComposite):
             self.registered_layers.append(layer)
 
         # Initialize unregistered layers
-        for layer_attr in RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES:
+        for layer_attr in RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
 
@@ -86,7 +89,12 @@ class Resnet50Imagenet(LayerComposite):
         return get_layers_primitive(self)
 
     def forward(self, x):
-        return forward_pass_resnet50_imagenet(self, x)
+        return forward_pass_resnet50(
+            self=self,
+            x=x,
+            registered_layer_attributes=RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES,
+            unregistered_layer_attributes=RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
+        )
 
     def save(self, name: str):
         save_model_weights(

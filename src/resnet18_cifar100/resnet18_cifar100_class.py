@@ -1,6 +1,8 @@
 from typing import List
 import torch
 import torch.nn as nn
+
+from src.common_files_experiments.forward_functions import forward_pass_resnet18
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet18_cifar10.resnet18_cifar10_attributes import \
     RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
@@ -12,7 +14,6 @@ from src.infrastructure.layers import LayerConv2MaskImportance, ConfigsNetworkMa
 from src.resnet18_cifar100.resnet18_cifar100_attributes import RESNET18_CIFAR100_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET18_CIFAR100_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING, RESNET18_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES
-from src.resnet18_cifar100.resnet18_cifar100_forward import forward_pass_resnet18_cifar100
 
 
 class Resnet18Cifar100(LayerComposite):
@@ -85,7 +86,12 @@ class Resnet18Cifar100(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_resnet18_cifar100(self, x)
+        return forward_pass_resnet18(
+            self=self,
+            x=x,
+            registered_layers=RESNET18_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES,
+            unregistered_layers=RESNET18_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES,
+        )
 
     def save(self, name: str, folder:str):
         save_model_weights(

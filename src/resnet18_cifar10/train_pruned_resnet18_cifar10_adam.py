@@ -15,6 +15,8 @@ from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_common import get_model_parameters_and_masks
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
+from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
+
 
 def initialize_model():
     global MODEL
@@ -101,13 +103,13 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 sparsity_configs = {
-    "pruning_end": 3,
-    "regrowing_end": 3,
+    "pruning_end": 400,
+    "regrowing_end": 600,
     "target_sparsity": 0.5,
     "lr_flow_params_decay_regrowing": 0.95
 }
 
-def train_cifar10_resnet18_sparse_model_adam():
+def train_resnet18_cifar10_sparse_model_adam():
     global MODEL, epoch_global
 
     configs_layers_initialization_all_kaiming_sqrt5()

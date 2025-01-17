@@ -1,9 +1,10 @@
 import torch
-
 from src.vgg19_cifar10.vgg19_cifar10_class import VGG19Cifar10
-from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline
+from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline, \
+    train_mixed_baseline_debug
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
-from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
+from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
+    configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
     PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
@@ -54,7 +55,7 @@ def initialize_dataset_context():
 def initialize_training_context():
     global training_context
 
-    lr = 0.1
+    lr = 0.01
     weight_bias_params = get_model_parameters(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
 
@@ -77,7 +78,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: Resnet18Cifar10
+MODEL: VGG19Cifar10
 training_context: TrainingContextBaselineTrain
 dataset_context: DatasetSmallContext
 stages_context: StagesContextBaselineTrain
@@ -85,9 +86,9 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-def train_cifar10_resnet18_from_scratch():
+def train_vgg19_cifar10_from_scratch():
     global MODEL, epoch_global
-    configs_layers_initialization_all_kaiming_sqrt5()
+    configs_layers_initialization_all_kaiming_relu()
 
     initialize_model()
     initialize_training_context()
@@ -115,7 +116,10 @@ def train_cifar10_resnet18_from_scratch():
         stages_context.update_context(epoch_global)
         stages_context.step(training_context)
 
-    MODEL.save(f"/network_baselines/vgg19_cifar10_accuracy{acc}%_{get_random_id()}")
+    MODEL.save(
+        name= f"/network_baselines/vgg19_cifar10_accuracy{acc}%_{get_random_id()}",
+        folder= BASELINE_MODELS_PATH
+    )
 
     print("Training complete")
     wandb_finish()

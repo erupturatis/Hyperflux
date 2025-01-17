@@ -2,7 +2,7 @@ import torch
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
-    PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
+    PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH, BASELINE_RESNET50_CIFAR10
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
 from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs
 from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
@@ -15,6 +15,7 @@ from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_common import get_model_parameters_and_masks
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
+from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
 
 
 def initialize_model():
@@ -24,7 +25,6 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
-    MODEL.load(BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -93,7 +93,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: Resnet18Cifar10
+MODEL: Resnet50Cifar10
 training_context: TrainingContextPrunedTrain
 dataset_context: DatasetSmallContext
 stages_context: StagesContextPrunedTrain
@@ -102,8 +102,8 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 sparsity_configs = {
-    "pruning_end": 3,
-    "regrowing_end": 3,
+    "pruning_end": 400,
+    "regrowing_end": 600,
     "target_sparsity": 0.5,
     "lr_flow_params_decay_regrowing": 0.95
 }

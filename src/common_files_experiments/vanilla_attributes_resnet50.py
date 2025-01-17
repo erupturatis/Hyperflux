@@ -1,109 +1,110 @@
-# Initialize the list for registered layers
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER
+
 RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES = [
     # Initial convolutional layer
-    {"name": "conv1", "type": "LayerConv2", "in_channels": 3, "out_channels": 64,
+    {"name": "conv1", "type": CONV2D_LAYER, "in_channels": 3, "out_channels": 64,
      "kernel_size": 7, "stride": 2, "padding": 3, "bias_enabled": False},
 
     # Layer 1 - Block 1
-    {"name": "layer1_block1_conv1", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block1_conv1", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 64, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer1_block1_conv2", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block1_conv2", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
-    {"name": "layer1_block1_conv3", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block1_conv3", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 256, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer1_block1_downsample", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block1_downsample", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 256, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
 
     # Layer 1 - Block 2
-    {"name": "layer1_block2_conv1", "type": "LayerConv2", "in_channels": 256,
+    {"name": "layer1_block2_conv1", "type": CONV2D_LAYER, "in_channels": 256,
      "out_channels": 64, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer1_block2_conv2", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block2_conv2", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
-    {"name": "layer1_block2_conv3", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block2_conv3", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 256, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
 
     # Layer 1 - Block 3
-    {"name": "layer1_block3_conv1", "type": "LayerConv2", "in_channels": 256,
+    {"name": "layer1_block3_conv1", "type": CONV2D_LAYER, "in_channels": 256,
      "out_channels": 64, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer1_block3_conv2", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block3_conv2", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
-    {"name": "layer1_block3_conv3", "type": "LayerConv2", "in_channels": 64,
+    {"name": "layer1_block3_conv3", "type": CONV2D_LAYER, "in_channels": 64,
      "out_channels": 256, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
 ]
 
 # Layer 2 - Blocks 1
 RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.extend([
-    {"name": "layer2_block1_conv1", "type": "LayerConv2", "in_channels": 256,
+    {"name": "layer2_block1_conv1", "type": CONV2D_LAYER, "in_channels": 256,
      "out_channels": 128, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer2_block1_conv2", "type": "LayerConv2", "in_channels": 128,
+    {"name": "layer2_block1_conv2", "type": CONV2D_LAYER, "in_channels": 128,
      "out_channels": 128, "kernel_size": 3, "stride": 2, "padding": 1, "bias_enabled": False},
-    {"name": "layer2_block1_conv3", "type": "LayerConv2", "in_channels": 128,
+    {"name": "layer2_block1_conv3", "type": CONV2D_LAYER, "in_channels": 128,
      "out_channels": 512, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer2_block1_downsample", "type": "LayerConv2", "in_channels": 256,
+    {"name": "layer2_block1_downsample", "type": CONV2D_LAYER, "in_channels": 256,
      "out_channels": 512, "kernel_size": 1, "stride": 2, "padding": 0, "bias_enabled": False},
 ])
 
 # Layer 2 - Blocks 2 to 4
 for i in range(2, 5):
     RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.extend([
-        {"name": f"layer2_block{i}_conv1", "type": "LayerConv2", "in_channels": 512,
+        {"name": f"layer2_block{i}_conv1", "type": CONV2D_LAYER, "in_channels": 512,
          "out_channels": 128, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-        {"name": f"layer2_block{i}_conv2", "type": "LayerConv2", "in_channels": 128,
+        {"name": f"layer2_block{i}_conv2", "type": CONV2D_LAYER, "in_channels": 128,
          "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
-        {"name": f"layer2_block{i}_conv3", "type": "LayerConv2", "in_channels": 128,
+        {"name": f"layer2_block{i}_conv3", "type": CONV2D_LAYER, "in_channels": 128,
          "out_channels": 512, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
     ])
 
 # Layer 3 - Blocks 1
 RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.extend([
     # Layer 3 - Block 1 (Modified Stride Placement)
-    {"name": "layer3_block1_conv1", "type": "LayerConv2", "in_channels": 512,
+    {"name": "layer3_block1_conv1", "type": CONV2D_LAYER, "in_channels": 512,
      "out_channels": 256, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer3_block1_conv2", "type": "LayerConv2", "in_channels": 256,
+    {"name": "layer3_block1_conv2", "type": CONV2D_LAYER, "in_channels": 256,
      "out_channels": 256, "kernel_size": 3, "stride": 2, "padding": 1, "bias_enabled": False},
-    {"name": "layer3_block1_conv3", "type": "LayerConv2", "in_channels": 256,
+    {"name": "layer3_block1_conv3", "type": CONV2D_LAYER, "in_channels": 256,
      "out_channels": 1024, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer3_block1_downsample", "type": "LayerConv2", "in_channels": 512,
+    {"name": "layer3_block1_downsample", "type": CONV2D_LAYER, "in_channels": 512,
      "out_channels": 1024, "kernel_size": 1, "stride": 2, "padding": 0, "bias_enabled": False},
 ])
 
 # Layer 3 - Blocks 2 to 6
 for i in range(2, 7):
     RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.extend([
-        {"name": f"layer3_block{i}_conv1", "type": "LayerConv2", "in_channels": 1024,
+        {"name": f"layer3_block{i}_conv1", "type": CONV2D_LAYER, "in_channels": 1024,
          "out_channels": 256, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-        {"name": f"layer3_block{i}_conv2", "type": "LayerConv2", "in_channels": 256,
+        {"name": f"layer3_block{i}_conv2", "type": CONV2D_LAYER, "in_channels": 256,
          "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
-        {"name": f"layer3_block{i}_conv3", "type": "LayerConv2", "in_channels": 256,
+        {"name": f"layer3_block{i}_conv3", "type": CONV2D_LAYER, "in_channels": 256,
          "out_channels": 1024, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
     ])
 
 # Layer 4 - Blocks 1
 RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.extend([
-    {"name": "layer4_block1_conv1", "type": "LayerConv2", "in_channels": 1024,
+    {"name": "layer4_block1_conv1", "type": CONV2D_LAYER, "in_channels": 1024,
      "out_channels": 512, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer4_block1_conv2", "type": "LayerConv2", "in_channels": 512,
+    {"name": "layer4_block1_conv2", "type": CONV2D_LAYER, "in_channels": 512,
      "out_channels": 512, "kernel_size": 3, "stride": 2, "padding": 1, "bias_enabled": False},
-    {"name": "layer4_block1_conv3", "type": "LayerConv2", "in_channels": 512,
+    {"name": "layer4_block1_conv3", "type": CONV2D_LAYER, "in_channels": 512,
      "out_channels": 2048, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-    {"name": "layer4_block1_downsample", "type": "LayerConv2", "in_channels": 1024,
+    {"name": "layer4_block1_downsample", "type": CONV2D_LAYER, "in_channels": 1024,
      "out_channels": 2048, "kernel_size": 1, "stride": 2, "padding": 0, "bias_enabled": False},
 ])
 
 # Layer 4 - Blocks 2 to 3
 for i in range(2, 4):
     RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.extend([
-        {"name": f"layer4_block{i}_conv1", "type": "LayerConv2", "in_channels": 2048,
+        {"name": f"layer4_block{i}_conv1", "type": CONV2D_LAYER, "in_channels": 2048,
          "out_channels": 512, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
-        {"name": f"layer4_block{i}_conv2", "type": "LayerConv2", "in_channels": 512,
+        {"name": f"layer4_block{i}_conv2", "type": CONV2D_LAYER, "in_channels": 512,
          "out_channels": 512, "kernel_size": 3, "stride": 1, "padding": 1, "bias_enabled": False},
-        {"name": f"layer4_block{i}_conv3", "type": "LayerConv2", "in_channels": 512,
+        {"name": f"layer4_block{i}_conv3", "type": CONV2D_LAYER, "in_channels": 512,
          "out_channels": 2048, "kernel_size": 1, "stride": 1, "padding": 0, "bias_enabled": False},
     ])
 
 # Fully connected layer
 RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.append(
-    {"name": "fc", "type": "LayerLinear", "in_features": 2048, "out_features": 1000, "bias_enabled": True}
+    {"name": "fc", "type": FULLY_CONNECTED_LAYER, "in_features": 2048, "out_features": 1000, "bias_enabled": True}
 )
 
 

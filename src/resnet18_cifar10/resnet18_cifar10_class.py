@@ -2,8 +2,8 @@ from typing import List
 import torch
 import torch.nn as nn
 
+from src.common_files_experiments.forward_functions import forward_pass_resnet18
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
-from src.resnet18_cifar10.resnet18_cifar10_forward import forward_pass_resnet18_cifar10
 from src.resnet18_cifar10.resnet18_cifar10_attributes import \
     RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET18_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
@@ -25,6 +25,7 @@ class Resnet18Cifar10(LayerComposite):
             output_size=(1,1)
         )
 
+        print(RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES)
         for layer_attr in RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
             type_ = layer_attr['type']
@@ -42,6 +43,8 @@ class Resnet18Cifar10(LayerComposite):
                     configs_network_masks
                 )
             elif type_ == FULLY_CONNECTED_LAYER:
+                print(layer_attr['name'], layer_attr['type'])
+                print(layer_attr["in_features"], layer_attr["out_features"])
                 layer = LayerLinearMaskImportance(
                     ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
@@ -71,7 +74,7 @@ class Resnet18Cifar10(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, remaining =  get_remaining_parameters_loss_masks_importance(self)
-        return remaining * N_SCALER
+        return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
@@ -84,7 +87,12 @@ class Resnet18Cifar10(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_resnet18_cifar10(self, x)
+        return forward_pass_resnet18(
+            self=self,
+            x=x,
+            registered_layers=RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES,
+            unregistered_layers=RESNET18_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
+        )
 
     def save(self, name: str, folder:str):
         save_model_weights(

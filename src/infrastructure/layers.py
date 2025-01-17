@@ -106,16 +106,6 @@ def get_remaining_parameters_loss_steep(self: LayerComposite) -> tuple[float, to
 
     return total, sigmoids
 
-def get_remaining_parameters_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
-    layers: List[LayerPrimitive] = get_layers_primitive(self)
-    total = 0
-    activations = torch.tensor(0, device=get_device(), dtype=torch.float)
-    for layer in layers:
-        layer_total, layer_sigmoid = get_parameters_pruning(layer)
-        total += layer_total
-
-    return total, activations
-
 def get_parameters_total_count(self: LayerComposite) -> int:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
     total = 0

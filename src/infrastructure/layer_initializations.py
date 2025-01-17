@@ -14,3 +14,5 @@ def kaiming_sqrt5(weights: torch.Tensor):
     # nn.init.uniform_(weights, a=-0.0001, b=0.0001)
     nn.init.kaiming_uniform_(weights, a=math.sqrt(5))
 
+def kaiming_relu(weights: torch.Tensor):
+    nn.init.kaiming_uniform_(weights, a=0, nonlinearity='relu')

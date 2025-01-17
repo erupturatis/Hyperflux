@@ -1,5 +1,5 @@
 from src.common_files_experiments.attributes_mutations import Mutation, mutate_attributes
-from src.common_files_experiments.vgg19_vanilla_attributes import (
+from src.common_files_experiments.vanilla_attributes_vgg19 import (
     VGG19_VANILLA_REGISTERED_LAYERS_ATTRIBUTES,
     VGG19_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES,
     VGG19_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,

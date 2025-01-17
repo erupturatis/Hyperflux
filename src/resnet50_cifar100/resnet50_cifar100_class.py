@@ -1,12 +1,12 @@
 from typing import List
 import torch
 import torch.nn as nn
+
+from src.common_files_experiments.forward_functions import forward_pass_resnet50
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet50_cifar100.resnet50_cifar100_attributes import RESNET50_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES, RESNET50_CIFAR100_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_CIFAR100_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
-from src.resnet50_cifar100.resnet50_cifar100_forward import forward_pass_resnet50_cifar100
-from src.resnet50_imagenet1k.resnet50_imagenet_forward import forward_pass_resnet50_imagenet
 from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss, \
@@ -86,7 +86,12 @@ class Resnet50Cifar100(LayerComposite):
         return get_layers_primitive(self)
 
     def forward(self, x):
-        return forward_pass_resnet50_cifar100(self, x)
+        return forward_pass_resnet50(
+            self=self,
+            x=x,
+            registered_layer_attributes=RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES,
+            unregistered_layer_attributes=RESNET50_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES
+        )
 
     def save(self, name: str, folder: str):
         save_model_weights(

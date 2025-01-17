@@ -1,16 +1,17 @@
 from typing import List
 import torch
 import torch.nn as nn
+
+from src.common_files_experiments.forward_functions import forward_pass_resnet50
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet50_cifar10.resnet50_cifar10_attributes import RESNET50_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, RESNET50_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING, \
     RESNET50_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
-from src.resnet50_cifar10.resnet50_cifar10_forward import forward_pass_resnet50_cifar10
-from src.resnet50_imagenet1k.resnet50_imagenet_forward import forward_pass_resnet50_imagenet
-from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
-    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss, \
-    get_layers_primitive
+    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, \
+    get_layers_primitive, get_layer_composite_pruning_statistics, get_remaining_parameters_loss_masks_importance
+
 
 class Resnet50Cifar10(LayerComposite):
     def __init__(self, configs_network_masks: ConfigsNetworkMasksImportance):
@@ -25,7 +26,7 @@ class Resnet50Cifar10(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'LayerConv2':
+            if type_ == CONV2D_LAYER :
                 layer = LayerConv2MaskImportance(
                     ConfigsLayerConv2(
                         in_channels=layer_attr['in_channels'],
@@ -37,7 +38,7 @@ class Resnet50Cifar10(LayerComposite):
                     ),
                     configs_network_masks
                 )
-            elif type_ == 'LayerLinear':
+            elif type_ == FULLY_CONNECTED_LAYER:
                 layer = LayerLinearMaskImportance(
                     ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
@@ -79,14 +80,23 @@ class Resnet50Cifar10(LayerComposite):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss(self)
-        return sigmoid * N_SCALER
+        # total, remaining = get_remaining_parameters_loss(self)
+        total, remaining =  get_remaining_parameters_loss_masks_importance(self)
+        return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
+    def get_parameters_pruning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
+
     def forward(self, x):
-        return forward_pass_resnet50_cifar10(self, x)
+        return forward_pass_resnet50(
+            self=self,
+            x=x,
+            registered_layer_attributes=RESNET50_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES,
+            unregistered_layer_attributes=RESNET50_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES,
+        )
 
     def save(self, name: str, folder: str):
         save_model_weights(

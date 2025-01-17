@@ -1,4 +1,4 @@
-from src.common_files_experiments.resnet50_vanilla_attributes import \
+from src.common_files_experiments.vanilla_attributes_resnet50 import \
     RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING, \
     RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES
 
