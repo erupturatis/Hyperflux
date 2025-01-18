@@ -12,71 +12,14 @@ from src.infrastructure.dataset_context.dataset_context import DatasetSmallConte
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent, save_array_experiment
 from src.infrastructure.schedulers import PressureScheduler
-from src.infrastructure.stages_context.stages_context import StagesContext, StagesContextArgs
 from src.infrastructure.training_common import get_model_parameters_and_masks
-from src.infrastructure.training_context.training_context import TrainingContext, TrainingContextParams
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
+from ..common_files_experiments.generate_sparsity_curves_commons import train_mixed_curves, test_curves
+from ..infrastructure.stages_context.stages_context import StagesContextSparsityCurve, StagesContextSparsityCurveArgs
+from ..infrastructure.training_context.training_context import TrainingContextSparsityCurve, \
+    TrainingContextSparsityCurveArgs
 
-
-def train():
-    global MODEL, epoch_global,  dataset_context, training_display, training_context, sparsity_levels_recording, PRESSURE
-    MODEL.train()
-
-    criterion = nn.CrossEntropyLoss()
-    optimizer_weights = training_context.get_optimizer_weights()
-    optimizer_pruning = training_context.get_optimizer_flow_mask()
-
-    iter_count = 0
-    while dataset_context.any_data_training_available():
-        iter_count += 1
-        data, target = dataset_context.get_training_data_and_labels()
-
-        optimizer_weights.zero_grad()
-        optimizer_pruning.zero_grad()
-
-        output = MODEL(data)
-
-        loss_remaining_weights = MODEL.get_remaining_parameters_loss() * PRESSURE
-        loss_data = criterion(output, target)
-        loss = loss_remaining_weights + loss_data
-
-        loss.backward()
-        optimizer_weights.step()
-        optimizer_pruning.step()
-
-        training_display.record_losses([loss_data.item(), loss_remaining_weights.item()], training_context)
-        if iter_count % BATCH_RECORD_FREQ == 0:
-            sparsity_levels_recording.append(get_model_sparsity_percent(MODEL))
-            iter_count = 0
-
-def test():
-    global MODEL, epoch_global, dataset_context
-
-    MODEL.eval()
-    criterion = nn.CrossEntropyLoss(reduction='sum')
-
-    test_loss = 0
-    correct = 0
-
-    with torch.no_grad():
-        while dataset_context.any_data_testing_available():
-            data, target = dataset_context.get_testing_data_and_labels()
-
-            output = MODEL(data)
-            test_loss += criterion(output, target).item()
-            pred = output.argmax(dim=1, keepdim=True)
-            correct += pred.eq(target.view_as(pred)).sum().item()
-
-    total_data_len = dataset_context.get_data_testing_length()
-    test_loss /= total_data_len
-    accuracy = 100.0 * correct / total_data_len
-
-    remain_percent = get_model_sparsity_percent(MODEL)
-
-    print(
-        f"----------- Test Accuracy -----------: {correct}/{total_data_len} ({accuracy:.0f}%) Sparsity: {remain_percent:.2f}%"
-    )
 
 def initialize_model():
     global MODEL
@@ -121,12 +64,8 @@ def initialize_training_context():
     optimizer_flow_mask = torch.optim.SGD(lr=lr_flow_params, params=flow_params, weight_decay=0, momentum=0.9)
 
     # reset weights are applied after pruning and before regrowth, they are the starting point for the regrowth schedulers
-    training_context = TrainingContext(
-        TrainingContextParams(
-            lr_weights_reset=lr_weights_finetuning,
-            lr_flow_params_reset=get_lr_flow_params_reset(),
-
-            l0_gamma_scaler=0,
+    training_context = TrainingContextSparsityCurve(
+        TrainingContextSparsityCurveArgs(
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
         )
@@ -136,35 +75,20 @@ def initialize_stages_context():
     global stages_context, training_context
 
     pruning_end = 300
-    regrowing_end = pruning_end
-
-    regrowth_stage_length = regrowing_end - pruning_end
-
-    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1, sparsity_target=0.2, epochs_target=pruning_end)
-    flow_params_lr_decay_after_pruning = 0.95
-
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
-    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
 
-    scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: flow_params_lr_decay_after_pruning ** iter)
-
-    stages_context = StagesContext(
-        StagesContextArgs(
-            pruning_epoch_end=pruning_end,
-            regrowth_epoch_end=regrowing_end,
-            scheduler_gamma=pruning_scheduler,
-
+    stages_context = StagesContextSparsityCurve(
+        StagesContextSparsityCurveArgs(
+            epoch_end=pruning_end,
             scheduler_weights_lr_during_pruning=scheduler_weights_lr_during_pruning,
-            scheduler_weights_lr_during_regrowth=scheduler_weights_lr_during_regrowth,
-            scheduler_flow_params_regrowth=scheduler_flow_params_lr_during_regrowth,
         ),
     )
 
 
 MODEL: ModelLenet300
-training_context: TrainingContext
+training_context: TrainingContextSparsityCurve
 dataset_context: DatasetSmallContext
-stages_context: StagesContext
+stages_context: StagesContextSparsityCurve
 training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
@@ -186,7 +110,7 @@ def run_lenet300_mnist_sgd_sparsity_curve(arg:float, power_start:int, power_end:
         save_array_experiment(f"mnist_lenet300_sgd_{PRESSURE}.json", sparsity_levels_recording)
 
 def _run_lenet300_mnist_sgd():
-    global epoch_global
+    global epoch_global, sparsity_levels_recording
     configs_layers_initialization_all_kaiming_sqrt5()
     config_sgd_setup()
 
@@ -196,17 +120,23 @@ def _run_lenet300_mnist_sgd():
     initialize_dataset_context()
     initalize_training_display()
 
-    wandb_initalize()
-
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-        train()
-        test()
+
+        sparsity_levels_recording = train_mixed_curves(
+            dataset_context=dataset_context,
+            model=MODEL,
+            training_context=training_context,
+            PRESSURE=PRESSURE,
+            BATCH_RECORD_FREQ=BATCH_RECORD_FREQ,
+            training_display=training_display,
+            sparsity_levels_recording=sparsity_levels_recording
+        )
+        test_curves(
+            model=MODEL,
+            dataset_context=dataset_context,
+        )
 
         stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
-
-
-    # MODEL.save("lenet300_mnist")
-    wandb_finish()

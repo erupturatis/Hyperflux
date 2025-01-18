@@ -7,6 +7,14 @@ if TYPE_CHECKING:
     from src.infrastructure.layers import LayerComposite
 
 
+def get_model_parameters(model: 'LayerComposite') -> list[torch.Tensor]:
+    weight_bias_params = []
+    for name, param in model.named_parameters():
+        if WEIGHTS_ATTR in name or BIAS_ATTR in name:
+            weight_bias_params.append(param)
+
+    return weight_bias_params
+
 def get_model_parameters_and_masks(model: 'LayerComposite') -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
     weight_bias_params = []
     flipping_params = []

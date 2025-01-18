@@ -1,21 +1,12 @@
-import torch
-from src.cifar10_resnet18.train_model_adam import run_cifar10_resnet18_adam
-from src.cifar10_resnet18.train_sparsity_curves_adam import run_cifar10_resnet18_adam_sparsity_curve
-from src.cifar10_resnet18.train_sparsity_curves_sgd import run_cifar10_resnet18_sgd_sparsity_curve
-from src.mnist_lenet300.train_model_adam import run_lenet300_mnist_adam
-from src.mnist_lenet300.train_model_sgd import run_lenet300_mnist_sgd
-from src.mnist_lenet300.train_sparsity_curves_adam import run_lenet300_mnist_adam_sparsity_curve
-from src.mnist_lenet300.train_sparsity_curves_sgd import run_lenet300_mnist_sgd_sparsity_curve
+from src.resnet18_cifar10.run_existing_resnet18_cifar10 import run_resnet18_cifar10_existing_model
+from src.infrastructure.constants import PRUNED_MODELS_PATH
+from src.resnet18_cifar10.train_pruned_resnet18_cifar10_adam import train_resnet18_cifar10_sparse_model_adam
+from src.resnet18_cifar10.train_scratch_resnet18_cifar10 import train_resnet18_cifar10_from_scratch
+from src.resnet18_cifar100.train_pruned_resnet18_cifar100 import train_resnet18_cifar100_sparse_model
+from src.resnet50_cifar10.train_pruned_resnet50_cifar10 import train_resnet50_cifar10_sparse_model
+from src.vgg19_cifar10.train_pruned_vgg19_cifar10 import train_vgg19_cifar10_sparse_model
+from src.vgg19_cifar10.train_scratch_vgg19_cifar10 import train_vgg19_cifar10_from_scratch
 
 if __name__ == '__main__':
-    # run_cifar10_resnet18()
-    # run_lenet300_mnist_adam()
-    # run_lenet300_mnist_sgd()
-
-    # run_lenet300_mnist_adam_sparsity_curve(2, -1, 0)
-    # run_lenet300_mnist_sgd_sparsity_curve(2, -1, 0)
-
-    # run_cifar10_resnet18_sgd_sparsity_curve(2,-6,8)
-    run_cifar10_resnet18_adam_sparsity_curve(2,-9,5)
 
     pass

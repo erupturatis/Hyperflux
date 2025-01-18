@@ -1,16 +1,14 @@
 import torch
 from typing import List
 
-from src.cifar10_resnet18.model_functions import forward_pass_resnet18
-from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, MaskPruningFunctionSigmoid, ConfigsLayerLinear, \
-    get_remaining_parameters_loss_masks_importance, get_layer_composite_flipped_statistics, get_layer_composite_pruning_statistics, \
+from src.common_files_experiments.load_save import save_model_weights, load_model_weights
+from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, ConfigsLayerLinear, \
+    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive
-from src.infrastructure.others import get_device
-from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, FULLY_CONNECTED_LAYER
-from src.mnist_lenet300.model_attributes import LENET300_MNIST_UNREGISTERED_LAYERS_ATTRIBUTES, \
-    LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES
-from src.mnist_lenet300.model_functions import forward_pass_lenet300, save_model_weights_lenet300, \
-    load_model_weights_lenet300_from_path
+from src.infrastructure.constants import FULLY_CONNECTED_LAYER, N_SCALER
+from src.mnist_lenet300.model_attributes import LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES, \
+    LENET300_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
+from src.mnist_lenet300.model_functions import forward_pass_lenet300
 
 class ModelLenet300(LayerComposite):
     def __init__(self, config_network_mask: ConfigsNetworkMasksImportance):
@@ -38,7 +36,7 @@ class ModelLenet300(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid / total
+        return sigmoid * N_SCALER
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
@@ -46,14 +44,21 @@ class ModelLenet300(LayerComposite):
     def get_parameters_pruning_statistics(self) -> any:
         return get_layer_composite_pruning_statistics(self)
 
-    def get_parameters_flipped_statistics(self) -> any:
-        return get_layer_composite_flipped_statistics(self)
-
     def forward(self, x, inference=False):
         return forward_pass_lenet300(self, x, inference)
 
-    def save(self, path: str):
-        save_model_weights_lenet300(self, path, skip_array=[])
+    def save(self, name: str, folder: str):
+        save_model_weights(
+            model=self,
+            model_name=name,
+            folder_name=folder,
+            custom_to_standard_mapping=LENET300_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
+        )
 
-    def load(self, path: str):
-        load_model_weights_lenet300_from_path(self, path, skip_array=[])
+    def load(self, name: str, folder:str):
+        load_model_weights(
+            model=self,
+            model_name=name,
+            folder_name=folder,
+            standard_to_custom_mapping=LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
+        )

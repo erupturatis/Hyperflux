@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING
 from src.infrastructure.others import round_float, get_model_sparsity_percent
 from dataclasses import dataclass
 
-from src.infrastructure.training_context.training_context import TrainingContext
+from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain
 
 if TYPE_CHECKING:
     from src.infrastructure.layers import LayerComposite
@@ -29,7 +29,7 @@ class TrainingDisplay:
         for loss_name in self.args.average_losses_names:
             self.losses.append([])
 
-    def record_losses(self, losses_per_batch: List[float], training_context: TrainingContext = None):
+    def record_losses(self, losses_per_batch: List[float]):
         for idx, loss in enumerate(losses_per_batch):
             self.losses[idx].append(loss)
 
