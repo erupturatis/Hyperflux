@@ -12,9 +12,7 @@ from src.vgg19_cifar10.train_scratch_vgg19_cifar10 import train_vgg19_cifar10_fr
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100 import train_vgg19_cifar100_from_scratch
 
 if __name__ == '__main__':
-
-    # train_resnet18_cifar10_sparse_model_adam()
-    train_resnet50_cifar10_sparse_model()
-
+    # train_resnet50_cifar10_sparse_model()
+    train_resnet50_cifar100_from_scratch()
     pass
 

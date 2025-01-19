@@ -41,17 +41,25 @@ class DatasetContextConfigs:
     batch_size: int
     augmentations: nn.Sequential
 
+mean_cifar100, std_cifar100 = [0.5071, 0.4867, 0.4408], [0.2675, 0.2565, 0.2761]
+mean_cifar10, std_cifar10 = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
+mean_mnist, std_mnist = (0.1307,), (0.3081,)
+
 _AUGMENTATIONS_CIFAR_10 = nn.Sequential(
     K.RandomCrop((32, 32), padding=4),
-    K.RandomRotation(degrees=10.0),
     K.RandomHorizontalFlip(p=0.5),
+    K.Normalize(mean_cifar10, std_cifar10),
 ).to(get_device())
 
 _AUGMENTATIONS_CIFAR_100 = nn.Sequential(
     K.RandomCrop((32, 32), padding=4),
-    K.RandomRotation(degrees=10.0),
     K.RandomHorizontalFlip(p=0.5),
+    K.Normalize(mean_cifar100, std_cifar100),
 ).to(get_device())
+
+_AUGMENTATIONS_MNIST = nn.Sequential(
+    K.Normalize(mean_mnist, std_mnist),
+)
 
 BATCH_SIZE_CIFAR_10 = 128
 BATCH_SIZE_CIFAR_100 = 128
@@ -64,7 +72,7 @@ def dataset_context_configs_cifar10() -> DatasetContextConfigs:
     return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_10, augmentations=_AUGMENTATIONS_CIFAR_10)
 
 def dataset_context_configs_mnist() -> DatasetContextConfigs:
-    return DatasetContextConfigs(batch_size=BATCH_SIZE_MNIST, augmentations=None)
+    return DatasetContextConfigs(batch_size=BATCH_SIZE_MNIST, augmentations=_AUGMENTATIONS_MNIST)
 
 class DatasetContextAbstract(ABC):
     # TRAINING

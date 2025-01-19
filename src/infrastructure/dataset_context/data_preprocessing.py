@@ -4,13 +4,11 @@ from torchvision import datasets, transforms
 from src.infrastructure.others import get_device
 
 
-mean_cifar100, std_cifar100 = [0.5071, 0.4867, 0.4408], [0.2675, 0.2565, 0.2761]
 
 def cifar100_preprocess() -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     # Define the transformation pipeline
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean_cifar100, std_cifar100),
     ])
 
     trainset = datasets.CIFAR100(
@@ -53,7 +51,6 @@ def cifar100_preprocess() -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, tor
     return train_data, train_labels, test_data, test_labels
 
 
-mean_cifar10, std_cifar10 = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
 
 def cifar10_preprocess() -> tuple[ torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     trainset = datasets.CIFAR10(
@@ -63,7 +60,7 @@ def cifar10_preprocess() -> tuple[ torch.Tensor, torch.Tensor, torch.Tensor, tor
         transform=transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(mean_cifar10, std_cifar10),
+                # transforms.Normalize(mean_cifar10, std_cifar10),
             ]
         ),
     )
@@ -75,7 +72,7 @@ def cifar10_preprocess() -> tuple[ torch.Tensor, torch.Tensor, torch.Tensor, tor
         transform=transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(mean_cifar10, std_cifar10),
+                # transforms.Normalize(mean_cifar10, std_cifar10),
             ]
         ),
     )
@@ -105,12 +102,12 @@ def cifar10_preprocess() -> tuple[ torch.Tensor, torch.Tensor, torch.Tensor, tor
 
     return train_data, train_labels, test_data, test_labels
 
-mean_mnist, std_mnist = (0.1307,), (0.3081,)
+# mean_mnist, std_mnist = (0.1307,), (0.3081,)
 
 def mnist_preprocess() -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean_mnist, std_mnist),
+        # transforms.Normalize(mean_mnist, std_mnist),
     ])
 
     train_dataset = datasets.MNIST(root='./data', train=True,
