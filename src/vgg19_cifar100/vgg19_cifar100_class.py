@@ -96,7 +96,7 @@ class VGG19Cifar100(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_vgg19_cifars(self, x, VGG19_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES)
+        return forward_pass_vgg19_cifars(self, x, VGG19_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES, VGG19_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES)
 
     def save(self, name: str, folder: str):
         save_model_weights(
