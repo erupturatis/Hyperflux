@@ -7,7 +7,8 @@ from src.common_files_experiments.load_save import save_model_weights, load_mode
 from src.resnet50_cifar10.resnet50_cifar10_attributes import RESNET50_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, RESNET50_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING, \
     RESNET50_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES
-from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER, \
+    BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, \
     get_layers_primitive, get_layer_composite_pruning_statistics, get_remaining_parameters_loss_masks_importance
@@ -57,7 +58,7 @@ class Resnet50Cifar10(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'BatchNorm2d':
+            if type_ == BATCH_NORM_2D_LAYER:
                 layer = nn.BatchNorm2d(
                     num_features=layer_attr['num_features']
                 )
