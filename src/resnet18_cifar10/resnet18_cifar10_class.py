@@ -2,7 +2,7 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from src.common_files_experiments.forward_functions import forward_pass_resnet18
+from src.common_files_experiments.forward_functions import forward_pass_resnet18_cifars
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet18_cifar10.resnet18_cifar10_attributes import \
     RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
@@ -85,7 +85,7 @@ class Resnet18Cifar10(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_resnet18(
+        return forward_pass_resnet18_cifars(
             self=self,
             x=x,
             registered_layers=RESNET18_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES,

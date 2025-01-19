@@ -1,4 +1,5 @@
-from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER, \
+    BATCH_NORM_2D_LAYER
 
 RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES = [
     # Initial convolutional layer
@@ -111,72 +112,72 @@ RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES.append(
 # Unregistered layers (e.g., batch norms, activations, pooling)
 RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES = [
     # Initial batch normalization and pooling
-    {"name": "bn1", "type": "BatchNorm2d", "num_features": 64},
+    {"name": "bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
     {"name": "maxpool1", "type": "MaxPool2d", "kernel_size": 3, "stride": 2, "padding": 1},
 
     # Layer 1 - Block 1
-    {"name": "layer1_block1_bn1", "type": "BatchNorm2d", "num_features": 64},
-    {"name": "layer1_block1_bn2", "type": "BatchNorm2d", "num_features": 64},
-    {"name": "layer1_block1_bn3", "type": "BatchNorm2d", "num_features": 256},
-    {"name": "layer1_block1_downsample_bn", "type": "BatchNorm2d", "num_features": 256},
+    {"name": "layer1_block1_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
+    {"name": "layer1_block1_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
+    {"name": "layer1_block1_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
+    {"name": "layer1_block1_downsample_bn", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
 
     # Layer 1 - Block 2
-    {"name": "layer1_block2_bn1", "type": "BatchNorm2d", "num_features": 64},
-    {"name": "layer1_block2_bn2", "type": "BatchNorm2d", "num_features": 64},
-    {"name": "layer1_block2_bn3", "type": "BatchNorm2d", "num_features": 256},
+    {"name": "layer1_block2_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
+    {"name": "layer1_block2_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
+    {"name": "layer1_block2_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
 
     # Layer 1 - Block 3
-    {"name": "layer1_block3_bn1", "type": "BatchNorm2d", "num_features": 64},
-    {"name": "layer1_block3_bn2", "type": "BatchNorm2d", "num_features": 64},
-    {"name": "layer1_block3_bn3", "type": "BatchNorm2d", "num_features": 256},
+    {"name": "layer1_block3_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
+    {"name": "layer1_block3_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 64},
+    {"name": "layer1_block3_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
 ]
 
 # Layer 2 - Blocks 1 to 4
 for i in range(1, 5):
     if i == 1:
         RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES.extend([
-            {"name": f"layer2_block{i}_bn1", "type": "BatchNorm2d", "num_features": 128},
-            {"name": f"layer2_block{i}_bn2", "type": "BatchNorm2d", "num_features": 128},
-            {"name": f"layer2_block{i}_bn3", "type": "BatchNorm2d", "num_features": 512},
-            {"name": f"layer2_block{i}_downsample_bn", "type": "BatchNorm2d", "num_features": 512},
+            {"name": f"layer2_block{i}_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 128},
+            {"name": f"layer2_block{i}_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 128},
+            {"name": f"layer2_block{i}_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
+            {"name": f"layer2_block{i}_downsample_bn", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
         ])
     else:
         RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES.extend([
-            {"name": f"layer2_block{i}_bn1", "type": "BatchNorm2d", "num_features": 128},
-            {"name": f"layer2_block{i}_bn2", "type": "BatchNorm2d", "num_features": 128},
-            {"name": f"layer2_block{i}_bn3", "type": "BatchNorm2d", "num_features": 512},
+            {"name": f"layer2_block{i}_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 128},
+            {"name": f"layer2_block{i}_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 128},
+            {"name": f"layer2_block{i}_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
         ])
 
 # Layer 3 - Blocks 1 to 6
 for i in range(1, 7):
     if i == 1:
         RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES.extend([
-            {"name": f"layer3_block{i}_bn1", "type": "BatchNorm2d", "num_features": 256},
-            {"name": f"layer3_block{i}_bn2", "type": "BatchNorm2d", "num_features": 256},
-            {"name": f"layer3_block{i}_bn3", "type": "BatchNorm2d", "num_features": 1024},
-            {"name": f"layer3_block{i}_downsample_bn", "type": "BatchNorm2d", "num_features": 1024},
+            {"name": f"layer3_block{i}_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
+            {"name": f"layer3_block{i}_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
+            {"name": f"layer3_block{i}_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 1024},
+            {"name": f"layer3_block{i}_downsample_bn", "type": BATCH_NORM_2D_LAYER, "num_features": 1024},
         ])
     else:
         RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES.extend([
-            {"name": f"layer3_block{i}_bn1", "type": "BatchNorm2d", "num_features": 256},
-            {"name": f"layer3_block{i}_bn2", "type": "BatchNorm2d", "num_features": 256},
-            {"name": f"layer3_block{i}_bn3", "type": "BatchNorm2d", "num_features": 1024},
+            {"name": f"layer3_block{i}_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
+            {"name": f"layer3_block{i}_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 256},
+            {"name": f"layer3_block{i}_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 1024},
         ])
 
 # Layer 4 - Blocks 1 to 3
 for i in range(1, 4):
     if i == 1:
         RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES.extend([
-            {"name": f"layer4_block{i}_bn1", "type": "BatchNorm2d", "num_features": 512},
-            {"name": f"layer4_block{i}_bn2", "type": "BatchNorm2d", "num_features": 512},
-            {"name": f"layer4_block{i}_bn3", "type": "BatchNorm2d", "num_features": 2048},
-            {"name": f"layer4_block{i}_downsample_bn", "type": "BatchNorm2d", "num_features": 2048},
+            {"name": f"layer4_block{i}_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
+            {"name": f"layer4_block{i}_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
+            {"name": f"layer4_block{i}_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 2048},
+            {"name": f"layer4_block{i}_downsample_bn", "type": BATCH_NORM_2D_LAYER, "num_features": 2048},
         ])
     else:
         RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES.extend([
-            {"name": f"layer4_block{i}_bn1", "type": "BatchNorm2d", "num_features": 512},
-            {"name": f"layer4_block{i}_bn2", "type": "BatchNorm2d", "num_features": 512},
-            {"name": f"layer4_block{i}_bn3", "type": "BatchNorm2d", "num_features": 2048},
+            {"name": f"layer4_block{i}_bn1", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
+            {"name": f"layer4_block{i}_bn2", "type": BATCH_NORM_2D_LAYER, "num_features": 512},
+            {"name": f"layer4_block{i}_bn3", "type": BATCH_NORM_2D_LAYER, "num_features": 2048},
         ])
 
 # Average pooling layer

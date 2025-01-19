@@ -15,13 +15,12 @@ replace_fc1_cifar10 = Mutation(
     replacement_dict={
         "name": "fc1",
         "type": FULLY_CONNECTED_LAYER,
-        "in_features": 512,    # Changed from 25088 to 512
+        "in_features": 2048,
         "out_features": 4096,
         "bias_enabled": True
     }
 )
 
-# Define the mutation for the third fully connected layer (fc3) for CIFAR-10
 replace_fc3_cifar10 = Mutation(
     field_identified='name',
     value_in_field='fc3',
@@ -29,13 +28,12 @@ replace_fc3_cifar10 = Mutation(
     replacement_dict={
         "name": "fc3",
         "type": FULLY_CONNECTED_LAYER,
-        "in_features": 4096,   # Remains the same
-        "out_features": 10,    # Changed from 1000 to 10
+        "in_features": 4096,
+        "out_features": 10,
         "bias_enabled": True
     }
 )
 
-# List of mutations to apply for CIFAR-10
 cifar10_registered_mutations = [
     replace_fc1_cifar10,
     replace_fc3_cifar10

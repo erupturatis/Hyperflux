@@ -2,10 +2,12 @@ from types import SimpleNamespace
 import torch
 from src.infrastructure.layers import LayerComposite
 
-def forward_pass_vgg19(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes) -> torch.Tensor:
+def forward_pass_vgg19_imagenet(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes, unregistered_layers_attributes) -> torch.Tensor:
     """
-    All variations of VGG should have the same names for layer attributes
+    Forward pass for VGG19_bn optimized for ImageNet.
+    Includes Batch Normalization layers after each convolutional layer.
     """
+    # Create namespaces for registered and unregistered layers
     registered_layers_object = SimpleNamespace()
     for layer in registered_layers_attributes:
         name = layer['name']
@@ -13,51 +15,71 @@ def forward_pass_vgg19(self: 'LayerComposite', x: torch.Tensor, registered_layer
         setattr(registered_layers_object, name, layer_instance)
 
     unregistered_layers_object = SimpleNamespace()
+    for layer in unregistered_layers_attributes:
+        name = layer['name']
+        layer_instance = getattr(self, name)
+        setattr(unregistered_layers_object, name, layer_instance)
 
     # Block 1
     x = registered_layers_object.conv1_1(x)
+    x = unregistered_layers_object.bn1_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv1_2(x)
+    x = unregistered_layers_object.bn1_2(x)
     x = torch.relu(x)
     x = self.maxpool(x)
 
     # Block 2
     x = registered_layers_object.conv2_1(x)
+    x = unregistered_layers_object.bn2_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv2_2(x)
+    x = unregistered_layers_object.bn2_2(x)
     x = torch.relu(x)
     x = self.maxpool(x)
 
     # Block 3
     x = registered_layers_object.conv3_1(x)
+    x = unregistered_layers_object.bn3_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv3_2(x)
+    x = unregistered_layers_object.bn3_2(x)
     x = torch.relu(x)
     x = registered_layers_object.conv3_3(x)
+    x = unregistered_layers_object.bn3_3(x)
     x = torch.relu(x)
     x = registered_layers_object.conv3_4(x)
+    x = unregistered_layers_object.bn3_4(x)
     x = torch.relu(x)
     x = self.maxpool(x)
 
     # Block 4
     x = registered_layers_object.conv4_1(x)
+    x = unregistered_layers_object.bn4_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv4_2(x)
+    x = unregistered_layers_object.bn4_2(x)
     x = torch.relu(x)
     x = registered_layers_object.conv4_3(x)
+    x = unregistered_layers_object.bn4_3(x)
     x = torch.relu(x)
     x = registered_layers_object.conv4_4(x)
+    x = unregistered_layers_object.bn4_4(x)
     x = torch.relu(x)
     x = self.maxpool(x)
 
     # Block 5
     x = registered_layers_object.conv5_1(x)
+    x = unregistered_layers_object.bn5_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv5_2(x)
+    x = unregistered_layers_object.bn5_2(x)
     x = torch.relu(x)
     x = registered_layers_object.conv5_3(x)
+    x = unregistered_layers_object.bn5_3(x)
     x = torch.relu(x)
     x = registered_layers_object.conv5_4(x)
+    x = unregistered_layers_object.bn5_4(x)
     x = torch.relu(x)
     x = self.maxpool(x)
 
@@ -73,62 +95,89 @@ def forward_pass_vgg19(self: 'LayerComposite', x: torch.Tensor, registered_layer
 
     return x
 
-def forward_pass_vgg19_cifars(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes) -> torch.Tensor:
+def forward_pass_vgg19_cifars(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes, unregistered_layers_attributes) -> torch.Tensor:
     """
-    Forward pass for VGG-19 without using Max Pooling layers.
+    Forward pass for VGG19_bn optimized for CIFAR-10.
+    Includes Batch Normalization layers after each convolutional layer.
+    Adjusted fully connected layers to accommodate CIFAR-10's number of classes.
+    Reduced number of Max Pooling layers to prevent excessive spatial downsampling.
     """
+    # Create namespaces for registered and unregistered layers
     registered_layers_object = SimpleNamespace()
     for layer in registered_layers_attributes:
         name = layer['name']
         layer_instance = getattr(self, name)
         setattr(registered_layers_object, name, layer_instance)
 
+    unregistered_layers_object = SimpleNamespace()
+    for layer in unregistered_layers_attributes:
+        name = layer['name']
+        layer_instance = getattr(self, name)
+        setattr(unregistered_layers_object, name, layer_instance)
+
     # Block 1
     x = registered_layers_object.conv1_1(x)
+    x = unregistered_layers_object.bn1_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv1_2(x)
+    x = unregistered_layers_object.bn1_2(x)
     x = torch.relu(x)
+    # Remove first maxpool
     # x = self.maxpool(x)
 
     # Block 2
     x = registered_layers_object.conv2_1(x)
+    x = unregistered_layers_object.bn2_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv2_2(x)
+    x = unregistered_layers_object.bn2_2(x)
     x = torch.relu(x)
-    x = self.maxpool(x)
+    x = self.maxpool(x)  # Apply pooling here
 
     # Block 3
     x = registered_layers_object.conv3_1(x)
+    x = unregistered_layers_object.bn3_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv3_2(x)
+    x = unregistered_layers_object.bn3_2(x)
     x = torch.relu(x)
     x = registered_layers_object.conv3_3(x)
+    x = unregistered_layers_object.bn3_3(x)
     x = torch.relu(x)
     x = registered_layers_object.conv3_4(x)
+    x = unregistered_layers_object.bn3_4(x)
     x = torch.relu(x)
-    x = self.maxpool(x)
+    x = self.maxpool(x)  # Apply pooling
 
     # Block 4
     x = registered_layers_object.conv4_1(x)
+    x = unregistered_layers_object.bn4_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv4_2(x)
+    x = unregistered_layers_object.bn4_2(x)
     x = torch.relu(x)
     x = registered_layers_object.conv4_3(x)
+    x = unregistered_layers_object.bn4_3(x)
     x = torch.relu(x)
     x = registered_layers_object.conv4_4(x)
+    x = unregistered_layers_object.bn4_4(x)
     x = torch.relu(x)
-    x = self.maxpool(x)
+    x = self.maxpool(x)  # Apply pooling
 
     # Block 5
     x = registered_layers_object.conv5_1(x)
+    x = unregistered_layers_object.bn5_1(x)
     x = torch.relu(x)
     x = registered_layers_object.conv5_2(x)
+    x = unregistered_layers_object.bn5_2(x)
     x = torch.relu(x)
     x = registered_layers_object.conv5_3(x)
+    x = unregistered_layers_object.bn5_3(x)
     x = torch.relu(x)
     x = registered_layers_object.conv5_4(x)
+    x = unregistered_layers_object.bn5_4(x)
     x = torch.relu(x)
-    x = self.maxpool(x)
+    x = self.maxpool(x)  # Apply pooling
 
     # Flatten the tensor
     x = torch.flatten(x, 1)  # Flatten all dimensions except batch
@@ -181,7 +230,7 @@ def forward_pass_resnet50_cifars(self: 'LayerComposite', x: torch.Tensor, regist
     return x
 
 
-def forward_pass_resnet50(self: 'LayerComposite', x: torch.Tensor, registered_layer_attributes, unregistered_layer_attributes) -> torch.Tensor:
+def forward_pass_resnet50_imagenet(self: 'LayerComposite', x: torch.Tensor, registered_layer_attributes, unregistered_layer_attributes) -> torch.Tensor:
     registered_layers_object = SimpleNamespace()
     for layer_attr in registered_layer_attributes:
         name = layer_attr['name']
@@ -247,7 +296,7 @@ def _forward_layer_resnet50(self, x, layer_num, num_blocks, registered_layers_ob
     return x
 
 
-def forward_pass_resnet18(self: 'LayerComposite', x: torch.Tensor, registered_layers, unregistered_layers) -> torch.Tensor:
+def forward_pass_resnet18_cifars(self: 'LayerComposite', x: torch.Tensor, registered_layers, unregistered_layers) -> torch.Tensor:
     # Ensures all layers used in forward are registered in these 2 arrays
     registered_layers_object = SimpleNamespace()
     for layer in registered_layers:
@@ -265,6 +314,7 @@ def forward_pass_resnet18(self: 'LayerComposite', x: torch.Tensor, registered_la
     x = registered_layers_object.conv1(x)
     x = unregistered_layers_object.bn1(x)
     x = self.relu(x)
+    # maxpooling done only for imagenet
 
     # Layer 1
     # Block 1
