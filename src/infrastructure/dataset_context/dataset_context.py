@@ -40,6 +40,7 @@ class DatasetSmallType(Enum):
 class DatasetContextConfigs:
     batch_size: int
     augmentations: nn.Sequential
+    augmentations_test: nn.Sequential
 
 mean_cifar100, std_cifar100 = [0.5071, 0.4867, 0.4408], [0.2675, 0.2565, 0.2761]
 mean_cifar10, std_cifar10 = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
@@ -48,7 +49,11 @@ mean_mnist, std_mnist = (0.1307,), (0.3081,)
 _AUGMENTATIONS_CIFAR_10 = nn.Sequential(
     K.RandomCrop((32, 32), padding=4),
     K.RandomHorizontalFlip(p=0.5),
-    # K.Normalize(mean_cifar10, std_cifar10),
+    K.Normalize(mean_cifar10, std_cifar10),
+).to(get_device())
+
+_AUGMENTATIONS_CIFAR_10_TEST = nn.Sequential(
+    K.Normalize(mean_cifar10, std_cifar10),
 ).to(get_device())
 
 _AUGMENTATIONS_CIFAR_100 = nn.Sequential(
@@ -62,7 +67,11 @@ _AUGMENTATION_CIFAR_100_TEST = nn.Sequential(
 )
 
 _AUGMENTATIONS_MNIST = nn.Sequential(
-    # K.Normalize(mean_mnist, std_mnist),
+    K.Normalize(mean_mnist, std_mnist),
+)
+
+_AUGMENTATIONS_MNIST_TEST = nn.Sequential(
+    K.Normalize(mean_mnist, std_mnist),
 )
 
 BATCH_SIZE_CIFAR_10 = 128
@@ -70,13 +79,13 @@ BATCH_SIZE_CIFAR_100 = 128
 BATCH_SIZE_MNIST = 128
 
 def dataset_context_configs_cifar100() -> DatasetContextConfigs:
-    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_100, augmentations=_AUGMENTATIONS_CIFAR_100)
+    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_100, augmentations=_AUGMENTATIONS_CIFAR_100, augmentations_test=_AUGMENTATIONS_CIFAR_100)
 
 def dataset_context_configs_cifar10() -> DatasetContextConfigs:
-    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_10, augmentations=_AUGMENTATIONS_CIFAR_10)
+    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_10, augmentations=_AUGMENTATIONS_CIFAR_10, augmentations_test=_AUGMENTATIONS_CIFAR_10_TEST)
 
 def dataset_context_configs_mnist() -> DatasetContextConfigs:
-    return DatasetContextConfigs(batch_size=BATCH_SIZE_MNIST, augmentations=_AUGMENTATIONS_MNIST)
+    return DatasetContextConfigs(batch_size=BATCH_SIZE_MNIST, augmentations=_AUGMENTATIONS_MNIST, augmentations_test=_AUGMENTATIONS_MNIST_TEST)
 
 class DatasetContextAbstract(ABC):
     # TRAINING
@@ -190,9 +199,7 @@ class DatasetSmallContext(DatasetContextAbstract):
 
         data = self.train_data[batch].to(get_device(), non_blocking=True)
         target = self.train_labels[batch].to(get_device(), non_blocking=True)
-
-        if self.configs.augmentations is not None:
-            data = self.configs.augmentations(data)
+        data = self.configs.augmentations(data)
 
         return data, target
 
@@ -217,8 +224,7 @@ class DatasetSmallContext(DatasetContextAbstract):
         batch_idx, batch = next(self.testing_data_indices_iterator)
         data = self.test_data[batch].to(get_device(), non_blocking=True)
         target = self.test_labels[batch].to(get_device(), non_blocking=True)
-
-        data = _AUGMENTATION_CIFAR_100_TEST(data)
+        data = self.configs.augmentations_test(data)
 
         return data, target
 
