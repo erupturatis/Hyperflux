@@ -25,7 +25,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet18Cifar10(configs_network_masks).to(get_device())
-    MODEL.load(BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH)
+    MODEL.load("resnet18_cifar10_accuracy95.36%", BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
