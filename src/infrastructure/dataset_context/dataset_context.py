@@ -48,7 +48,7 @@ mean_mnist, std_mnist = (0.1307,), (0.3081,)
 _AUGMENTATIONS_CIFAR_10 = nn.Sequential(
     K.RandomCrop((32, 32), padding=4),
     K.RandomHorizontalFlip(p=0.5),
-    K.Normalize(mean_cifar10, std_cifar10),
+    # K.Normalize(mean_cifar10, std_cifar10),
 ).to(get_device())
 
 _AUGMENTATIONS_CIFAR_100 = nn.Sequential(
@@ -57,8 +57,12 @@ _AUGMENTATIONS_CIFAR_100 = nn.Sequential(
     K.Normalize(mean_cifar100, std_cifar100),
 ).to(get_device())
 
+_AUGMENTATION_CIFAR_100_TEST = nn.Sequential(
+    K.Normalize(mean_cifar100, std_cifar100),
+)
+
 _AUGMENTATIONS_MNIST = nn.Sequential(
-    K.Normalize(mean_mnist, std_mnist),
+    # K.Normalize(mean_mnist, std_mnist),
 )
 
 BATCH_SIZE_CIFAR_10 = 128
@@ -213,6 +217,8 @@ class DatasetSmallContext(DatasetContextAbstract):
         batch_idx, batch = next(self.testing_data_indices_iterator)
         data = self.test_data[batch].to(get_device(), non_blocking=True)
         target = self.test_labels[batch].to(get_device(), non_blocking=True)
+
+        data = _AUGMENTATION_CIFAR_100_TEST(data)
 
         return data, target
 

@@ -2,7 +2,7 @@ from types import SimpleNamespace
 import torch
 from src.infrastructure.layers import LayerComposite
 
-def forward_pass_vgg19(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes) -> torch.Tensor:
+def forward_pass_vgg19_imagenet(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes) -> torch.Tensor:
     """
     All variations of VGG should have the same names for layer attributes
     """
@@ -143,7 +143,7 @@ def forward_pass_vgg19_cifars(self: 'LayerComposite', x: torch.Tensor, registere
     return x
 
 
-def forward_pass_resnet50(self: 'LayerComposite', x: torch.Tensor, registered_layer_attributes, unregistered_layer_attributes) -> torch.Tensor:
+def forward_pass_resnet50_imagenet(self: 'LayerComposite', x: torch.Tensor, registered_layer_attributes, unregistered_layer_attributes) -> torch.Tensor:
     registered_layers_object = SimpleNamespace()
     for layer_attr in registered_layer_attributes:
         name = layer_attr['name']
@@ -248,7 +248,7 @@ def _forward_layer_resnet50(self, x, layer_num, num_blocks, registered_layers_ob
     return x
 
 
-def forward_pass_resnet18(self: 'LayerComposite', x: torch.Tensor, registered_layers, unregistered_layers) -> torch.Tensor:
+def forward_pass_resnet18_cifars(self: 'LayerComposite', x: torch.Tensor, registered_layers, unregistered_layers) -> torch.Tensor:
     # Ensures all layers used in forward are registered in these 2 arrays
     registered_layers_object = SimpleNamespace()
     for layer in registered_layers:

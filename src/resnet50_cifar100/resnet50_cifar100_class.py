@@ -11,7 +11,7 @@ from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LA
     BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_layers_primitive, \
-    get_remaining_parameters_loss_masks_importance
+    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics
 
 
 class Resnet50Cifar100(LayerComposite):
@@ -87,6 +87,9 @@ class Resnet50Cifar100(LayerComposite):
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
+
+    def get_parameters_pruning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
 
     def forward(self, x):
         return forward_pass_resnet50_cifars(
