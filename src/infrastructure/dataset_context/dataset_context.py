@@ -79,7 +79,7 @@ BATCH_SIZE_CIFAR_100 = 128
 BATCH_SIZE_MNIST = 128
 
 def dataset_context_configs_cifar100() -> DatasetContextConfigs:
-    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_100, augmentations=_AUGMENTATIONS_CIFAR_100, augmentations_test=_AUGMENTATIONS_CIFAR_100)
+    return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_100, augmentations=_AUGMENTATIONS_CIFAR_100, augmentations_test=_AUGMENTATION_CIFAR_100_TEST)
 
 def dataset_context_configs_cifar10() -> DatasetContextConfigs:
     return DatasetContextConfigs(batch_size=BATCH_SIZE_CIFAR_10, augmentations=_AUGMENTATIONS_CIFAR_10, augmentations_test=_AUGMENTATIONS_CIFAR_10_TEST)

@@ -53,7 +53,7 @@ def initialize_dataset_context():
 def initialize_training_context():
     global training_context
 
-    lr = 0.01
+    lr = 0.02
     weight_bias_params = get_model_parameters(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
 
@@ -66,7 +66,7 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    training_end = 300
+    training_end = 200
     scheduler_weights_lr_during_training = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=training_end, eta_min=1e-7)
 
     stages_context = StagesContextBaselineTrain(
