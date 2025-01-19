@@ -55,7 +55,7 @@ def initialize_dataset_context():
 def initialize_training_context():
     global training_context
 
-    lr = 0.1
+    lr = 0.01
     weight_bias_params = get_model_parameters(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
 
@@ -86,7 +86,7 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-def train_cifar10_resnet18_from_scratch():
+def train_vgg19_cifar100_from_scratch():
     global MODEL, epoch_global
     configs_layers_initialization_all_kaiming_relu()
 

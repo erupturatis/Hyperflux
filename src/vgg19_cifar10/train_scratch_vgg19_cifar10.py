@@ -117,7 +117,7 @@ def train_vgg19_cifar10_from_scratch():
         stages_context.step(training_context)
 
     MODEL.save(
-        name= f"/network_baselines/vgg19_cifar10_accuracy{acc}%_{get_random_id()}",
+        name= f"vgg19_cifar10_accuracy{acc}%_{get_random_id()}",
         folder= BASELINE_MODELS_PATH
     )
 

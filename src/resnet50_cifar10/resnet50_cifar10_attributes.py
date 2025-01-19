@@ -36,19 +36,31 @@ replace_fc = Mutation(
     }
 )
 
-cifar10_registered_mutations = [
+remove_maxpool1 = Mutation(
+    field_identified='name',
+    value_in_field='maxpool1',
+    action='remove',
+    replacement_dict={}
+)
+
+cifar10_registered_layers_mutations = [
     replace_conv1,
-    replace_fc
+    replace_fc,
 ]
+
+cifar10_unregistered_layers_mutations = [
+    remove_maxpool1,
+]
+
 
 RESNET50_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES = mutate_attributes(
     attributes=RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES,
-    mutations=cifar10_registered_mutations
+    mutations=cifar10_registered_layers_mutations
 )
 
 RESNET50_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES = mutate_attributes(
     attributes=RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES,
-    mutations=[]
+    mutations=cifar10_unregistered_layers_mutations
 )
 
 RESNET50_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = mutate_attributes(

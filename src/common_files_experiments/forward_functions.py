@@ -73,6 +73,114 @@ def forward_pass_vgg19(self: 'LayerComposite', x: torch.Tensor, registered_layer
 
     return x
 
+def forward_pass_vgg19_cifars(self: 'LayerComposite', x: torch.Tensor, registered_layers_attributes) -> torch.Tensor:
+    """
+    Forward pass for VGG-19 without using Max Pooling layers.
+    """
+    registered_layers_object = SimpleNamespace()
+    for layer in registered_layers_attributes:
+        name = layer['name']
+        layer_instance = getattr(self, name)
+        setattr(registered_layers_object, name, layer_instance)
+
+    # Block 1
+    x = registered_layers_object.conv1_1(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv1_2(x)
+    x = torch.relu(x)
+    # x = self.maxpool(x)
+
+    # Block 2
+    x = registered_layers_object.conv2_1(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv2_2(x)
+    x = torch.relu(x)
+    x = self.maxpool(x)
+
+    # Block 3
+    x = registered_layers_object.conv3_1(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv3_2(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv3_3(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv3_4(x)
+    x = torch.relu(x)
+    x = self.maxpool(x)
+
+    # Block 4
+    x = registered_layers_object.conv4_1(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv4_2(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv4_3(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv4_4(x)
+    x = torch.relu(x)
+    x = self.maxpool(x)
+
+    # Block 5
+    x = registered_layers_object.conv5_1(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv5_2(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv5_3(x)
+    x = torch.relu(x)
+    x = registered_layers_object.conv5_4(x)
+    x = torch.relu(x)
+    x = self.maxpool(x)
+
+    # Flatten the tensor
+    x = torch.flatten(x, 1)  # Flatten all dimensions except batch
+
+    # Fully Connected Layers
+    x = registered_layers_object.fc1(x)
+    x = torch.relu(x)
+    x = registered_layers_object.fc2(x)
+    x = torch.relu(x)
+    x = registered_layers_object.fc3(x)
+
+    return x
+
+
+def forward_pass_resnet50_cifars(self: 'LayerComposite', x: torch.Tensor, registered_layer_attributes, unregistered_layer_attributes) -> torch.Tensor:
+    registered_layers_object = SimpleNamespace()
+    for layer_attr in registered_layer_attributes:
+        name = layer_attr['name']
+        layer = getattr(self, name)
+        setattr(registered_layers_object, name, layer)
+
+    unregistered_layers_object = SimpleNamespace()
+    for layer_attr in unregistered_layer_attributes:
+        name = layer_attr['name']
+        layer = getattr(self, name)
+        setattr(unregistered_layers_object, name, layer)
+
+    # Initial layers without Max Pooling
+    x = registered_layers_object.conv1(x)
+    x = unregistered_layers_object.bn1(x)
+    x = self.relu(x)
+
+    layers_config = [
+        {'layer_num': 1, 'num_blocks': 3},
+        {'layer_num': 2, 'num_blocks': 4},
+        {'layer_num': 3, 'num_blocks': 6},
+        {'layer_num': 4, 'num_blocks': 3},
+    ]
+
+    # Process each layer
+    for layer_info in layers_config:
+        layer_num = layer_info['layer_num']
+        num_blocks = layer_info['num_blocks']
+        x = _forward_layer_resnet50(self, x, layer_num, num_blocks, registered_layers_object, unregistered_layers_object)
+
+    x = unregistered_layers_object.avgpool(x)
+    x = torch.flatten(x, 1)
+    x = registered_layers_object.fc(x)
+
+    return x
+
+
 def forward_pass_resnet50(self: 'LayerComposite', x: torch.Tensor, registered_layer_attributes, unregistered_layer_attributes) -> torch.Tensor:
     registered_layers_object = SimpleNamespace()
     for layer_attr in registered_layer_attributes:

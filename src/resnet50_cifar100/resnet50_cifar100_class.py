@@ -2,15 +2,16 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from src.common_files_experiments.forward_functions import forward_pass_resnet50
+from src.common_files_experiments.forward_functions import forward_pass_resnet50, forward_pass_resnet50_cifars
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet50_cifar100.resnet50_cifar100_attributes import RESNET50_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES, RESNET50_CIFAR100_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_CIFAR100_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
-    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss, \
-    get_layers_primitive
+    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_layers_primitive, \
+    get_remaining_parameters_loss_masks_importance
+
 
 class Resnet50Cifar100(LayerComposite):
     def __init__(self, configs_network_masks: ConfigsNetworkMasksImportance):
@@ -79,14 +80,14 @@ class Resnet50Cifar100(LayerComposite):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss(self)
+        total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
         return sigmoid * N_SCALER
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def forward(self, x):
-        return forward_pass_resnet50(
+        return forward_pass_resnet50_cifars(
             self=self,
             x=x,
             registered_layer_attributes=RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES,

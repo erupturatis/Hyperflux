@@ -47,7 +47,7 @@ def train_mixed_baseline_debug(model: nn.Module, dataset_context: DatasetContext
 
 def train_mixed_baseline(model: nn.Module, dataset_context: DatasetContextAbstract, training_context: TrainingContextBaselineTrain, training_display: TrainingDisplay):
     model.train()
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
     optimizer_weights = training_context.get_optimizer_weights()
 
     scaler = GradScaler('cuda')

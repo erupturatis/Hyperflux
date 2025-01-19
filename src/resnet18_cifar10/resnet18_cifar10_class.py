@@ -43,8 +43,6 @@ class Resnet18Cifar10(LayerComposite):
                     configs_network_masks
                 )
             elif type_ == FULLY_CONNECTED_LAYER:
-                print(layer_attr['name'], layer_attr['type'])
-                print(layer_attr["in_features"], layer_attr["out_features"])
                 layer = LayerLinearMaskImportance(
                     ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
