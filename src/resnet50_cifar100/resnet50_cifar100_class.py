@@ -2,12 +2,13 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from src.common_files_experiments.forward_functions import forward_pass_resnet50, forward_pass_resnet50_cifars
+from src.common_files_experiments.forward_functions import forward_pass_resnet50_imagenet, forward_pass_resnet50_cifars
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet50_cifar100.resnet50_cifar100_attributes import RESNET50_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES, RESNET50_CIFAR100_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_CIFAR100_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
-from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER, \
+    BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_layers_primitive, \
     get_remaining_parameters_loss_masks_importance
@@ -26,7 +27,7 @@ class Resnet50Cifar100(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'LayerConv2':
+            if type_ == CONV2D_LAYER:
                 layer = LayerConv2MaskImportance(
                     ConfigsLayerConv2(
                         in_channels=layer_attr['in_channels'],
@@ -38,7 +39,7 @@ class Resnet50Cifar100(LayerComposite):
                     ),
                     configs_network_masks
                 )
-            elif type_ == 'LayerLinear':
+            elif type_ == FULLY_CONNECTED_LAYER:
                 layer = LayerLinearMaskImportance(
                     ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
@@ -57,7 +58,7 @@ class Resnet50Cifar100(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'BatchNorm2d':
+            if type_ == BATCH_NORM_2D_LAYER:
                 layer = nn.BatchNorm2d(
                     num_features=layer_attr['num_features']
                 )

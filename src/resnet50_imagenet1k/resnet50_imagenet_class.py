@@ -2,7 +2,7 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from src.common_files_experiments.forward_functions import forward_pass_resnet50
+from src.common_files_experiments.forward_functions import forward_pass_resnet50_imagenet
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.common_files_experiments.vanilla_attributes_resnet50 import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
@@ -89,7 +89,7 @@ class Resnet50Imagenet(LayerComposite):
         return get_layers_primitive(self)
 
     def forward(self, x):
-        return forward_pass_resnet50(
+        return forward_pass_resnet50_imagenet(
             self=self,
             x=x,
             registered_layer_attributes=RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES,

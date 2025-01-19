@@ -2,7 +2,7 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from src.common_files_experiments.forward_functions import forward_pass_resnet50, forward_pass_resnet50_cifars
+from src.common_files_experiments.forward_functions import forward_pass_resnet50_imagenet, forward_pass_resnet50_cifars
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.resnet50_cifar10.resnet50_cifar10_attributes import RESNET50_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR10_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, RESNET50_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING, \
