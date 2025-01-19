@@ -16,9 +16,9 @@ replace_conv1 = Mutation(
         "type": CONV2D_LAYER,
         "in_channels": 3,
         "out_channels": 64,
-        "kernel_size": 3,    # Changed from 7 to 3
-        "stride": 1,         # Changed from 2 to 1
-        "padding": 1,        # Changed from 3 to 1
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
         "bias_enabled": False
     }
 )
@@ -30,8 +30,8 @@ replace_fc = Mutation(
     replacement_dict={
         "name": "fc",
         "type": FULLY_CONNECTED_LAYER,
-        "in_features": 2048,  # Remains the same as ResNet50's fc layer
-        "out_features": 100,  # Changed from 1000 (ImageNet) or 10 (CIFAR-10) to 100 for CIFAR-100
+        "in_features": 2048,
+        "out_features": 100,
         "bias_enabled": True
     }
 )
