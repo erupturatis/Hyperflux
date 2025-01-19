@@ -61,7 +61,7 @@ def initialize_training_context():
     training_context = TrainingContextPrunedTrain(
         TrainingContextPrunedTrainArgs(
             lr_weights_reset=lr_weights_finetuning,
-            lr_flow_params_reset=get_lr_flow_params_reset(),
+            lr_flow_params_reset=get_lr_flow_params(),
             l0_gamma_scaler=0,
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
@@ -105,8 +105,8 @@ BATCH_PRINT_RATE = 100
 sparsity_configs = {
     "pruning_end": 400,
     "regrowing_end": 600,
-    "target_sparsity": 0.5,
-    "lr_flow_params_decay_regrowing": 0.95
+    "target_sparsity": 0.35,
+    "lr_flow_params_decay_regrowing": 0.9
 }
 
 def train_resnet18_cifar10_sparse_model_adam():
