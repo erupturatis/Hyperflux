@@ -83,7 +83,7 @@ class Resnet50Cifar100(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid * N_SCALER
+        return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
