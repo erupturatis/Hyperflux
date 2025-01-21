@@ -7,9 +7,9 @@ from src.common_files_experiments.load_save import save_model_weights, load_mode
 from src.common_files_experiments.vanilla_attributes_resnet50 import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
-from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH
+from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER, BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
-    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss, \
+    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss_masks_importance, \
     get_layers_primitive
 from src.resnet50_imagenet1k.resnet50_imagenet_attributes import RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
@@ -28,7 +28,7 @@ class Resnet50Imagenet(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'LayerConv2':
+            if type_ == CONV2D_LAYER:
                 layer = LayerConv2MaskImportance(
                     ConfigsLayerConv2(
                         in_channels=layer_attr['in_channels'],
@@ -40,7 +40,7 @@ class Resnet50Imagenet(LayerComposite):
                     ),
                     configs_network_masks
                 )
-            elif type_ == 'LayerLinear':
+            elif type_ == FULLY_CONNECTED_LAYER:
                 layer = LayerLinearMaskImportance(
                     ConfigsLayerLinear(
                         in_features=layer_attr['in_features'],
@@ -59,7 +59,7 @@ class Resnet50Imagenet(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'BatchNorm2d':
+            if type_ == BATCH_NORM_2D_LAYER:
                 layer = nn.BatchNorm2d(
                     num_features=layer_attr['num_features']
                 )
@@ -82,8 +82,8 @@ class Resnet50Imagenet(LayerComposite):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss(self)
-        return sigmoid * N_SCALER
+        total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
+        return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
