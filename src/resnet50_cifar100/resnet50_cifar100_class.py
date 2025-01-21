@@ -84,7 +84,7 @@ class Resnet50Cifar100(LayerComposite):
     def get_weight_decay(self) -> torch.Tensor:
         weights = get_weight_decay(self)
         weight_decay = 5e-4
-        return weights * weight_decay
+        return weights * weight_decay / 2
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
