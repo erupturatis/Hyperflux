@@ -96,6 +96,7 @@ class StagesContextPrunedTrain:
             gamma = self.args.scheduler_gamma.get_multiplier()
             if VERBOSE_STAGES:
                 print("Gamma:", gamma)
+            # gamma = 0
 
             training_context.set_gamma(gamma)
 

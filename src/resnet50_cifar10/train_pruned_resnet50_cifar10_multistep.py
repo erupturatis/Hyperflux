@@ -129,7 +129,7 @@ def train_resnet50_cifar10_sparse_model_multistep():
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-        train_mixed_pruned_with_decay(
+        train_mixed_pruned(
             dataset_context=dataset_context,
             training_context=training_context,
             model=MODEL,
