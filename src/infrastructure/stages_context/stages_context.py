@@ -81,7 +81,10 @@ class StagesContextPrunedTrain:
 
     def step(self, training_context: TrainingContextPrunedTrain):
         if VERBOSE_STAGES:
-            print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            try:
+                print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            except AttributeError:
+                print("Attribute error", training_context.get_optimizer_weights().param_groups[0]['lr'])
 
         if self.epoch <= self.args.pruning_epoch_end:
             # run weights scheduler
@@ -91,6 +94,9 @@ class StagesContextPrunedTrain:
             # run gamma scheduler
             self.args.scheduler_gamma.step(self.epoch, self.sparsity_percent)
             gamma = self.args.scheduler_gamma.get_multiplier()
+            if VERBOSE_STAGES:
+                print("Gamma:", gamma)
+
             training_context.set_gamma(gamma)
 
         if self.epoch == self.args.pruning_epoch_end + 1:
@@ -99,8 +105,8 @@ class StagesContextPrunedTrain:
             self.args.scheduler_weights_lr_during_regrowth.base_lrs[0] = training_context.params.lr_weights_reset
             self.args.scheduler_flow_params_regrowth.base_lrs[0] = training_context.params.lr_flow_params_reset
 
-        if EXTRA_VERBOSE_STAGES:
-            print("Learning rates mid, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+        # if EXTRA_VERBOSE_STAGES:
+        #     print("Learning rates mid, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
 
         if self.epoch >= self.args.pruning_epoch_end + 1 and self.epoch <= self.args.regrowth_epoch_end:
             if self.args.scheduler_weights_lr_during_regrowth is not None:
@@ -114,7 +120,10 @@ class StagesContextPrunedTrain:
             training_context.set_gamma(0)
 
         if VERBOSE_STAGES:
-            print("Learning rates end, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            try:
+                print("Learning rates end, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            except AttributeError:
+                print("Attribute error", training_context.get_optimizer_weights().param_groups[0]['lr'])
 
 @dataclass
 class StagesContextSparsityCurveArgs:

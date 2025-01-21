@@ -5,6 +5,7 @@ from src.resnet18_cifar10.train_scratch_resnet18_cifar10 import train_resnet18_c
 from src.resnet18_cifar100.train_pruned_resnet18_cifar100 import train_resnet18_cifar100_sparse_model
 from src.resnet18_cifar100.train_scratch_resnet18_cifar100 import train_resnet18_cifar100_from_scratch
 from src.resnet50_cifar10.train_pruned_resnet50_cifar10 import train_resnet50_cifar10_sparse_model
+from src.resnet50_cifar10.train_pruned_resnet50_cifar10_multistep import train_resnet50_cifar10_sparse_model_multistep
 from src.resnet50_cifar10.train_scratch_resnet50_cifar10 import train_resnet50_cifar10_from_scratch
 from src.resnet50_cifar10.train_scratch_resnet50_cifar10_multistep import train_resnet50_cifar10_from_scratch_multistep
 from src.resnet50_cifar100.train_pruned_resnet50_cifar100 import train_resnet50_cifar100_sparse_model
@@ -14,7 +15,9 @@ from src.vgg19_cifar10.train_scratch_vgg19_cifar10 import train_vgg19_cifar10_fr
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100 import train_vgg19_cifar100_from_scratch
 
 if __name__ == '__main__':
-    train_resnet50_cifar10_from_scratch_multistep()
+    train_resnet50_cifar10_sparse_model_multistep()
+    # train_resnet50_cifar10_from_scratch_multistep()
+
     # train_resnet50_cifar100_from_scratch()
     # train_vgg19_cifar100_from_scratch()
     #

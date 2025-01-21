@@ -11,7 +11,8 @@ from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LA
     BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, \
-    get_layers_primitive, get_layer_composite_pruning_statistics, get_remaining_parameters_loss_masks_importance
+    get_layers_primitive, get_layer_composite_pruning_statistics, get_remaining_parameters_loss_masks_importance, \
+    get_weight_decay
 
 
 class Resnet50Cifar10(LayerComposite):
@@ -90,6 +91,16 @@ class Resnet50Cifar10(LayerComposite):
 
     def get_parameters_pruning_statistics(self) -> any:
         return get_layer_composite_pruning_statistics(self)
+
+    def get_weight_decay(self) -> torch.Tensor:
+        weights = get_weight_decay(self)
+        weight_decay = 5e-4
+        return weights * weight_decay / 2
+
+    def get_weight_decay(self) -> torch.Tensor:
+        weights = get_weight_decay(self)
+        weight_decay = 5e-4
+        return weights * weight_decay / 2
 
     def forward(self, x):
         return forward_pass_resnet50_cifars(
