@@ -45,6 +45,29 @@ def train_mixed_baseline_debug(model: nn.Module, dataset_context: DatasetContext
         training_display.record_losses([loss_data.item()])
 
 
+def train_mixed_baseline_weight_decay(model: nn.Module, dataset_context: DatasetContextAbstract, training_context: TrainingContextBaselineTrain, training_display: TrainingDisplay):
+    model.train()
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
+    optimizer_weights = training_context.get_optimizer_weights()
+
+    scaler = GradScaler('cuda')
+    while dataset_context.any_data_training_available():
+        data, target = dataset_context.get_training_data_and_labels()
+
+        optimizer_weights.zero_grad()
+
+        with autocast('cuda'):
+            output = model(data)
+            loss_data = criterion(output, target)
+            loss_decay = model.get_weight_decay()
+            loss_data += loss_decay
+
+        scaler.scale(loss_data).backward()
+        scaler.step(optimizer_weights)
+        scaler.update()
+
+
+        training_display.record_losses([loss_data.item()])
 def train_mixed_baseline(model: nn.Module, dataset_context: DatasetContextAbstract, training_context: TrainingContextBaselineTrain, training_display: TrainingDisplay):
     model.train()
     criterion = nn.CrossEntropyLoss(label_smoothing=0.05)

@@ -11,7 +11,7 @@ from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LA
     BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_layers_primitive, \
-    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics
+    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, get_weight_decay
 
 
 class Resnet50Cifar100(LayerComposite):
@@ -80,6 +80,11 @@ class Resnet50Cifar100(LayerComposite):
 
         # Initialize additional layers if any
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+    def get_weight_decay(self) -> torch.Tensor:
+        weights = get_weight_decay(self)
+        weight_decay = 5e-4
+        return weights * weight_decay
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)

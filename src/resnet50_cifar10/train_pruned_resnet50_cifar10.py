@@ -11,7 +11,7 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent
-from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
+from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, CosineAnnealingWarmRestarts
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_common import get_model_parameters_and_masks
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
@@ -26,7 +26,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
-    MODEL.load("resnet50_cifar10_accuracy95.98%", BASELINE_MODELS_PATH)
+    MODEL.load("resnet50_cifar10_accuracy95.31%", BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -52,7 +52,7 @@ def initialize_dataset_context():
 def initialize_training_context():
     global training_context
 
-    lr_weights_finetuning = 0.0001
+    lr_weights_finetuning = 0.0003
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
@@ -79,8 +79,10 @@ def initialize_stages_context():
     pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=sparsity_configs["target_sparsity"], epochs_target=pruning_end)
     scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
 
-    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
-    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
+    # scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
+    scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda step: 1 ** step)
+    # scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
+    scheduler_weights_lr_during_regrowth = CosineAnnealingWarmRestarts(training_context.get_optimizer_weights(), T_0=100, T_mult=1, eta_min=1e-7)
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter)
 
     stages_context = StagesContextPrunedTrain(
@@ -104,10 +106,10 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 sparsity_configs = {
-    "pruning_end": 300,
-    "regrowing_end": 600,
-    "target_sparsity": 0.2,
-    "lr_flow_params_decay_regrowing": 0.98
+    "pruning_end": 100,
+    "regrowing_end": 300,
+    "target_sparsity": 1.85,
+    "lr_flow_params_decay_regrowing": 0.95
 }
 
 def train_resnet50_cifar10_sparse_model():

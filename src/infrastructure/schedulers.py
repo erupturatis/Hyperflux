@@ -62,6 +62,9 @@ class PressureScheduler:
     def get_multiplier(self) -> int:
         return self.gamma ** self.EXP
 
+import math
+def cosine_function(epoch, period=60):
+    return math.cos(2 * math.pi * (epoch % period) / period)
 
 def expected_pruning_decrease_at_epoch(epoch, start_decrease, end_decrease, aggressivity_transition, late_aggressivity):
     """
