@@ -56,7 +56,7 @@ def initialize_training_context():
 
     lr = 0.02
     weight_bias_params = get_model_parameters(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=0)
+    optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
 
     training_context = TrainingContextBaselineTrain(
         TrainingContextBaselineTrainArgs(
@@ -100,7 +100,7 @@ def train_resnet50_cifar100_from_scratch():
     for epoch in range(1, stages_context.args.training_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-        train_mixed_baseline_weight_decay(
+        train_mixed_baseline(
             model=MODEL,
             dataset_context=dataset_context,
             training_context=training_context,
