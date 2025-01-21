@@ -114,6 +114,9 @@ def train_resnet50_cifar10_from_scratch():
         stages_context.update_context(epoch_global)
         stages_context.step(training_context)
 
+        if acc > 94.75:
+            break
+
     MODEL.save(
         name=f"resnet50_cifar10_accuracy{acc}%_{get_random_id()}",
         folder=BASELINE_MODELS_PATH

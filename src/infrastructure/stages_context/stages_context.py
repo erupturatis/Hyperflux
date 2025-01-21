@@ -31,13 +31,19 @@ class StagesContextBaselineTrain:
 
     def step(self, training_context: TrainingContextBaselineTrain):
         if VERBOSE_STAGES:
-            print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            try:
+                print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            except AttributeError:
+                print("Attribute error", training_context.get_optimizer_weights().param_groups[0]['lr'])
 
         if self.args.scheduler_weights_lr_during_training is not None:
             self.args.scheduler_weights_lr_during_training.step()
 
         if VERBOSE_STAGES:
-            print("Learning rates end, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            try:
+                print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
+            except AttributeError:
+                print("Attribute error", training_context.get_optimizer_weights().param_groups[0]['lr'])
 
 
 @dataclass
