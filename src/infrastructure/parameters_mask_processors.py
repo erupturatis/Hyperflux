@@ -66,6 +66,19 @@ def get_weight_decay_(layer_primitive: 'LayerPrimitive') -> torch.Tensor:
 
     return remaining
 
+def get_parameters_pruning_step_approximation_separated_pressures_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor, torch.Tensor]:
+    total = 0
+    remaining = torch.tensor(0, device=get_device(), dtype=torch.float)
+
+    weights = getattr(layer_primitive, WEIGHTS_ATTR)
+    mask_pruning = getattr(layer_primitive, WEIGHTS_PRUNING_ATTR)
+
+    total += weights.numel()
+    pruned_ts = (mask_pruning * (mask_pruning > -get_flow_params_init()*1.5 * (mask_pruning < 0)).float()).sum()
+    present_ts = (mask_pruning * (mask_pruning >= 0).float()).sum()
+
+    return total, pruned_ts, present_ts
+
 def get_parameters_pruning_step_aproximation_constant_(layer_primitive: 'LayerPrimitive') -> tuple[float, torch.Tensor]:
     total = 0
     remaining = torch.tensor(0, device=get_device(), dtype=torch.float)

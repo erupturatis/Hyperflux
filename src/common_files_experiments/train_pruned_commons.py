@@ -39,6 +39,38 @@ def train_mixed_pruned_with_decay(model: LayerComposite, dataset_context: Datase
         training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])
 
 
+def train_mixed_pruned_separated(model: LayerComposite, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
+    model.train()
+
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer_weights = training_context.get_optimizer_weights()
+    optimizer_pruning = training_context.get_optimizer_flow_mask()
+
+    scaler = GradScaler('cuda')
+
+    while dataset_context.any_data_training_available():
+        data, target = dataset_context.get_training_data_and_labels()
+
+        optimizer_weights.zero_grad()
+        optimizer_pruning.zero_grad()
+
+        with autocast('cuda'):
+            output = model(data)
+            pruned_ts, present_ts = model.get_remaining_parameters_loss_separated()
+
+            loss_pruned_weights = pruned_ts * training_context.params.l0_gamma_scaler
+            loss_present_weights = present_ts
+
+            loss_data = criterion(output, target)
+            loss = loss_pruned_weights + loss_present_weights + loss_data
+
+        scaler.scale(loss).backward()
+        scaler.step(optimizer_weights)
+        scaler.step(optimizer_pruning)
+        scaler.update()
+
+        training_display.record_losses([loss_data.item(), loss_pruned_weights.item()])
+
 def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
     model.train()
 

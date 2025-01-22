@@ -4,7 +4,7 @@ from typing import List
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, ConfigsLayerLinear, \
     get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, \
-    LayerPrimitive, LayerComposite, get_layers_primitive
+    LayerPrimitive, LayerComposite, get_layers_primitive, get_remaining_parameters_loss_masks_importance_separated
 from src.infrastructure.constants import FULLY_CONNECTED_LAYER, N_SCALER
 from src.mnist_lenet300.model_attributes import LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES, \
     LENET300_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
@@ -34,9 +34,13 @@ class ModelLenet300(LayerComposite):
             setattr(self, name, layer)
             self.registered_layers.append(layer)
 
+    def get_remaining_parameters_loss_separated(self) -> tuple[torch.Tensor, torch.Tensor]:
+        total, pruned_ts, present_ts = get_remaining_parameters_loss_masks_importance_separated(self)
+        return pruned_ts/total, present_ts * N_SCALER
+
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid * N_SCALER
+        return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)

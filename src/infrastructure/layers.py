@@ -6,7 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.infrastructure.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
-    get_parameters_pruning_statistics, configs_get_layers_initialization, get_weight_decay_pruning
+    get_parameters_pruning_statistics, configs_get_layers_initialization, get_weight_decay_pruning, \
+    get_parameters_pruning_separated
 from src.infrastructure.parameters_mask_processors import get_parameters_pruning_sigmoid_steep, get_parameters_total
 from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
 from src.infrastructure.others import get_device
@@ -124,6 +125,23 @@ def get_weight_decay(self: LayerComposite) -> torch.Tensor:
         weights += decay_params
 
     return weights
+
+
+def get_remaining_parameters_loss_masks_importance_separated(self: LayerComposite) -> tuple[float, torch.Tensor, torch.Tensor]:
+    layers: List[LayerPrimitive] = get_layers_primitive(self)
+
+    total = 0
+    pruned_ts_aggregated = torch.tensor(0, device=get_device(), dtype=torch.float)
+    present_ts_aggregated = torch.tensor(0, device=get_device(), dtype=torch.float)
+
+    for layer in layers:
+        layer_total, pruned_ts, present_ts = get_parameters_pruning_separated(layer)
+        total += layer_total
+        pruned_ts_aggregated += pruned_ts
+        present_ts_aggregated += present_ts
+
+    return total, pruned_ts_aggregated, present_ts_aggregated
+
 
 def get_remaining_parameters_loss_masks_importance(self: LayerComposite) -> tuple[float, torch.Tensor]:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
