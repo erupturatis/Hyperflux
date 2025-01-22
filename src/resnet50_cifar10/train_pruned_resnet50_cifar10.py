@@ -26,7 +26,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
-    MODEL.load("resnet50_cifar10_accuracy95.31%", BASELINE_MODELS_PATH)
+    MODEL.load("resnet50_cifar10_accuracy94.64%", BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -52,7 +52,7 @@ def initialize_dataset_context():
 def initialize_training_context():
     global training_context
 
-    lr_weights_finetuning = 0.0003
+    lr_weights_finetuning = 0.001
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
@@ -81,9 +81,9 @@ def initialize_stages_context():
 
     # scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
     scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda step: 1 ** step)
-    # scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
-    scheduler_weights_lr_during_regrowth = CosineAnnealingWarmRestarts(training_context.get_optimizer_weights(), T_0=100, T_mult=1, eta_min=1e-7)
-    scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter)
+    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-5)
+    # scheduler_weights_lr_during_regrowth = CosineAnnealingWarmRestarts(training_context.get_optimizer_weights(), T_0=100, T_mult=1, eta_min=1e-7)
+    scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter if iter < 50 else 0)
 
     stages_context = StagesContextPrunedTrain(
         StagesContextPrunedTrainArgs(
@@ -106,9 +106,9 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 sparsity_configs = {
-    "pruning_end": 100,
-    "regrowing_end": 300,
-    "target_sparsity": 1.85,
+    "pruning_end": 125,
+    "regrowing_end": 200,
+    "target_sparsity": 0.235,
     "lr_flow_params_decay_regrowing": 0.95
 }
 
