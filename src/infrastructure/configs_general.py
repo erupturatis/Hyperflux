@@ -3,3 +3,5 @@ VERBOSE_BATCHES = False
 VERBOSE_SCHEDULER = False
 VERBOSE_STAGES = True
 EXTRA_VERBOSE_STAGES = False
+
+train_validation_split=1

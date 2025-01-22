@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Tuple
 import kornia.augmentation as K
 from abc import ABC, abstractmethod
+
+from src.infrastructure.configs_general import train_validation_split
 from src.infrastructure.constants import DATA_PATH, IMAGENET_PATH
 from src.infrastructure.dataset_context.data_preprocessing import cifar10_preprocess, mnist_preprocess, \
     cifar100_preprocess
@@ -151,10 +153,28 @@ class DatasetSmallContext(DatasetContextAbstract):
 
         if dataset == DatasetSmallType.CIFAR10:
             self.train_data, self.train_labels, self.test_data, self.test_labels = cifar10_preprocess()
+
+            total_train = self.train_data.size(0)
+            train_size = int(total_train * train_validation_split)
+            val_size = total_train - train_size
+            self.train_data, self.val_data = torch.split(self.train_data, [train_size, val_size])
+            self.train_labels, self.val_labels = torch.split(self.train_labels, [train_size, val_size])
         if dataset == DatasetSmallType.MNIST:
             self.train_data, self.train_labels, self.test_data, self.test_labels = mnist_preprocess()
+
+            total_train = self.train_data.size(0)
+            train_size = int(total_train * train_validation_split)
+            val_size = total_train - train_size
+            self.train_data, self.val_data = torch.split(self.train_data, [train_size, val_size])
+            self.train_labels, self.val_labels = torch.split(self.train_labels, [train_size, val_size])
         if dataset == DatasetSmallType.CIFAR100:
             self.train_data, self.train_labels, self.test_data, self.test_labels = cifar100_preprocess()
+
+            total_train = self.train_data.size(0)
+            train_size = int(total_train * train_validation_split)
+            val_size = total_train - train_size
+            self.train_data, self.val_data = torch.split(self.train_data, [train_size, val_size])
+            self.train_labels, self.val_labels = torch.split(self.train_labels, [train_size, val_size])
 
         self.total_training_batches = len(self.train_labels) // self.configs.batch_size
         self.total_test_batches = len(self.test_labels) // self.configs.batch_size
