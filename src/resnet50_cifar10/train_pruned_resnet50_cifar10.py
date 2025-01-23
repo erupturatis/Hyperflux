@@ -79,10 +79,8 @@ def initialize_stages_context():
     pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=sparsity_configs["target_sparsity"], epochs_target=pruning_end)
     scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
 
-    # scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
     scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda step: 1 ** step)
     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-5)
-    # scheduler_weights_lr_during_regrowth = CosineAnnealingWarmRestarts(training_context.get_optimizer_weights(), T_0=100, T_mult=1, eta_min=1e-7)
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter if iter < 50 else 0)
 
     stages_context = StagesContextPrunedTrain(
@@ -108,7 +106,7 @@ BATCH_PRINT_RATE = 100
 sparsity_configs = {
     "pruning_end": 125,
     "regrowing_end": 200,
-    "target_sparsity": 0.235,
+    "target_sparsity": 1.9,
     "lr_flow_params_decay_regrowing": 0.95
 }
 
