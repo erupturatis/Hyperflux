@@ -62,7 +62,7 @@ def initialize_training_context():
     training_context = TrainingContextPrunedTrain(
         TrainingContextPrunedTrainArgs(
             lr_weights_reset=lr_weights_finetuning,
-            lr_flow_params_reset=get_lr_flow_params_reset(),
+            lr_flow_params_reset=get_lr_flow_params(),
             l0_gamma_scaler=0,
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
@@ -80,7 +80,7 @@ def initialize_stages_context():
     scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
 
     scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda step: 1 ** step)
-    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-5)
+    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-6)
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter if iter < 50 else 0)
 
     stages_context = StagesContextPrunedTrain(
@@ -106,8 +106,8 @@ BATCH_PRINT_RATE = 100
 sparsity_configs = {
     "pruning_end": 125,
     "regrowing_end": 200,
-    "target_sparsity": 1.9,
-    "lr_flow_params_decay_regrowing": 0.95
+    "target_sparsity": 0.21,
+    "lr_flow_params_decay_regrowing": 0.9
 }
 
 def train_resnet50_cifar10_sparse_model():
