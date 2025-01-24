@@ -51,7 +51,7 @@ def initialize_dataset_context():
 def initialize_training_context():
     global training_context
 
-    lr_weights_finetuning = 0.01
+    lr_weights_finetuning = 0.05
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
@@ -82,9 +82,6 @@ def initialize_stages_context():
     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-4)
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter)
 
-    # scheduler_weights_lr_during_regrowth = CosineAnnealingWarmRestarts(training_context.get_optimizer_weights(), T_0=50, T_mult=2, eta_min=1e-7)
-    # scheduler_flow_params_lr_during_regrowth = CosineAnnealingWarmRestarts( training_context.get_optimizer_flow_mask(), T_0=50, T_mult=2)
-
     stages_context = StagesContextPrunedTrain(
         StagesContextPrunedTrainArgs(
             pruning_epoch_end=pruning_end,
@@ -108,7 +105,7 @@ BATCH_PRINT_RATE = 100
 sparsity_configs = {
     "pruning_end":100,
     "regrowing_end":200,
-    "target_sparsity": 1.5,
+    "target_sparsity": 1.75,
     "lr_flow_params_decay_regrowing": 0.95
 }
 
@@ -128,10 +125,11 @@ def train_resnet50_cifar100_sparse_model():
     acc = 0
     id = get_random_id()
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
-        MODEL.save(
-            name= f"resnet50_cifar100_before_sparsity_id{id}",
-            folder= PRUNED_MODELS_PATH
-        )
+        if epoch == 1:
+            MODEL.save(
+                name= f"resnet50_cifar100_before_sparsity_id{id}",
+                folder= PRUNED_MODELS_PATH
+            )
         epoch_global = epoch
         dataset_context.init_data_split()
         train_mixed_pruned(
