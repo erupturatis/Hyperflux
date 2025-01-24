@@ -87,8 +87,8 @@ def get_parameters_pruning_step_aproximation_constant_(layer_primitive: 'LayerPr
     mask_pruning = getattr(layer_primitive, WEIGHTS_PRUNING_ATTR)
 
     total += weights.numel()
-    # remaining += mask_pruning.sum()
-    remaining += (mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
+    remaining += mask_pruning.sum()
+    # remaining += (mask_pruning * (mask_pruning > -get_flow_params_init()*1.5).float()).sum()
 
     return total, remaining
 
