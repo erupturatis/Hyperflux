@@ -1,12 +1,12 @@
 import torch
+from src.vgg19_cifar100.vgg19_cifar100_class import VGG19Cifar100
 from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
     PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
-    dataset_context_configs_cifar100
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
 from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs, \
     StagesContextBaselineTrain, StagesContextBaselineTrainArgs
 from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
@@ -14,11 +14,11 @@ from src.infrastructure.training_context.training_context import TrainingContext
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_model_sparsity_percent, get_random_id
+from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.training_common import get_model_parameters
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
-from src.resnet50_cifar100.resnet50_cifar100_class import Resnet50Cifar100
 
 def initialize_model():
     global MODEL
@@ -27,7 +27,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
 
-    MODEL = Resnet50Cifar100(configs_network_masks).to(get_device())
+    MODEL = VGG19Cifar100(configs_network_masks).to(get_device())
 
 def get_epoch() -> int:
     global epoch_global
@@ -55,7 +55,7 @@ def initialize_training_context():
 
     lr = 0.1
     weight_bias_params = get_model_parameters(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr, params=weight_bias_params, momentum=0.9, weight_decay=5e-4, nesterov=True)
+    optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4 ,nesterov=True)
 
     training_context = TrainingContextBaselineTrain(
         TrainingContextBaselineTrainArgs(
@@ -76,7 +76,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: Resnet50Cifar100
+MODEL: VGG19Cifar100
 training_context: TrainingContextBaselineTrain
 dataset_context: DatasetSmallContext
 stages_context: StagesContextBaselineTrain
@@ -84,14 +84,14 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-def train_resnet50_cifar100_from_scratch_multistep():
+def train_vgg19_cifar100_from_scratch_multistep():
     global MODEL, epoch_global
     configs_layers_initialization_all_kaiming_relu()
 
     initialize_model()
     initialize_training_context()
     initialize_stages_context()
-    wandb_initalize(experiment=Experiment.RESNET50CIFAR100, type=Tags.BASELINE)
+    wandb_initalize(experiment=Experiment.VGG19CIFAR100, type=Tags.BASELINE)
     initialize_dataset_context()
     initalize_training_display()
 
@@ -115,7 +115,7 @@ def train_resnet50_cifar100_from_scratch_multistep():
         stages_context.step(training_context)
 
     MODEL.save(
-        name=f"resnet50_cifar100_accuracy{acc}%_{get_random_id()}",
+        name=f"vgg19_cifar100_accuracy{acc}%_{get_random_id()}",
         folder=BASELINE_MODELS_PATH
     )
 

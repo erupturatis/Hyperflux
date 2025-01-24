@@ -14,28 +14,33 @@ replace_fc1_cifar100 = Mutation(
     replacement_dict={
         "name": "fc1",
         "type": FULLY_CONNECTED_LAYER,
-        "in_features": 2048,
-        "out_features": 4096,
-        "bias_enabled": True
-    }
-)
-
-replace_fc3_cifar100 = Mutation(
-    field_identified='name',
-    value_in_field='fc3',
-    action='replace',
-    replacement_dict={
-        "name": "fc3",
-        "type": FULLY_CONNECTED_LAYER,
-        "in_features": 4096,
+        "in_features": 512,
         "out_features": 100,
         "bias_enabled": True
     }
 )
 
+remove_fc2_cifar100 = Mutation(
+    field_identified='name',
+    value_in_field='fc2',
+    action='remove',
+)
+
+remove_fc3_cifar100 = Mutation(
+    field_identified='name',
+    value_in_field='fc3',
+    action='remove',
+)
+
 cifar100_registered_mutations = [
     replace_fc1_cifar100,
-    replace_fc3_cifar100
+    remove_fc2_cifar100,
+    remove_fc3_cifar100,
+]
+
+cifar100_removed_mutations = [
+    remove_fc2_cifar100,
+    remove_fc3_cifar100,
 ]
 
 VGG19_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES = mutate_attributes(
