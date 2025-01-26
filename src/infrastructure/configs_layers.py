@@ -2,14 +2,12 @@ from src.infrastructure.layer_initializations import kaiming_sqrt5, kaiming_relu
 from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskFlipFunctionSigmoid
 from src.infrastructure.parameters_mask_processors import get_parameters_pruning_statistics_step_, \
     get_parameters_flipped_statistics_sigmoid_, get_parameters_pruning_statistics_vanilla_, \
-    get_parameters_pruning_step_aproximation_constant_, get_weight_decay_, \
-    get_parameters_pruning_step_approximation_separated_pressures_
+    get_parameters_pruning_step_aproximation_constant_, get_parameters_pruning_step_approximation_separated_pressures_
 from typing import Dict
 
 MaskPruningFunction = MaskPruningFunctionSigmoid
 MaskFlipFunction = MaskFlipFunctionSigmoid
 
-get_weight_decay_pruning = get_weight_decay_
 get_parameters_pruning = get_parameters_pruning_step_aproximation_constant_
 get_parameters_pruning_statistics = get_parameters_pruning_statistics_step_
 

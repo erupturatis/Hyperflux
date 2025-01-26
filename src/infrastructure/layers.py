@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
 from src.infrastructure.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
-    get_parameters_pruning_statistics, configs_get_layers_initialization, get_weight_decay_pruning, \
-    get_parameters_pruning_separated
-from src.infrastructure.parameters_mask_processors import get_parameters_pruning_sigmoid_steep, get_parameters_total
+    get_parameters_pruning_statistics, configs_get_layers_initialization, get_parameters_pruning_separated
+from src.infrastructure.parameters_mask_processors import get_parameters_pruning_sigmoid_steep, get_parameters_total, \
+    get_weight_decay_only_present_, get_weight_decay_all_
 from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
 from src.infrastructure.others import get_device
 import math
@@ -116,12 +116,22 @@ def get_parameters_total_count(self: LayerComposite) -> int:
 
     return total
 
-def get_weight_decay(self: LayerComposite) -> torch.Tensor:
+def get_weight_decay_only_for_all(self: LayerComposite) -> torch.Tensor:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
     total = 0
     weights = torch.tensor(0, device=get_device(), dtype=torch.float)
     for layer in layers:
-        decay_params = get_weight_decay_pruning(layer)
+        decay_params = get_weight_decay_all_(layer)
+        weights += decay_params
+
+    return weights
+
+def get_weight_decay_only_for_present(self: LayerComposite) -> torch.Tensor:
+    layers: List[LayerPrimitive] = get_layers_primitive(self)
+    total = 0
+    weights = torch.tensor(0, device=get_device(), dtype=torch.float)
+    for layer in layers:
+        decay_params = get_weight_decay_only_present_(layer)
         weights += decay_params
 
     return weights

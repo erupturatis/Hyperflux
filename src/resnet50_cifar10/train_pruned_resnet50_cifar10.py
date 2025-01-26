@@ -152,7 +152,7 @@ BATCH_PRINT_RATE = 100
 sparsity_configs = {
     "pruning_end": 125,
     "regrowing_end": 200,
-    "target_sparsity": 1.75,
+    "target_sparsity": 0.215,
     "lr_flow_params_decay_regrowing": 0.95
 }
 

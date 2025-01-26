@@ -56,13 +56,22 @@ def get_parameters_total(layer_primitive: 'LayerPrimitive') -> int:
     total += weights.numel()
     return total
 
-def get_weight_decay_(layer_primitive: 'LayerPrimitive') -> torch.Tensor:
+def get_weight_decay_all_(layer_primitive: 'LayerPrimitive') -> torch.Tensor:
+    total = 0
+    remaining = torch.tensor(0, device=get_device(), dtype=torch.float)
+
+    weights = getattr(layer_primitive, WEIGHTS_ATTR)
+    remaining += (weights * weights).float().sum()
+
+    return remaining
+
+def get_weight_decay_only_present_(layer_primitive: 'LayerPrimitive') -> torch.Tensor:
     total = 0
     remaining = torch.tensor(0, device=get_device(), dtype=torch.float)
 
     weights = getattr(layer_primitive, WEIGHTS_ATTR)
     mask_pruning = getattr(layer_primitive, WEIGHTS_PRUNING_ATTR)
-    remaining += (weights * (mask_pruning > 0).float()).sum()
+    remaining += (weights * weights * (mask_pruning > 0).float()).sum()
 
     return remaining
 

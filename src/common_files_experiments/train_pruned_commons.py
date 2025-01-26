@@ -26,7 +26,7 @@ def train_mixed_pruned_with_decay(model: LayerComposite, dataset_context: Datase
         with autocast('cuda'):
             output = model(data)
             loss_remaining_weights = model.get_remaining_parameters_loss() * training_context.params.l0_gamma_scaler
-            loss_weight_decay = model.get_weight_decay()
+            loss_weight_decay = model.get_weight_decay_only_present()
 
             loss_data = criterion(output, target)
             loss = loss_remaining_weights + loss_data + loss_weight_decay

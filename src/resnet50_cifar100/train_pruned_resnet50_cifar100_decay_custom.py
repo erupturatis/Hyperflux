@@ -1,5 +1,6 @@
 import torch
-from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
+from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned, \
+    train_mixed_pruned_with_decay
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
@@ -55,7 +56,7 @@ def initialize_training_context():
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
+    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
     training_context = TrainingContextPrunedTrain(
@@ -109,7 +110,7 @@ sparsity_configs = {
     "lr_flow_params_decay_regrowing": 0.95
 }
 
-def train_resnet50_cifar100_sparse_model():
+def train_resnet50_cifar100_sparse_model_custom_decay():
     global MODEL, epoch_global
 
     configs_layers_initialization_all_kaiming_relu()
@@ -132,7 +133,7 @@ def train_resnet50_cifar100_sparse_model():
             )
         epoch_global = epoch
         dataset_context.init_data_split()
-        train_mixed_pruned(
+        train_mixed_pruned_with_decay(
             dataset_context=dataset_context,
             training_context=training_context,
             model=MODEL,
