@@ -43,6 +43,24 @@ cifar100_removed_mutations = [
     remove_fc3_cifar100,
 ]
 
+
+remove_fc2_cifar100_mapping = Mutation(
+    field_identified='custom_name',
+    value_in_field='fc2',
+    action='remove',
+)
+
+remove_fc3_cifar100_mapping = Mutation(
+    field_identified='custom_name',
+    value_in_field='fc3',
+    action='remove',
+)
+
+cifar100_remove_from_mappings = [
+    remove_fc2_cifar100_mapping,
+    remove_fc3_cifar100_mapping
+]
+
 VGG19_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES = mutate_attributes(
     attributes=VGG19_VANILLA_REGISTERED_LAYERS_ATTRIBUTES,
     mutations=cifar100_registered_mutations
@@ -55,10 +73,10 @@ VGG19_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES = mutate_attributes(
 
 VGG19_CIFAR100_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING = mutate_attributes(
     attributes=VGG19_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
-    mutations=[]  # No mutations to apply
+    mutations=cifar100_remove_from_mappings
 )
 
 VGG19_CIFAR100_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING = mutate_attributes(
     attributes=VGG19_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
-    mutations=[]  # No mutations to apply
+    mutations=cifar100_remove_from_mappings
 )

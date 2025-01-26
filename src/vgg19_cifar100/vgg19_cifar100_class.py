@@ -39,6 +39,7 @@ class VGG19Cifar100(LayerComposite):
         # Initialize registered layers
         for layer_attr in VGG19_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES:
             name = layer_attr['name']
+            # print(name)
             type_ = layer_attr['type']
 
             if type_ == CONV2D_LAYER:
@@ -83,7 +84,7 @@ class VGG19Cifar100(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, remaining = get_remaining_parameters_loss_masks_importance(self)
-        return remaining * N_SCALER
+        return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
