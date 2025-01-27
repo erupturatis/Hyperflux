@@ -118,7 +118,10 @@ def train_resnet50_cifar100_sparse_model():
     initialize_model()
     initialize_training_context()
     initialize_stages_context()
-    wandb_initalize(Experiment.RESNET50CIFAR100, type=Tags.TRAIN_PRUNING, configs=sparsity_configs,other_tags=["ADAM"])
+    wandb_initalize(Experiment.RESNET50CIFAR100, type=Tags.TRAIN_PRUNING, configs=sparsity_configs,other_tags=["ADAM"], note=
+                    ''' Setup SOTA, lr flows normal , 1e-2 -> 1e-2 / 4 | 1e-2/10 -> 1e-2/100, 60 / 100 epochs, target sparsity 0.5, decay flow params 0.8
+                        sgd weight decay
+                    ''')
     initialize_dataset_context()
     initalize_training_display()
 
