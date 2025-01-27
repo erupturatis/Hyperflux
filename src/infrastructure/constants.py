@@ -15,10 +15,10 @@ PRUNED_MODELS_PATH = '/networks_pruned'
 BASELINE_MODELS_PATH = '/networks_baseline'
 
 DATA_PATH = '/data'
-IMAGENET_PATH = DATA_PATH + '/imagenet'
+IMAGENET_PATH = "/home/developer/workspace/not_ok/data/imagenet"
 EXPERIMENTS_RESULTS_PATH = '/experiments_outputs'
 
-BASELINE_RESNET50_IMAGENET = "resnet50_imagenet_76.8%"
+BASELINE_RESNET50_IMAGENET = "baseline_imagenet.pth"
 BASELINE_RESNET50_CIFAR10 = "todo"
 BASELINE_VGG19_CIFAR10 = "Todo"
 BASELINE_VGG19_CIFAR100 = "Todo"
