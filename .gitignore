@@ -4,18 +4,20 @@
 **/test.py
 **/tests.py
 /.idea
+*.json
 /wandb
 **/wandb
 /entry_test
+/experiments_outputs
 /**.pdf
 /**.svg
 /**.png
 /**.jpeg
-
+/**.json
 **/.idea
 /__pycache__
 **/__pycache__
-
+*.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

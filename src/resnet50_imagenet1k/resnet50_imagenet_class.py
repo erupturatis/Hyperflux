@@ -3,14 +3,15 @@ import torch
 import torch.nn as nn
 
 from src.common_files_experiments.forward_functions import forward_pass_resnet50_imagenet
-from src.common_files_experiments.load_save import save_model_weights, load_model_weights
+from src.common_files_experiments.load_save import save_model_weights, load_model_weights, save_model_entire_dict, \
+    load_model_entire_dict
 from src.common_files_experiments.vanilla_attributes_resnet50 import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER, BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss_masks_importance, \
-    get_layers_primitive
+    get_layers_primitive, get_layer_composite_pruning_statistics
 from src.resnet50_imagenet1k.resnet50_imagenet_attributes import RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
 
@@ -85,6 +86,9 @@ class Resnet50Imagenet(LayerComposite):
         total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
         return sigmoid / total
 
+    def get_parameters_pruning_statistics(self) -> any:
+        return get_layer_composite_pruning_statistics(self)
+
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
@@ -94,6 +98,20 @@ class Resnet50Imagenet(LayerComposite):
             x=x,
             registered_layer_attributes=RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES,
             unregistered_layer_attributes=RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
+        )
+
+    def save_entire_dict(self, name:str):
+        save_model_entire_dict(
+            model=self,
+            model_name=name,
+            folder_name="checkpoints"
+        )
+
+    def load_entire_dict(self, name:str):
+        load_model_entire_dict(
+            model=self,
+            model_name=name,
+            folder_name="checkpoints"
         )
 
     def save(self, name: str):

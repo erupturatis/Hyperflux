@@ -270,25 +270,36 @@ _resnet50_imagenet_val_transforms = transforms.Compose([
 ])
 
 
+import random
 class _ImageNetHFDataset(Dataset):
-    def __init__(self, hf_data, split='train'):
+    def __init__(self, hf_data, split='train', max_retries=5):
         self.hf_data = hf_data
         self.split = split
         self.transform = _resnet50_imagenet_train_transforms if split == 'train' else _resnet50_imagenet_val_transforms
+        self.max_retries = max_retries
+        self.corrupted_count = 0  
 
     def __len__(self):
         return len(self.hf_data)
 
     def __getitem__(self, idx):
-        example = self.hf_data[idx]
-
-        image = example['image'].convert("RGB")
-        label = example['label']
-        if self.transform:
-            image = self.transform(image)
-        return image, label
-
-
+        retries = 0
+        while retries < self.max_retries:
+            try:
+                example = self.hf_data[idx]
+                image = example['image'].convert("RGB")
+                label = example['label']
+                if self.transform:
+                    image = self.transform(image)
+                return image, label
+            except:
+                print(f'Corrupted file detected at index {idx}: {e}')
+                self.corrupted_count += 1
+                retries += 1
+                # Select a new random index to attempt loading
+                idx = random.randint(0, len(self.hf_data) - 1)
+        # After max retries, raise an exception or handle accordingly
+        raise RuntimeError(f"Max retries exceeded for index {idx}.")
 
 @dataclass
 class DatasetImageNetContextConfigs:
@@ -313,14 +324,16 @@ class DatasetImageNetContext(DatasetContextAbstract):
             self.train_dataset,
             batch_size=self.configs.batch_size,
             shuffle=True,
-            num_workers=32,
-            pin_memory=True
+            num_workers=16,
+            pin_memory=True,
+            persistent_workers=True,
+            prefetch_factor=2
         )
         self.test_loader = DataLoader(
             self.val_dataset,
             batch_size=self.configs.batch_size,
             shuffle=False,
-            num_workers=32,
+            num_workers=16,
             pin_memory=True
         )
 
