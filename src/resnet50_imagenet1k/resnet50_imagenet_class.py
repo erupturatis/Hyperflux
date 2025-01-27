@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 
 from src.common_files_experiments.forward_functions import forward_pass_resnet50_imagenet
-from src.common_files_experiments.load_save import save_model_weights, load_model_weights
+from src.common_files_experiments.load_save import save_model_weights, load_model_weights, save_model_entire_dict, \
+    load_model_entire_dict
 from src.common_files_experiments.vanilla_attributes_resnet50 import RESNET50_VANILLA_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_VANILLA_UNREGISTERED_LAYERS_ATTRIBUTES, RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
@@ -28,7 +29,7 @@ class Resnet50Imagenet(LayerComposite):
             name = layer_attr['name']
             type_ = layer_attr['type']
 
-            if type_ == 'LayerConv2':
+            if type_ == CONV2D_LAYER:
                 layer = LayerConv2MaskImportance(
                     ConfigsLayerConv2(
                         in_channels=layer_attr['in_channels'],
@@ -97,6 +98,20 @@ class Resnet50Imagenet(LayerComposite):
             x=x,
             registered_layer_attributes=RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES,
             unregistered_layer_attributes=RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
+        )
+
+    def save_entire_dict(self, name:str):
+        save_model_entire_dict(
+            model=self,
+            model_name=name,
+            folder_name="checkpoints"
+        )
+
+    def load_entire_dict(self, name:str):
+        load_model_entire_dict(
+            model=self,
+            model_name=name,
+            folder_name="checkpoints"
         )
 
     def save(self, name: str):

@@ -270,23 +270,6 @@ _resnet50_imagenet_val_transforms = transforms.Compose([
 ])
 
 
-# class _ImageNetHFDataset(Dataset):
-#     def __init__(self, hf_data, split='train'):
-#         self.hf_data = hf_data
-#         self.split = split
-#         self.transform = _resnet50_imagenet_train_transforms if split == 'train' else _resnet50_imagenet_val_transforms
-
-#     def __len__(self):
-#         return len(self.hf_data)
-
-#     def __getitem__(self, idx):
-#         example = self.hf_data[idx]
-
-#         image = example['image'].convert("RGB")
-#         label = example['label']
-#         if self.transform:
-#             image = self.transform(image)
-#         return image, label
 import random
 class _ImageNetHFDataset(Dataset):
     def __init__(self, hf_data, split='train', max_retries=5):
