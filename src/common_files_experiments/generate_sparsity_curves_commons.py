@@ -69,7 +69,7 @@ def train_mixed_curves(model: 'LayerComposite', training_context: TrainingContex
         scaler.step(optimizer_pruning)
         scaler.update()
 
-        training_display.record_losses([loss_data.item(), loss_remaining_weights.item()], training_context)
+        training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])
         if iter_count % BATCH_RECORD_FREQ == 0:
             sparsity_levels_recording.append(get_model_sparsity_percent(model))
             iter_count = 0
