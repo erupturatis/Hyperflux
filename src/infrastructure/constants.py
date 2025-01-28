@@ -15,7 +15,7 @@ PRUNED_MODELS_PATH = '/networks_pruned'
 BASELINE_MODELS_PATH = '/networks_baseline'
 
 DATA_PATH = '/data'
-IMAGENET_PATH = "/mnt/QNAP/eubar/Hyperflows/Hyperflows/data"
+IMAGENET_PATH = "/home/developer/workspace/not_ok/data/imagenet"
 EXPERIMENTS_RESULTS_PATH = '/experiments_outputs'
 
 BASELINE_RESNET50_IMAGENET = "baseline_imagenet.pth"

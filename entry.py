@@ -22,6 +22,8 @@ from src.vgg19_cifar100.train_pruned_vgg19_cifar100 import train_vgg19_cifar100_
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100 import train_vgg19_cifar100_from_scratch
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100_multistep import train_vgg19_cifar100_from_scratch_multistep
 
+
+
 if __name__ == '__main__':
     # train_resnet50_cifar10_sparse_model()
     # train_resnet50_cifar100_sparse_model_custom_decay()

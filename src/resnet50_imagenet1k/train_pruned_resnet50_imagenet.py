@@ -28,7 +28,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Imagenet(configs_network_masks)
-    # MODEL.load(BASELINE_RESNET50_IMAGENET)
+    MODEL.load(BASELINE_RESNET50_IMAGENET)
     print(f"Number of available CUDA devices: {torch.cuda.device_count()}")
 
     if torch.cuda.device_count() > 1:
@@ -36,10 +36,9 @@ def initialize_model():
 
     MODEL = MODEL.to(get_device())
 
-    try:
-        MODEL_MODULE = MODEL.module
-    except AttributeError:
-        MODEL_MODULE = MODEL
+   
+    MODEL_MODULE = MODEL.module
+
 
 def get_epoch() -> int:
     global epoch_global
@@ -77,7 +76,7 @@ def initialize_training_context():
     training_context = TrainingContextPrunedTrain(
         TrainingContextPrunedTrainArgs(
             lr_weights_reset= 1e-3,
-            lr_flow_params_reset=get_lr_flow_params() * 10,
+            lr_flow_params_reset=get_lr_flow_params(),
             l0_gamma_scaler=0,
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
@@ -94,7 +93,7 @@ def initialize_stages_context():
     pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=sparsity_configs["target_sparsity"], epochs_target=pruning_end, step_size=0.2)
     scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
 
-    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-1 / 2)
+    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-2 / 2)
     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-4)
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter if iter < 40 else 0)
 
@@ -123,7 +122,7 @@ BATCH_PRINT_RATE = 100
 sparsity_configs = {
     "pruning_end": 90,
     "regrowing_end": 150,
-    "target_sparsity": 0.275,
+    "target_sparsity": 2.75,
     "lr_flow_params_decay_regrowing": 0.8
 }
 
@@ -137,7 +136,7 @@ def train_resnet50_imagenet_sparse_model():
     initialize_stages_context()
     wandb_initalize(Experiment.RESNET50IMAGENET, type=Tags.TRAIN_PRUNING, configs=sparsity_configs,other_tags=["ADAM"])
 
-    # MODEL_MODULE.save_entire_dict("test_check1")
+    MODEL_MODULE.save_entire_dict("intialisation_resnet50_imagenet")
     # MODEL_MODULE.load_entire_dict("test_check1")
 
     initialize_dataset_context()
@@ -164,8 +163,9 @@ def train_resnet50_imagenet_sparse_model():
 
         stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL_MODULE))
         stages_context.step(training_context)
-        if epoch % 10 == 1:
+        if epoch % 5 == 1:
             MODEL_MODULE.save(f"/resnet50_imagenet_sparsity{get_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}")
+            MODEL_MODULE.save_entire_dict(f"/resnet50_entire_imagenet_sparsity{get_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}")
     
 
     MODEL_MODULE.save(f"/resnet50_imagenet_sparsity{get_model_sparsity_percent(MODEL_MODULE)}_acc{acc}")
