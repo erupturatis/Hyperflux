@@ -2,8 +2,7 @@ from typing import List
 import torch
 import torch.nn as nn
 from types import SimpleNamespace
-
-from src.common_files_experiments.forward_functions import forward_pass_vgg19_cifars
+from src.common_files_experiments.forward_functions import forward_pass_vgg19_cifars_version2
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.vgg19_cifar10.vgg19_cifar10_attributes import (
     VGG19_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES,
@@ -83,7 +82,7 @@ class VGG19Cifar10(LayerComposite):
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, remaining = get_remaining_parameters_loss_masks_importance(self)
-        return remaining * N_SCALER
+        return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
@@ -96,7 +95,7 @@ class VGG19Cifar10(LayerComposite):
         return total
 
     def forward(self, x):
-        return forward_pass_vgg19_cifars(self, x, VGG19_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, VGG19_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES)
+        return forward_pass_vgg19_cifars_version2(self, x, VGG19_CIFAR10_REGISTERED_LAYERS_ATTRIBUTES, VGG19_CIFAR10_UNREGISTERED_LAYERS_ATTRIBUTES)
 
     def save(self, name: str, folder: str):
         save_model_weights(

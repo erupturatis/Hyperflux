@@ -16,8 +16,9 @@ from src.resnet50_cifar100.train_pruned_resnet50_cifar100_decay_custom import \
 from src.resnet50_cifar100.train_scratch_resnet50_cifar100 import train_resnet50_cifar100_from_scratch
 from src.resnet50_cifar100.train_scratch_resnet50_cifar100_multistep import \
     train_resnet50_cifar100_from_scratch_multistep
+from src.resnet50_imagenet1k.train_pruned_resnet50_imagenet import train_resnet50_imagenet_sparse_model
 from src.vgg19_cifar10.train_pruned_vgg19_cifar10 import train_vgg19_cifar10_sparse_model
-from src.vgg19_cifar10.train_scratch_vgg19_cifar10 import train_vgg19_cifar10_from_scratch
+from src.vgg19_cifar10.train_scratch_vgg19_cifar10_multistep import train_vgg19_cifar10_from_scratch_multistep
 from src.vgg19_cifar100.train_pruned_vgg19_cifar100 import train_vgg19_cifar100_sparse_model
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100 import train_vgg19_cifar100_from_scratch
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100_multistep import train_vgg19_cifar100_from_scratch_multistep
@@ -51,7 +52,7 @@ def resnet50_cifar10_setup(target_sparsity):
             "pruning_end":100,
             "regrowing_end":160,
             "target_sparsity": target_before_regrowth,
-            "lr_flow_params_decay_regrowing": 0.8,
+            "lr_flow_params_decay_regrowing": 0.9,
             "start_lr_pruning": 2*1e-2,
             "end_lr_pruning": 1e-2/6,
             "reset_lr_pruning": 1e-2/10,
@@ -66,6 +67,10 @@ def resnet50_cifar10_setup(target_sparsity):
 
 
 if __name__ == '__main__':
-    resnet50_cifar10_setup(98)
-    resnet50_cifar10_setup(99)
+    # resnet50_cifar10_setup(99.5)
+    # train_resnet50_imagenet_sparse_model()
+
+    train_vgg19_cifar10_from_scratch_multistep()
+    # train_vgg19_cifar100_from_scratch_multistep()
+
     pass
