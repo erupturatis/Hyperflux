@@ -66,4 +66,6 @@ def resnet50_cifar10_setup(target_sparsity):
 
 
 if __name__ == '__main__':
+    resnet50_cifar10_setup(98)
+    resnet50_cifar10_setup(99)
     pass
