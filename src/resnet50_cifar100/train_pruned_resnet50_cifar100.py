@@ -103,15 +103,15 @@ epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 sparsity_configs = {
-    "pruning_end":60,
-    "regrowing_end":100,
-    "target_sparsity": 0.5,
+    "pruning_end":0,
+    "regrowing_end":0,
+    "target_sparsity": 100,
     "lr_flow_params_decay_regrowing": 0.8,
     "start_lr_pruning": 1e-2,
     "end_lr_pruning": 1e-2/5,
     "reset_lr_pruning": 1e-2/10,
     "end_lr_regrowth": 1e-4,
-    "reset_lr_flow_params_scaler": 15,
+    "reset_lr_flow_params_scaler": 0,
     "notes": '''
     testing overnight
     '''
