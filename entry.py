@@ -108,6 +108,6 @@ def vgg19_cifar100_setup(target_sparsity):
 
 
 if __name__ == '__main__':
-    vgg19_cifar100_setup(2.0)
-    vgg19_cifar100_setup(1.0)
-    vgg19_cifar100_setup(0.5)
+    vgg19_cifar100_setup(target_sparsity=98)
+    vgg19_cifar100_setup(target_sparsity=99)
+    vgg19_cifar100_setup(target_sparsity=99.5)
