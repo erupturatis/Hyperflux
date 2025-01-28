@@ -16,6 +16,7 @@ from src.resnet50_cifar100.train_pruned_resnet50_cifar100_decay_custom import \
 from src.resnet50_cifar100.train_scratch_resnet50_cifar100 import train_resnet50_cifar100_from_scratch
 from src.resnet50_cifar100.train_scratch_resnet50_cifar100_multistep import \
     train_resnet50_cifar100_from_scratch_multistep
+from src.resnet50_imagenet1k.train_pruned_resnet50_imagenet import train_resnet50_imagenet_sparse_model
 from src.vgg19_cifar10.train_pruned_vgg19_cifar10 import train_vgg19_cifar10_sparse_model
 from src.vgg19_cifar10.train_scratch_vgg19_cifar10 import train_vgg19_cifar10_from_scratch
 from src.vgg19_cifar100.train_pruned_vgg19_cifar100 import train_vgg19_cifar100_sparse_model
@@ -63,9 +64,25 @@ def resnet50_cifar10_setup(target_sparsity):
         }
     )
 
+def resnet50_imagenet_setup():
+    train_resnet50_imagenet_sparse_model(
+        sparsity_configs_aux= {
+            "pruning_end": 90,
+            "regrowing_end": 150,
+            "target_sparsity": 2.75,
+            "lr_flow_params_decay_regrowing": 0.8,
+
+            "start_lr_pruning": 1e-2,
+            "end_lr_pruning": 1e-2/5,
+            "reset_lr_pruning": 1e-2/10,
+            "end_lr_regrowth": 1e-4,
+            "reset_lr_flow_params_scaler": 1,
+            "notes": '''
+            testing overnight
+            '''
+        }
+    )
 
 
 if __name__ == '__main__':
-    resnet50_cifar10_setup(98)
-    resnet50_cifar10_setup(99)
     pass
