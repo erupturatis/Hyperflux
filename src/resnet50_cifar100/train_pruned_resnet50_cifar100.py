@@ -108,16 +108,18 @@ sparsity_configs = {
     "target_sparsity": 0.5,
     "lr_flow_params_decay_regrowing": 0.8,
     "start_lr_pruning": 1e-2,
-    "end_lr_pruning": 1e-2/2,
+    "end_lr_pruning": 1e-2/5,
     "reset_lr_pruning": 1e-2/10,
     "end_lr_regrowth": 1e-4,
-    "reset_lr_flow_params_scaler": 5,
+    "reset_lr_flow_params_scaler": 15,
     "notes": '''
-     Testing aggresitivty for regrowth
+    testing overnight
     '''
 }
 
-def train_resnet50_cifar100_sparse_model():
+def train_resnet50_cifar100_sparse_model(sparsity_configs_aux):
+    global sparsity_configs
+    sparsity_configs = sparsity_configs_aux
     global MODEL, epoch_global
 
     configs_layers_initialization_all_kaiming_relu()
