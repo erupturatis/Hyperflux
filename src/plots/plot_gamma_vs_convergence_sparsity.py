@@ -95,7 +95,7 @@ def main():
     saved_results_path = prefix_path_with_root(EXPERIMENTS_RESULTS_PATH)
 
     # Define the range of exponents from -9 to 9 inclusive
-    exponents = list(range(-9, 10))
+    exponents = list(range(-20, 11))
 
     # Define multiple base filename patterns with a placeholder for gamma
     # Modify this list based on your actual filename patterns

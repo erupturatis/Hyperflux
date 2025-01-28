@@ -58,6 +58,7 @@ def plot_all(files, gammas):
     plt.show()
 
 # Example usage
-gammas = [0.5, 1, 4, 8, 16, 32, 64]
-files = [f"results_mnist_pruning_vs_epochs_g{gamma}_batch.json" for gamma in gammas]
+gammas = [1]
+abs_path = r"C:\Users\Statia6\projects\XAI_paper\experiments_outputs"
+files = [f"{abs_path}\mnist_lenet300_adam_{gamma}_high_lr.json" for gamma in gammas]
 plot_all(files, gammas)

@@ -22,12 +22,13 @@ class Tags(Enum):
     TRAIN_PRUNING = "train_pruning"
 
 
-def wandb_initalize(experiment: Experiment, type: Tags, configs: Dict = None, other_tags: List[str] = []) -> None:
+def wandb_initalize(experiment: Experiment, type: Tags, configs: Dict = None, other_tags: List[str] = [], note = '') -> None:
     if WANDB_REGISTER:
         wandb.init(
             project=experiment.value,
             config=configs,
             tags=[type.value, *other_tags],
+            notes=note
         )
         wandb.define_metric("epoch")
         wandb.define_metric("*", step_metric="epoch")

@@ -49,56 +49,10 @@ def initialize_dataset_context():
     dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_cifar10())
 
 
-# def initialize_training_context():
-#     global training_context
-#
-#     lr_weights_finetuning = 0.001
-#     lr_flow_params = get_lr_flow_params()
-#
-#     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
-#     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
-#     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
-#
-#     training_context = TrainingContextPrunedTrain(
-#         TrainingContextPrunedTrainArgs(
-#             lr_weights_reset=lr_weights_finetuning,
-#             lr_flow_params_reset=get_lr_flow_params(),
-#             l0_gamma_scaler=0,
-#             optimizer_weights=optimizer_weights,
-#             optimizer_flow_mask=optimizer_flow_mask
-#         )
-#     )
-#
-# def initialize_stages_context():
-#     global stages_context, training_context
-#
-#     pruning_end = sparsity_configs["pruning_end"]
-#     regrowing_end = sparsity_configs["regrowing_end"]
-#     regrowth_stage_length = regrowing_end - pruning_end
-#
-#     pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=sparsity_configs["target_sparsity"], epochs_target=pruning_end)
-#     scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
-#
-#     scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda=lambda step: 1 ** step)
-#     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-6)
-#     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter if iter < 50 else 0)
-#
-#     stages_context = StagesContextPrunedTrain(
-#         StagesContextPrunedTrainArgs(
-#             pruning_epoch_end=pruning_end,
-#             regrowth_epoch_end=regrowing_end,
-#             scheduler_gamma=pruning_scheduler,
-#
-#             scheduler_weights_lr_during_pruning=scheduler_weights_lr_during_pruning,
-#             scheduler_flow_params_regrowth=scheduler_flow_params_lr_during_regrowth,
-#             scheduler_weights_lr_during_regrowth=scheduler_weights_lr_during_regrowth,
-#         )
-#     )
-
 def initialize_training_context():
     global training_context
 
-    lr_weights_finetuning = 0.02
+    lr_weights_finetuning = sparsity_configs["start_lr_pruning"]
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
@@ -107,8 +61,8 @@ def initialize_training_context():
 
     training_context = TrainingContextPrunedTrain(
         TrainingContextPrunedTrainArgs(
-            lr_weights_reset=lr_weights_finetuning / 10,
-            lr_flow_params_reset=get_lr_flow_params(),
+            lr_weights_reset=sparsity_configs["reset_lr_pruning"],
+            lr_flow_params_reset=get_lr_flow_params() * sparsity_configs["reset_lr_flow_params_scaler"],
             l0_gamma_scaler=0,
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
@@ -125,8 +79,8 @@ def initialize_stages_context():
     pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=sparsity_configs["target_sparsity"], epochs_target=pruning_end, step_size=0.2)
     scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
 
-    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-2)
-    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-4)
+    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=sparsity_configs["end_lr_pruning"])
+    scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=sparsity_configs["end_lr_regrowth"])
     scheduler_flow_params_lr_during_regrowth = LambdaLR(training_context.get_optimizer_flow_mask(), lr_lambda=lambda iter: scheduler_decay_after_pruning ** iter if iter < 50 else 0)
 
     stages_context = StagesContextPrunedTrain(
@@ -156,15 +110,11 @@ sparsity_configs = {
     "lr_flow_params_decay_regrowing": 0.95
 }
 
-# sparsity_configs = {
-#     "pruning_end": 125,
-#     "regrowing_end": 200,
-#     "target_sparsity": 0.21,
-#     "lr_flow_params_decay_regrowing": 0.9
-# }
-
-def train_resnet50_cifar10_sparse_model():
-    global MODEL, epoch_global
+def train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux
+):
+    global MODEL, epoch_global, sparsity_configs
+    sparsity_configs = sparsity_configs_aux
 
     configs_layers_initialization_all_kaiming_relu()
     config_adam_setup()
