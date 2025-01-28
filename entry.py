@@ -22,49 +22,48 @@ from src.vgg19_cifar100.train_pruned_vgg19_cifar100 import train_vgg19_cifar100_
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100 import train_vgg19_cifar100_from_scratch
 from src.vgg19_cifar100.train_scratch_vgg19_cifar100_multistep import train_vgg19_cifar100_from_scratch_multistep
 
+
+def resnet50_cifar100_setup(target_sparsity):
+    remaining = 100 - target_sparsity
+    target_before_regrowth = remaining * 10 / 13 # offsets regrowth
+    train_resnet50_cifar100_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": target_before_regrowth,
+            "lr_flow_params_decay_regrowing": 0.8,
+            "start_lr_pruning": 2*1e-2,
+            "end_lr_pruning": 1e-2/6,
+            "reset_lr_pruning": 1e-2/10,
+            "end_lr_regrowth": 1e-4,
+            "reset_lr_flow_params_scaler": 5,
+            "notes": '''
+            testing overnight
+            '''
+        }
+    )
+
+def resnet50_cifar10_setup(target_sparsity):
+    remaining = 100 - target_sparsity
+    target_before_regrowth = remaining * 10 / 13 # offsets regrowth
+    train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": target_before_regrowth,
+            "lr_flow_params_decay_regrowing": 0.8,
+            "start_lr_pruning": 2*1e-2,
+            "end_lr_pruning": 1e-2/6,
+            "reset_lr_pruning": 1e-2/10,
+            "end_lr_regrowth": 1e-4,
+            "reset_lr_flow_params_scaler": 5,
+            "notes": '''
+            testing overnight
+            '''
+        }
+    )
+
+
+
 if __name__ == '__main__':
-    train_resnet50_cifar100_sparse_model(sparsity_configs_aux={
-        "pruning_end":125,
-        "regrowing_end":200,
-        "target_sparsity": 1.3,
-        "lr_flow_params_decay_regrowing": 0.8,
-        "start_lr_pruning": 2*1e-2,
-        "end_lr_pruning": 1e-2/6,
-        "reset_lr_pruning": 1e-2/10,
-        "end_lr_regrowth": 1e-4,
-        "reset_lr_flow_params_scaler": 5,
-        "notes": '''
-    testing overnight
-    '''
-    })
-
-    train_resnet50_cifar100_sparse_model(sparsity_configs_aux={
-        "pruning_end":125,
-        "regrowing_end":200,
-        "target_sparsity": 0.3,
-        "lr_flow_params_decay_regrowing": 0.8,
-        "start_lr_pruning": 2*1e-2,
-        "end_lr_pruning": 1e-2/6,
-        "reset_lr_pruning": 1e-2/10,
-        "end_lr_regrowth": 1e-4,
-        "reset_lr_flow_params_scaler": 5,
-        "notes": '''
-    testing overnight
-    '''
-    })
-    train_resnet50_cifar100_sparse_model(sparsity_configs_aux={
-        "pruning_end":125,
-        "regrowing_end":200,
-        "target_sparsity": 0.6,
-        "lr_flow_params_decay_regrowing": 0.8,
-        "start_lr_pruning": 2*1e-2,
-        "end_lr_pruning": 1e-2/6,
-        "reset_lr_pruning": 1e-2/10,
-        "end_lr_regrowth": 1e-4,
-        "reset_lr_flow_params_scaler": 5,
-        "notes": '''
-    testing overnight
-    '''
-    })
-
     pass
