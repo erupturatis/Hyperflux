@@ -56,7 +56,7 @@ def initialize_training_context():
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
+    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=sparsity_configs["weight_decay"])
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
     training_context = TrainingContextPrunedTrain(
@@ -141,6 +141,13 @@ def train_resnet50_cifar10_sparse_model(
             model=MODEL,
             epoch=get_epoch()
         )
+        if "save_frequency" in sparsity_configs:
+            if epoch % sparsity_configs["save_frequency"] == 0:
+                MODEL.save(
+                    name= f"resnet50_cifar10_checkpoint_sparsity{get_model_sparsity_percent(MODEL)}_acc{acc}",
+                    folder= PRUNED_MODELS_PATH
+                )
+
 
         stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
         stages_context.step(training_context)

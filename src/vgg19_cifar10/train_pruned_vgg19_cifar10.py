@@ -26,7 +26,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = VGG19Cifar10(configs_network_masks).to(get_device())
-    MODEL.load(BASELINE_VGG19_CIFAR10, BASELINE_MODELS_PATH)
+    MODEL.load("vgg19_cifar10_accuracy93.5%", BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -118,7 +118,8 @@ sparsity_configs = {
 }
 
 def train_vgg19_cifar10_sparse_model(sparsity_configs_aux):
-    global MODEL, epoch_global
+    global MODEL, epoch_global, sparsity_configs
+    sparsity_configs = sparsity_configs_aux
 
     configs_layers_initialization_all_kaiming_relu()
     config_adam_setup()

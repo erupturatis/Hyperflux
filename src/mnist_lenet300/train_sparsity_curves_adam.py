@@ -74,9 +74,8 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = 1000
-    scheduler_weights_lr_during_pruning = LambdaLR(training_context.get_optimizer_weights(), lr_lambda= lambda step: 1)
-    # scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
+    pruning_end = 300
+    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
 
     stages_context = StagesContextSparsityCurve(
         StagesContextSparsityCurveArgs(
@@ -108,7 +107,7 @@ def run_lenet300_mnist_adam_sparsity_curve(arg:float, power_start:int, power_end
         PRESSURE = arg ** pw
         _init_data_arrays()
         _run_lenet300_mnist_adam()
-        save_array_experiment(f"mnist_lenet300_adam_{PRESSURE}_high_lr.json", sparsity_levels_recording)
+        save_array_experiment(f"mnist_lenet300_adam_{PRESSURE}.json", sparsity_levels_recording)
 
 
 def _run_lenet300_mnist_adam():

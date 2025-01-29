@@ -47,6 +47,23 @@ def resnet50_cifar100_setup(target_sparsity):
 def resnet50_cifar10_setup(target_sparsity):
     remaining = 100 - target_sparsity
     target_before_regrowth = remaining * 10 / 13 # offsets regrowth
+    # train_resnet50_cifar10_sparse_model(
+    #     sparsity_configs_aux={
+    #         "pruning_end":100,
+    #         "regrowing_end":160,
+    #         "target_sparsity": target_before_regrowth,
+    #         "lr_flow_params_decay_regrowing": 0.9,
+    #         "start_lr_pruning": 2*1e-2,
+    #         "end_lr_pruning": 1e-2/6,
+    #         "reset_lr_pruning": 1e-2/10,
+    #         "end_lr_regrowth": 1e-4,
+    #         "reset_lr_flow_params_scaler": 5,
+    #         "weight_decay": 5e-4,
+    #         "notes": '''
+    #         testing overnight
+    #         '''
+    #     }
+    # )
     train_resnet50_cifar10_sparse_model(
         sparsity_configs_aux={
             "pruning_end":100,
@@ -58,6 +75,8 @@ def resnet50_cifar10_setup(target_sparsity):
             "reset_lr_pruning": 1e-2/10,
             "end_lr_regrowth": 1e-4,
             "reset_lr_flow_params_scaler": 5,
+            "weight_decay": 0,
+            "save_frequency": 3,
             "notes": '''
             testing overnight
             '''
@@ -85,7 +104,27 @@ def resnet50_imagenet_setup(target_sparsity):
     )
 
 
-def vgg19_cifar100_setup(target_sparsity):
+def vgg19_cifar100_setup_customizable(target_sparsity):
+    remaining = 100 - target_sparsity
+    target_before_regrowth = remaining * 10 / 13 # offsets regrowth
+    train_vgg19_cifar100_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": target_before_regrowth,
+            "lr_flow_params_decay_regrowing": 0.8,
+            "start_lr_pruning": 1e-1,
+            "end_lr_pruning": 1e-2/3,
+            "reset_lr_pruning": 1e-2/10,
+            "end_lr_regrowth": 1e-4,
+            "reset_lr_flow_params_scaler": 5,
+            "notes": '''
+            testing overnight
+            '''
+        }
+    )
+
+def vgg19_cifar100_setup_stable(target_sparsity):
     remaining = 100 - target_sparsity
     target_before_regrowth = remaining * 10 / 13 # offsets regrowth
     train_vgg19_cifar100_sparse_model(
@@ -105,9 +144,53 @@ def vgg19_cifar100_setup(target_sparsity):
         }
     )
 
+def vgg19_cifar10_setup_customizable(target_sparsity):
+    remaining = 100 - target_sparsity
+    target_before_regrowth = remaining * 10 / 13 # offsets regrowth
+    train_vgg19_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": target_before_regrowth,
+            "lr_flow_params_decay_regrowing": 0.8,
+            "start_lr_pruning": 1e-1,
+            "end_lr_pruning": 1e-2/3,
+            "reset_lr_pruning": 1e-2/10,
+            "end_lr_regrowth": 1e-4,
+            "reset_lr_flow_params_scaler": 5,
+            "notes": '''
+            testing overnight
+            '''
+        }
+    )
+
+
+
+def vgg19_cifar10_setup_stable(target_sparsity):
+    remaining = 100 - target_sparsity
+    target_before_regrowth = remaining * 10 / 13 # offsets regrowth
+    train_vgg19_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": target_before_regrowth,
+            "lr_flow_params_decay_regrowing": 0.8,
+            "start_lr_pruning": 2*1e-2,
+            "end_lr_pruning": 1e-2/5,
+            "reset_lr_pruning": 1e-2/10,
+            "end_lr_regrowth": 1e-4,
+            "reset_lr_flow_params_scaler": 5,
+            "notes": '''
+            testing overnight
+            '''
+        }
+    )
 
 
 if __name__ == '__main__':
-    vgg19_cifar100_setup(target_sparsity=98)
-    vgg19_cifar100_setup(target_sparsity=99)
-    vgg19_cifar100_setup(target_sparsity=99.5)
+    # resnet50_cifar10_setup(target_sparsity=99)
+
+    vgg19_cifar10_setup_customizable(98)
+    vgg19_cifar10_setup_customizable(99)
+    vgg19_cifar10_setup_customizable(99.5)
+    pass

@@ -1,64 +1,193 @@
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
+from matplotlib.lines import Line2D  # For custom legend
+from src.infrastructure.others import prefix_path_with_root
 
-# Define a saturating power-law function with t0
-def saturating_power_law(x, L, A, alpha, t0):
-    return L + A * (x + t0)**(-alpha)
+# Define font sizes as variables for easy adjustments
+AXIS_LABEL_SIZE = 20
+TICK_LABEL_SIZE = 18
+LEGEND_FONT_SIZE = 14
+MARKER_SIZE = 7  # Slightly increased marker size for better visibility
 
-def load_and_fit(filename):
+def load_data(filename, max_epoch=None):
+    """Load JSON data from a file."""
     with open(filename, 'r') as file:
         values = json.load(file)
 
-    # Normalize your data if needed
-    NUMBER_PARAMS = 266100
-    values = [(val / NUMBER_PARAMS) * 100 for val in values]
-    values = values[10:]
-
-    x_data = np.arange(1, len(values) + 1)  # epochs from 1..N
+    x_data = np.arange(1, len(values) + 1, dtype=float)
     y_data = np.array(values, dtype=float)
 
-    # Initial guesses and bounds. Adjust if you see fit problems.
-    p0 = [0.1, 10.0, 1.0, 1.0]  # Including t0
-    bounds = ([0, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf])  # Bounds for all params
+    if max_epoch is not None:
+        x_data = x_data[:max_epoch]
+        y_data = y_data[:max_epoch]
 
-    try:
-        popt, pcov = curve_fit(saturating_power_law, x_data, y_data, p0=p0, bounds=bounds)
-        return x_data, y_data, popt
-    except RuntimeError as e:
-        print(f"Fit did not converge for {filename}: {e}")
-        return x_data, y_data, None
+    return x_data, y_data
 
-def plot_all(files, gammas):
-    plt.figure(figsize=(10,6))
-    colors = ['blue', 'green', 'red', 'purple', 'orange', 'cyan', 'magenta', 'yellow', 'pink', 'brown']
+def plot_all(files):
+    """Plot all runs with different colors representing different optimizers and networks,
+    and add a horizontal line at each run's minimum y-value."""
+    plt.figure(figsize=(12, 8))
 
-    for i, (f, g) in enumerate(zip(files, gammas)):
-        x, y, popt = load_and_fit(f)
-        if popt is None:
-            continue
+    # Define color palette (extend as needed)
+    color_palette = [
+        'blue', 'red', 'green', 'purple', 'orange', 'cyan', 'magenta', 'brown', 'pink', 'gray'
+    ]
 
-        # Generate fine-grained fit curve
-        x_fit = np.linspace(1, len(y), 500)
-        y_fit = saturating_power_law(x_fit, *popt)
+    # Mapping from (network, optimizer, settings) to color
+    run_color_mapping = {}
 
-        # Downsample points for clarity
-        sample_indices = np.logspace(0, np.log10(len(y)-1), num=200, dtype=int)
-        plt.scatter(x[sample_indices], y[sample_indices],
-                    color=colors[i], label=f"$\\gamma={g}$", s=50)
-        plt.plot(x_fit, y_fit, color=colors[i], linestyle='--', alpha=0.8)
+    # Maximum number of epochs to plot
+    max_ep = 2000
 
+    # Iterate over each file and assign a unique color
+    for i, filename in enumerate(files):
+        # Extract metadata from filename
+        # Example filename: "experiments_outputs/mnist_lenet300_adam_1_high_lr.json"
+        parts = filename.split('/')[-1].replace('.json', '').split('_')
+
+        # Identify network
+        if 'mnist' in parts:
+            network = 'LeNet300'
+        elif 'cifar10' in parts:
+            network = 'ResNet18'
+        else:
+            network = 'Other'
+
+        # Identify optimizer
+        if 'sgd' in parts:
+            optimizer = 'SGD'
+        elif 'adam' in parts:
+            optimizer = 'Adam'
+        else:
+            optimizer = 'Other'
+
+        # Identify any additional settings (e.g., high_lr)
+        settings = []
+        if 'high' in parts and 'lr' in parts:
+            settings.append('+ High LR')
+        # Add more settings if necessary
+
+        settings_str = ', '.join(settings) if settings else '+ Low LR'
+        run_key = f"{network} + {optimizer} {settings_str}"
+
+        color = color_palette[i % len(color_palette)]
+        run_color_mapping[run_key] = color
+
+        x, y = load_data(filename, max_ep)
+
+        def log_sample(x, y, num_points=50):
+            idxs = np.unique(
+                np.round(np.logspace(0, np.log10(len(x)), num_points))
+            ).astype(int)
+            idxs = np.clip(idxs, 1, len(x)) - 1
+
+            return x[idxs], y[idxs]
+
+        x_sample, y_sample = log_sample(x, y, num_points=50)
+
+        # Plot the sampled data
+        plt.plot(
+            x_sample, y_sample,
+            color=color,
+            marker='o',
+            linestyle='--',
+            linewidth=2,
+            markersize=MARKER_SIZE,
+            label=run_key
+        )
+
+        y_min = y.min()
+
+        plt.axhline(
+            y=y_min,
+            color=color,
+            linestyle=':',
+            linewidth=1.5,
+            alpha=0.7,
+            label=f"{run_key} Min"
+        )
+
+    # Set both axes to logarithmic scale
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel('Epochs')
-    plt.ylabel('Sparsity Level (%)')
-    plt.legend()
-    plt.grid(True, linestyle='--', linewidth=0.5)
+
+    # Set custom ticks for Iterations (x-axis)
+    epoch_ticks = [1, 10, 100, 500, 1000, 2000]
+    plt.xticks(epoch_ticks, [str(tick) for tick in epoch_ticks])
+
+    # Set custom ticks for Sparsity (y-axis)
+    sparsity_ticks = [100, 10, 1, 0.1]
+    sparsity_labels = ['100%', '10%', '1%', '0.1%']
+    plt.yticks(sparsity_ticks, sparsity_labels)
+
+    # Set axis labels with increased font size
+    plt.xlabel('Iteration', fontsize=AXIS_LABEL_SIZE)
+    plt.ylabel('Sparsity %', fontsize=AXIS_LABEL_SIZE)
+
+    # Retrieve existing handles and labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    run_handles = []
+    run_labels = []
+
+    for handle, label in zip(handles, labels):
+        run_handles.append(handle)
+        run_labels.append(label)
+
+    # Sort the runs for consistent legend ordering
+    sorted_runs = sorted(zip(run_labels, run_handles), key=lambda x: x[0])
+    run_labels_sorted, run_handles_sorted = zip(*sorted_runs) if sorted_runs else ([], [])
+
+    # Define legend elements (excluding minimum lines)
+    legend_elements = [
+        Line2D([0], [0], color=handle.get_color(), linestyle='-', linewidth=3, label=label)
+        for label, handle in zip(run_labels_sorted, run_handles_sorted)
+        if not label.endswith("Min")
+    ]
+
+    # Optional: Add a separate legend for the minimum lines
+    # Uncomment the following lines if you want to include min lines in the legend
+    # legend_elements += [
+    #     Line2D([0], [0], color=handle.get_color(), linestyle=':', linewidth=1.5, alpha=0.7, label=label)
+    #     for label, handle in zip(run_labels_sorted, run_handles_sorted)
+    #     if label.endswith("Min")
+    # ]
+
+    plt.legend(handles=legend_elements, fontsize=LEGEND_FONT_SIZE, loc='upper right')
+
+    # Improve layout and display grid
+    plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
+    plt.tight_layout()
+
+    # Save the figure as SVG and PDF
+    plt.savefig('plot.svg', format='svg')
+    plt.savefig('plot.pdf', format='pdf')
+
+    # Display the plot
     plt.show()
 
-# Example usage
-gammas = [1]
-abs_path = r"C:\Users\Statia6\projects\XAI_paper\experiments_outputs"
-files = [f"{abs_path}\mnist_lenet300_adam_{gamma}_high_lr.json" for gamma in gammas]
-plot_all(files, gammas)
+# Define file paths
+file_tuples = [
+    "experiments_outputs/mnist_lenet300_adam_1.json",
+    "experiments_outputs/mnist_lenet300_sgd_1.json",
+    "experiments_outputs/mnist_lenet300_adam_1_high_lr.json",
+    "experiments_outputs/cifar10_resnet18_adam_1.json",
+    "experiments_outputs/cifar10_resnet18_sgd_1.json",
+    # Add more files if necessary
+]
+
+# Configure global font sizes
+plt.rcParams['axes.labelsize'] = AXIS_LABEL_SIZE      # Increased to 20
+plt.rcParams['xtick.labelsize'] = TICK_LABEL_SIZE     # Increased to 18
+plt.rcParams['ytick.labelsize'] = TICK_LABEL_SIZE     # Increased to 18
+plt.rcParams['legend.fontsize'] = LEGEND_FONT_SIZE   # Increased to 14
+plt.rcParams['font.size'] = 18                        # Base font size
+
+# Prefix paths as needed
+file_tuples = [
+    prefix_path_with_root(fl) for fl in file_tuples
+]
+
+# Plot the data
+plot_all(file_tuples)
