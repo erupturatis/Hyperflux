@@ -247,9 +247,9 @@ def resnet50_cifar10_stable3(target_sparsity):
     )
 
 if __name__ == '__main__':
-    vgg19_cifar10_setup_stable3(90)
-    vgg19_cifar10_setup_stable3(95)
-    vgg19_cifar10_setup_stable3(98)
+    # vgg19_cifar10_setup_stable3(90)
+    # vgg19_cifar10_setup_stable3(95)
+    # vgg19_cifar10_setup_stable3(98)
 
     vgg19_cifar100_setup_stable3(90)
     vgg19_cifar100_setup_stable3(95)
@@ -259,9 +259,9 @@ if __name__ == '__main__':
     resnet50_cifar10_stable3(95)
     resnet50_cifar10_stable3(98)
 
-    resnet50_cifar100_stable3(90)
-    resnet50_cifar100_stable3(95)
-    resnet50_cifar100_stable3(98)
+    # resnet50_cifar100_stable3(90)
+    # resnet50_cifar100_stable3(95)
+    # resnet50_cifar100_stable3(98)
 
 
     pass
