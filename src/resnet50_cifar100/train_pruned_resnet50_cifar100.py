@@ -25,7 +25,8 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar100(configs_network_masks).to(get_device())
-    MODEL.load("resnet50_cifar100_accuracy78.54%_multistep", BASELINE_MODELS_PATH)
+    if "resume" in sparsity_configs:
+        MODEL.load(sparsity_configs["resume"], BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -55,7 +56,7 @@ def initialize_training_context():
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
+    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=sparsity_configs["weight_decay"])
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
     training_context = TrainingContextPrunedTrain(

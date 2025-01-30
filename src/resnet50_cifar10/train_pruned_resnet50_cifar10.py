@@ -26,7 +26,8 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
-    MODEL.load("resnet50_cifar10_accuracy94.64%", BASELINE_MODELS_PATH)
+    if "resume" in sparsity_configs:
+        MODEL.load(sparsity_configs["resume"], BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global

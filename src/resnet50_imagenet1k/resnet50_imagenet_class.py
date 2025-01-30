@@ -114,20 +114,20 @@ class Resnet50Imagenet(LayerComposite):
             folder_name="checkpoints"
         )
 
-    def save(self, name: str):
+    def save(self, name: str, folder: str):
         save_model_weights(
             model=self,
             model_name=name,
-            folder_name=PRUNED_MODELS_PATH,
+            folder_name=folder,
             custom_to_standard_mapping=RESNET50_VANILLA_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING,
             skip_array=[]
         )
 
-    def load(self, path: str):
+    def load(self, path: str, folder):
         load_model_weights(
             model=self,
             model_name=path,
-            folder_name=PRUNED_MODELS_PATH,
+            folder_name=folder,
             standard_to_custom_mapping=RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING,
             skip_array=[]
         )

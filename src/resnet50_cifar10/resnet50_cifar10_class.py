@@ -81,7 +81,6 @@ class Resnet50Cifar10(LayerComposite):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        # total, remaining = get_remaining_parameters_loss(self)
         total, remaining =  get_remaining_parameters_loss_masks_importance(self)
         return remaining / total
 
@@ -90,16 +89,6 @@ class Resnet50Cifar10(LayerComposite):
 
     def get_parameters_pruning_statistics(self) -> any:
         return get_layer_composite_pruning_statistics(self)
-
-    def get_weight_decay(self) -> torch.Tensor:
-        weights = get_weight_decay(self)
-        weight_decay = 5e-4
-        return weights * weight_decay / 2
-
-    def get_weight_decay(self) -> torch.Tensor:
-        weights = get_weight_decay(self)
-        weight_decay = 5e-4
-        return weights * weight_decay / 2
 
     def forward(self, x):
         return forward_pass_resnet50_cifars(

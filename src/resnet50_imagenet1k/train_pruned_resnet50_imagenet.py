@@ -29,7 +29,9 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Imagenet(configs_network_masks)
-    MODEL.load(BASELINE_RESNET50_IMAGENET)
+    if "resume" in sparsity_configs:
+        MODEL.load(sparsity_configs["resume"], BASELINE_RESNET50_IMAGENET)
+
     print(f"Number of available CUDA devices: {torch.cuda.device_count()}")
 
     if torch.cuda.device_count() > 1:
@@ -37,7 +39,8 @@ def initialize_model():
 
     MODEL = MODEL.to(get_device())
 
-   
+    # IF YOU USE A SINGLE GPU, JUST UNCOMMENT THE FOLLOWING !! AND REMOVE THE nn.DataParallel from above
+    # MODEL_MODULE = MODEL
     MODEL_MODULE = MODEL.module
 
 
@@ -118,7 +121,7 @@ def initialize_training_context():
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=1e-4)
+    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=sparsity_configs["weight_decay"])
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
     training_context = TrainingContextPrunedTrain(
