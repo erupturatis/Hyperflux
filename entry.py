@@ -1,5 +1,6 @@
 from src.mnist_lenet300.train_pruned_lenet300_mnist_adam import train_pruned_lenet300_mnist_adam
 from src.mnist_lenet300.train_sparsity_curves_adam import run_lenet300_mnist_adam_sparsity_curve
+from src.mnist_lenet300.train_sparsity_curves_fixed_lr import run_lenet300_mnist_adam_sparsity_curve_lrs
 from src.resnet18_cifar10.run_existing_resnet18_cifar10 import run_resnet18_cifar10_existing_model
 from src.infrastructure.constants import PRUNED_MODELS_PATH
 from src.resnet18_cifar10.train_pruned_resnet18_cifar10_adam import train_resnet18_cifar10_sparse_model_adam
@@ -247,22 +248,103 @@ def resnet50_cifar10_stable3(target_sparsity):
         }
     )
 
+INITIAL_LR = 0.1
+HIGH_LR = 0.01
+MID_LR = 0.001
+LOW_LR = 0.0001
+
 if __name__ == '__main__':
-    # vgg19_cifar10_setup_stable3(90)
-    # vgg19_cifar10_setup_stable3(95)
-    # vgg19_cifar10_setup_stable3(98)
+    run_lenet300_mnist_adam_sparsity_curve_lrs([0.05, 0.005, 0.0005, 0.00005])
 
-    # vgg19_cifar100_setup_stable3(90)
-    # vgg19_cifar100_setup_stable3(95)
-    # vgg19_cifar100_setup_stable3(98)
+    train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": 1,
+            "lr_flow_params_decay_regrowing": 0.75,
+            "start_lr_pruning": HIGH_LR,
+            "end_lr_pruning": HIGH_LR,
+            "reset_lr_pruning": HIGH_LR,
+            "end_lr_regrowth": HIGH_LR,
+            "reset_lr_flow_params_scaler": 10,
+            "weight_decay": 5e-4,
+            "notes": '''
+                CONSTANT HIGH LR
+            '''
+        }
+    )
 
-    resnet50_cifar10_stable3(90)
-    resnet50_cifar10_stable3(95)
-    resnet50_cifar10_stable3(98)
+    train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": 1,
+            "lr_flow_params_decay_regrowing": 0.75,
+            "start_lr_pruning": LOW_LR,
+            "end_lr_pruning": LOW_LR,
+            "reset_lr_pruning": LOW_LR,
+            "end_lr_regrowth": LOW_LR,
+            "reset_lr_flow_params_scaler": 10,
+            "weight_decay": 5e-4,
+            "notes": '''
+                CONSTANT LOW LR
+            '''
+        }
+    )
 
-    # resnet50_cifar100_stable3(90)
-    # resnet50_cifar100_stable3(95)
-    # resnet50_cifar100_stable3(98)
+    # HIGH TO LOW LR
+    train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": 1,
+            "lr_flow_params_decay_regrowing": 0.75,
+            "start_lr_pruning": HIGH_LR,
+            "end_lr_pruning": MID_LR,
+            "reset_lr_pruning": LOW_LR,
+            "end_lr_regrowth": LOW_LR,
+            "reset_lr_flow_params_scaler": 10,
+            "weight_decay": 5e-4,
+            "notes": '''
+                HIGH TO LOW LR
+            '''
+        }
+    )
 
+    # HIGH TO LOW LR NO WEIGHT DECAY
+    train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": 1,
+            "lr_flow_params_decay_regrowing": 0.75,
+            "start_lr_pruning": HIGH_LR,
+            "end_lr_pruning": MID_LR,
+            "reset_lr_pruning": LOW_LR,
+            "end_lr_regrowth": LOW_LR,
+            "reset_lr_flow_params_scaler": 10,
+            "weight_decay": 0,
+            "notes": '''
+                HIGH TO LOW LR NO WEIGHT DECAY
+            '''
+        }
+    )
 
+    train_resnet50_cifar10_sparse_model(
+        sparsity_configs_aux={
+            "pruning_end":100,
+            "regrowing_end":160,
+            "target_sparsity": 1,
+            "lr_flow_params_decay_regrowing": 0.75,
+            "start_lr_pruning": INITIAL_LR,
+            "end_lr_pruning": MID_LR,
+            "reset_lr_pruning": LOW_LR,
+            "end_lr_regrowth": LOW_LR,
+            "reset_lr_flow_params_scaler": 10,
+            "weight_decay": 5e-4,
+            "notes": '''
+                HIGH TO LOW LR
+            '''
+        }
+    )
     pass
