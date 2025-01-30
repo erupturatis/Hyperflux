@@ -343,7 +343,7 @@ if __name__ == '__main__':
             "reset_lr_flow_params_scaler": 10,
             "weight_decay": 5e-4,
             "notes": '''
-                HIGH TO LOW LR
+                INITIAL TO LOW LR
             '''
         }
     )
