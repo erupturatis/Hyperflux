@@ -241,6 +241,7 @@ def resnet50_cifar10_stable3(target_sparsity):
             "reset_lr_pruning": 1e-2/10,
             "end_lr_regrowth": 1e-4,
             "reset_lr_flow_params_scaler": 10,
+            "weight_decay": 5e-4,
             "notes": '''
             '''
         }
@@ -251,9 +252,9 @@ if __name__ == '__main__':
     # vgg19_cifar10_setup_stable3(95)
     # vgg19_cifar10_setup_stable3(98)
 
-    vgg19_cifar100_setup_stable3(90)
-    vgg19_cifar100_setup_stable3(95)
-    vgg19_cifar100_setup_stable3(98)
+    # vgg19_cifar100_setup_stable3(90)
+    # vgg19_cifar100_setup_stable3(95)
+    # vgg19_cifar100_setup_stable3(98)
 
     resnet50_cifar10_stable3(90)
     resnet50_cifar10_stable3(95)
