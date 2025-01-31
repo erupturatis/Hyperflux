@@ -30,10 +30,8 @@ MID_LR = 0.001
 LOW_LR = 0.0001
 
 ##################################################################################################################
+# USES INITIAL LR INSTEAD AT THE BEGINNING
 ##################################################################################################################
-
-
-
 
 def vgg19_cifar100_setup_stable_version2(target_sparsity):
     remaining = 100 - target_sparsity
@@ -50,6 +48,7 @@ def vgg19_cifar100_setup_stable_version2(target_sparsity):
             "end_lr_regrowth": LOW_LR,
             "reset_lr_flow_params_scaler": 5,
             "weight_decay": 5e-4,
+            "resume": "vgg19_cifar100_accuracy73.51%",
             "notes": '''
             '''
         }
@@ -120,6 +119,7 @@ def resnet50_cifar10_stable_version2(target_sparsity):
     )
 
 ##################################################################################################################
+# USES HIGH LR INSTEAD AT THE BEGINNING
 ##################################################################################################################
 
 def resnet50_cifar100_stable_version1(target_sparsity):
@@ -131,10 +131,10 @@ def resnet50_cifar100_stable_version1(target_sparsity):
             "regrowing_end":160,
             "target_sparsity": target_before_regrowth,
             "lr_flow_params_decay_regrowing": 0.8,
-            "start_lr_pruning": 2*1e-2,
-            "end_lr_pruning": 1e-2/6,
-            "reset_lr_pruning": 1e-2/10,
-            "end_lr_regrowth": 1e-4,
+            "start_lr_pruning": 2*HIGH_LR,
+            "end_lr_pruning": HIGH_LR/3,
+            "reset_lr_pruning": HIGH_LR/10,
+            "end_lr_regrowth": LOW_LR,
             "reset_lr_flow_params_scaler": 5,
             "weight_decay": 5e-4,
             "resume": "resnet50_cifar100_accuracy78.54%_multistep",
@@ -153,10 +153,10 @@ def resnet50_cifar10_stable_version1(target_sparsity):
             "regrowing_end":160,
             "target_sparsity": target_before_regrowth,
             "lr_flow_params_decay_regrowing": 0.9,
-            "start_lr_pruning": 2*1e-2,
-            "end_lr_pruning": 1e-2/6,
-            "reset_lr_pruning": 1e-2/10,
-            "end_lr_regrowth": 1e-4,
+            "start_lr_pruning": 2*HIGH_LR,
+            "end_lr_pruning": HIGH_LR/3,
+            "reset_lr_pruning": HIGH_LR/10,
+            "end_lr_regrowth": LOW_LR,
             "reset_lr_flow_params_scaler": 5,
             "weight_decay": 5e-4,
             "resume": "resnet50_cifar10_accuracy94.64%",
@@ -175,10 +175,10 @@ def resnet50_imagenet_stable_version1(target_sparsity):
             "regrowing_end": 150,
             "target_sparsity": target_before_regrowth,
             "lr_flow_params_decay_regrowing": 0.75,
-            "start_lr_pruning": 1e-1,
-            "end_lr_pruning": 1e-2/5,
-            "reset_lr_pruning": 1e-2/10,
-            "end_lr_regrowth": 1e-4,
+            "start_lr_pruning": HIGH_LR,
+            "end_lr_pruning": HIGH_LR/3,
+            "reset_lr_pruning": HIGH_LR/10,
+            "end_lr_regrowth": LOW_LR,
             "reset_lr_flow_params_scaler": 3,
             "weight_decay": 1e-4,
             "resume": "baseline_imagenet.pth",
@@ -197,12 +197,13 @@ def vgg19_cifar100_setup_stable_version1(target_sparsity):
             "regrowing_end":160,
             "target_sparsity": target_before_regrowth,
             "lr_flow_params_decay_regrowing": 0.8,
-            "start_lr_pruning": 2*1e-2,
-            "end_lr_pruning": 1e-2/5,
-            "reset_lr_pruning": 1e-2/10,
-            "end_lr_regrowth": 1e-4,
+            "start_lr_pruning": 2*HIGH_LR,
+            "end_lr_pruning": HIGH_LR/3,
+            "reset_lr_pruning": HIGH_LR/10,
+            "end_lr_regrowth": LOW_LR,
             "reset_lr_flow_params_scaler": 5,
             "weight_decay": 5e-4,
+            "resume": "vgg19_cifar100_accuracy73.51%",
             "notes": '''
             testing overnight
             '''
@@ -219,12 +220,13 @@ def vgg19_cifar10_setup_stable_version1(target_sparsity):
             "regrowing_end":160,
             "target_sparsity": target_before_regrowth,
             "lr_flow_params_decay_regrowing": 0.8,
-            "start_lr_pruning": 2*1e-2,
-            "end_lr_pruning": 1e-2/5,
-            "reset_lr_pruning": 1e-2/10,
-            "end_lr_regrowth": 1e-4,
+            "start_lr_pruning": 2*HIGH_LR,
+            "end_lr_pruning": HIGH_LR/3,
+            "reset_lr_pruning": HIGH_LR/10,
+            "end_lr_regrowth": LOW_LR,
             "reset_lr_flow_params_scaler": 5,
             "weight_decay": 5e-4,
+            "resume": "vgg19_cifar10_accuracy93.5%",
             "notes": '''
             testing overnight
             '''

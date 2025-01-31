@@ -25,7 +25,8 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = VGG19Cifar100(configs_network_masks).to(get_device())
-    MODEL.load("vgg19_cifar100_accuracy73.51%", BASELINE_MODELS_PATH)
+    if "resume" in configs_network_masks:
+        MODEL.load(configs_network_masks["resume"], BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
