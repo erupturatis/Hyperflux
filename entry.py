@@ -30,49 +30,7 @@ MID_LR = 0.001
 LOW_LR = 0.0001
 
 
-def resnet50_cifar100_custom():
-    remaining = 1
-    target_before_regrowth = remaining * 11.5 / 13
-
-    train_resnet50_cifar100_sparse_model(
-        sparsity_configs_aux={
-            "pruning_end":100,
-            "regrowing_end":160,
-            "target_sparsity": target_before_regrowth,
-            "lr_flow_params_decay_regrowing": 0.75,
-            "start_lr_pruning": INITIAL_LR,
-            "end_lr_pruning": HIGH_LR/5,
-            "reset_lr_pruning": MID_LR,
-            "end_lr_regrowth": LOW_LR,
-            "reset_lr_flow_params_scaler": 5,
-            "weight_decay": 5e-4,
-            "resume": "resnet50_cifar100_accuracy78.54%_multistep",
-            "notes": '''
-            '''
-        }
-    )
-
-    target_before_regrowth = remaining * 11 / 13
-    train_resnet50_cifar100_sparse_model(
-        sparsity_configs_aux={
-            "pruning_end":100,
-            "regrowing_end":160,
-            "target_sparsity": target_before_regrowth,
-            "lr_flow_params_decay_regrowing": 0.8,
-            "start_lr_pruning": 3*1e-2,
-            "end_lr_pruning": 1e-2/5,
-            "reset_lr_pruning": 1e-2/10,
-            "end_lr_regrowth": 1e-3,
-            "reset_lr_flow_params_scaler": 5,
-            "weight_decay": 5e-4,
-            "resume": "resnet50_cifar100_accuracy78.54%_multistep",
-            "notes": '''
-            testing overnight
-            '''
-        }
-    )
 
 if __name__ == '__main__':
-    resnet50_cifar100_custom()
 
     pass

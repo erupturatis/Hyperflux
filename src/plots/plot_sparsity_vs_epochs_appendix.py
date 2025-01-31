@@ -4,11 +4,10 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D  # For custom legend
 from src.infrastructure.others import prefix_path_with_root
 
-# Define font sizes as variables for easy adjustments
 AXIS_LABEL_SIZE = 20
 TICK_LABEL_SIZE = 18
 LEGEND_FONT_SIZE = 14
-MARKER_SIZE = 7  # Slightly increased marker size for better visibility
+MARKER_SIZE = 7
 
 def load_data(filename, max_epoch=None):
     """Load JSON data from a file."""
@@ -43,7 +42,7 @@ def plot_all(files):
     # Iterate over each file and assign a unique color
     for i, filename in enumerate(files):
         # Extract metadata from filename
-        # Example filename: "experiments_outputs/mnist_lenet300_adam_1_high_lr.json"
+        # Example filename: "experiments_outputs/mnist_lenet300_adam_1_LR_0.005.json"
         parts = filename.split('/')[-1].replace('.json', '').split('_')
 
         # Identify network
@@ -52,7 +51,7 @@ def plot_all(files):
         elif 'cifar10' in parts:
             network = 'ResNet18'
         else:
-            network = 'Other'
+            network = ''
 
         # Identify optimizer
         if 'sgd' in parts:
@@ -60,16 +59,25 @@ def plot_all(files):
         elif 'adam' in parts:
             optimizer = 'Adam'
         else:
-            optimizer = 'Other'
+            optimizer = ''
 
-        # Identify any additional settings (e.g., high_lr)
+        # Identify learning rate from the filename
+        lr_value = None
+        for j, part in enumerate(parts):
+            if part == 'LR' and j < len(parts) - 1:
+                lr_value = parts[j + 1]
+                break
+
+        # Construct settings string with learning rate
         settings = []
-        if 'high' in parts and 'lr' in parts:
-            settings.append('+ High LR')
-        # Add more settings if necessary
+        if lr_value is not None:
+            settings.append(f'LR={lr_value}')
+        settings_str = ', '.join(settings)
 
-        settings_str = ', '.join(settings) if settings else '+ Low LR'
-        run_key = f"{network} + {optimizer} {settings_str}"
+        # Construct the run key for the legend
+        run_key = f"{network}"
+        if settings_str:
+            run_key += f", {settings_str}"
 
         color = color_palette[i % len(color_palette)]
         run_color_mapping[run_key] = color
@@ -109,16 +117,16 @@ def plot_all(files):
         )
 
     # Set both axes to logarithmic scale
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.yscale('log')
 
     # Set custom ticks for Iterations (x-axis)
-    epoch_ticks = [1, 10, 100, 500, 1000, 2000]
+    epoch_ticks = [1, 500, 1000, 2000, 4000]
     plt.xticks(epoch_ticks, [str(tick) for tick in epoch_ticks])
 
     # Set custom ticks for Sparsity (y-axis)
     sparsity_ticks = [100, 10, 1, 0.1]
-    sparsity_labels = ['100%', '10%', '1%', '0.1%']
+    sparsity_labels = ['100', '10', '1', '0.1']
     plt.yticks(sparsity_ticks, sparsity_labels)
 
     # Set axis labels with increased font size
@@ -146,14 +154,6 @@ def plot_all(files):
         if not label.endswith("Min")
     ]
 
-    # Optional: Add a separate legend for the minimum lines
-    # Uncomment the following lines if you want to include min lines in the legend
-    # legend_elements += [
-    #     Line2D([0], [0], color=handle.get_color(), linestyle=':', linewidth=1.5, alpha=0.7, label=label)
-    #     for label, handle in zip(run_labels_sorted, run_handles_sorted)
-    #     if label.endswith("Min")
-    # ]
-
     plt.legend(handles=legend_elements, fontsize=LEGEND_FONT_SIZE, loc='upper right')
 
     # Improve layout and display grid
@@ -169,18 +169,11 @@ def plot_all(files):
 
 # Define file paths
 file_tuples = [
-    "experiments_outputs/mnist_lenet300_adam_1.json",
-    "experiments_outputs/mnist_lenet300_sgd_1.json",
-    "experiments_outputs/mnist_lenet300_adam_1_high_lr.json",
-    "experiments_outputs/cifar10_resnet18_adam_1.json",
-    "experiments_outputs/cifar10_resnet18_sgd_1.json",
-    # "experiments_outputs/mnist_lenet300_1_LR_0.005",
-    # "experiments_outputs/mnist_lenet300_1_LR_0.0005",
-    # "experiments_outputs/mnist_lenet300_1_LR_5e-05",
-    # Add more files if necessary
+    "experiments_outputs/mnist_lenet300_1_LR_5e-03",
+    "experiments_outputs/mnist_lenet300_1_LR_5e-04",
+    "experiments_outputs/mnist_lenet300_1_LR_5e-05",
 ]
 
-# Configure global font sizes
 plt.rcParams['axes.labelsize'] = AXIS_LABEL_SIZE      # Increased to 20
 plt.rcParams['xtick.labelsize'] = TICK_LABEL_SIZE     # Increased to 18
 plt.rcParams['ytick.labelsize'] = TICK_LABEL_SIZE     # Increased to 18

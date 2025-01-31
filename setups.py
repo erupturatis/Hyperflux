@@ -33,6 +33,8 @@ LOW_LR = 0.0001
 ##################################################################################################################
 
 
+
+
 def vgg19_cifar100_setup_stable_version2(target_sparsity):
     remaining = 100 - target_sparsity
     target_before_regrowth = remaining * 10 / 13 # offsets regrowth
