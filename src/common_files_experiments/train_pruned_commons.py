@@ -2,7 +2,7 @@ import torch
 import time
 import torch.nn as nn
 from src.infrastructure.dataset_context.dataset_context import DatasetContextAbstract
-from src.infrastructure.layers import LayerComposite
+from src.infrastructure.layers import LayerComposite, get_accumulated_flops
 from src.infrastructure.others import get_model_sparsity_percent
 from torch.amp import GradScaler, autocast
 from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain
@@ -193,6 +193,10 @@ def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbs
         scaler.update()
 
         training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])
+
+    acc = get_accumulated_flops()
+    print("ACCUMULATED FLOPS", acc["counter_dense"], acc["counter_sparse"])
+    print("PERCENTAGE", acc["counter_sparse"] / acc["counter_dense"] * 100 )
 
 
 def test_pruned(model: nn.Module, dataset_context: DatasetContextAbstract, epoch: int):

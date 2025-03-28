@@ -20,13 +20,6 @@ class ConfigsNetworkMasksImportance(TypedDict):
     mask_pruning_enabled: bool
     weights_training_enabled: bool
 
-
-@dataclass
-class ConfigsLayerLinear:
-    in_features: int
-    out_features: int
-    bias_enabled: bool = True
-
 class LayerPrimitive(nn.Module, ABC):
     # @abstractmethod
     # def get_remaining_parameters_loss(self) -> torch.Tensor:
@@ -174,6 +167,25 @@ def get_layers_primitive(self: LayerComposite) -> List[LayerPrimitive]:
 
     return layers
 
+accumulator = {
+    "counter_dense": 0,
+    "counter_sparse": 0
+}
+
+def accumulate_flops(flops_dense, flops_sparse):
+    accumulator["counter_dense"] += flops_dense
+    accumulator["counter_sparse"] += flops_sparse
+
+def get_accumulated_flops():
+    return accumulator
+
+
+@dataclass
+class ConfigsLayerLinear:
+    in_features: int
+    out_features: int
+    bias_enabled: bool = True
+
 class LayerLinearMaskImportance(LayerPrimitive):
     def __init__(self, configs_linear: ConfigsLayerLinear, configs_network: ConfigsNetworkMasksImportance):
         super().__init__()
@@ -224,6 +236,10 @@ class LayerLinearMaskImportance(LayerPrimitive):
         nn.init.uniform_(getattr(self, BIAS_ATTR), -bound, bound)
 
     def forward(self, input, inference = False):
+        dense_flops = get_forward_flops_fcn_dense(self, input.shape)
+        sparse_flops = get_forward_flops_fcn_sparse(self, input.shape)
+        accumulate_flops(dense_flops, sparse_flops)
+
         masked_weight = getattr(self, WEIGHTS_ATTR)
         bias = torch.zeros(self.out_features, device=get_device())
         if hasattr(self, BIAS_ATTR):
@@ -294,6 +310,10 @@ class LayerConv2MaskImportance(LayerPrimitive):
             nn.init.uniform_(getattr(self, BIAS_ATTR), -bound, bound)
 
     def forward(self, input):
+        dense_flops = get_forward_flops_cnn_dense(self, input.shape)
+        sparse_flops = get_forward_flops_cnn_sparse(self, input.shape)
+        accumulate_flops(dense_flops, sparse_flops)
+
         masked_weights = getattr(self, WEIGHTS_ATTR)
         bias = torch.zeros(self.out_channels, device=get_device())
         if hasattr(self, BIAS_ATTR):
@@ -304,3 +324,90 @@ class LayerConv2MaskImportance(LayerPrimitive):
             masked_weights = masked_weights * mask_changes
 
         return F.conv2d(input, masked_weights, bias, self.stride, self.padding)
+
+
+def get_forward_flops_fcn_dense(self, input_shape: torch.Size) -> int:
+    """
+    Estimate the number of multiplications and additions for the forward pass
+    in a fully-connected (dense) layer.
+
+    Assumes input_shape is (batch_size, in_features).
+    For F.linear (without bias), each output element requires:
+      - in_features multiplications and
+      - (in_features - 1) additions.
+
+    Total FLOPs per output = 2 * in_features - 1
+    Total FLOPs = batch_size * out_features * (2 * in_features - 1)
+    """
+    batch_size = input_shape[0]
+    return batch_size * self.out_features * (2 * self.in_features - 1)
+
+
+def get_forward_flops_cnn_dense(self, input_shape: torch.Size) -> int:
+    """
+    Estimate the number of multiplications and additions for the forward pass
+    in a convolutional layer.
+
+    Assumes input_shape is (batch_size, in_channels, height, width).
+    For F.conv2d (without bias), each output element requires:
+      - (in_channels * kernel_size^2) multiplications and
+      - (in_channels * kernel_size^2 - 1) additions.
+
+    Total FLOPs per output = 2 * (in_channels * kernel_size^2) - 1.
+    Total FLOPs = batch_size * out_channels * out_height * out_width * (2 * (in_channels * kernel_size^2) - 1)
+    """
+    batch_size, _, in_height, in_width = input_shape
+    out_height = (in_height + 2 * self.padding - self.kernel_size) // self.stride + 1
+    out_width  = (in_width  + 2 * self.padding - self.kernel_size) // self.stride + 1
+    kernel_ops = self.in_channels * self.kernel_size * self.kernel_size
+    flops_per_instance = self.out_channels * out_height * out_width * (2 * kernel_ops - 1)
+    return batch_size * flops_per_instance
+
+
+def get_forward_flops_fcn_sparse(self, input_shape: torch.Size) -> int:
+    """
+    Estimate the number of multiplications and additions for the forward pass
+    in a sparse fully-connected (dense) layer.
+
+    Assumes input_shape is (batch_size, in_features).
+    Dense FLOPs = batch_size * out_features * (2 * in_features - 1).
+    Adjusted FLOPs = dense FLOPs * effective_density, where effective_density is
+    the fraction of weights that are active (nonzero) as determined by the pruning mask.
+    """
+    batch_size = input_shape[0]
+    dense_flops = batch_size * self.out_features * (2 * self.in_features - 1)
+    if self.mask_pruning_enabled:
+        # Get the pruning mask tensor (assumed to be stored in WEIGHTS_PRUNING_ATTR)
+        mask_tensor = getattr(self, WEIGHTS_PRUNING_ATTR)
+        mask_values = torch.sigmoid(mask_tensor)
+        effective_mask = (mask_values > 0.5).float()
+        density = effective_mask.mean().item()
+        return int(dense_flops * density)
+    else:
+        return dense_flops
+
+
+def get_forward_flops_cnn_sparse(self, input_shape: torch.Size) -> int:
+    """
+    Estimate the number of multiplications and additions for the forward pass
+    in a sparse convolutional layer.
+
+    Assumes input_shape is (batch_size, in_channels, height, width).
+    Dense FLOPs = batch_size * out_channels * out_height * out_width * (2 * (in_channels * kernel_size^2) - 1).
+    Adjusted FLOPs = dense FLOPs * effective_density, where effective_density is
+    the fraction of active weights as determined by the pruning mask.
+    """
+    batch_size, _, in_height, in_width = input_shape
+    out_height = (in_height + 2 * self.padding - self.kernel_size) // self.stride + 1
+    out_width  = (in_width + 2 * self.padding - self.kernel_size) // self.stride + 1
+    kernel_ops = self.in_channels * self.kernel_size * self.kernel_size
+    dense_flops_per_instance = self.out_channels * out_height * out_width * (2 * kernel_ops - 1)
+    dense_flops = batch_size * dense_flops_per_instance
+    if self.mask_pruning_enabled:
+        mask_tensor = getattr(self, WEIGHTS_PRUNING_ATTR)
+        mask_values = torch.sigmoid(mask_tensor)
+        effective_mask = (mask_values > 0.5).float()
+        density = effective_mask.mean().item()
+        return int(dense_flops * density)
+    else:
+        return dense_flops
