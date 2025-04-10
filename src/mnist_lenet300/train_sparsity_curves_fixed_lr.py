@@ -14,7 +14,7 @@ from src.infrastructure.others import get_device, get_model_sparsity_percent, sa
 from src.infrastructure.schedulers import PressureScheduler
 from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs, \
     StagesContextSparsityCurve, StagesContextSparsityCurveArgs
-from src.infrastructure.training_common import get_model_parameters_and_masks
+from src.infrastructure.training_common import get_model_flow_params_and_weights_params
 from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve, TrainingContextSparsityCurveArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
@@ -58,7 +58,7 @@ def initialize_training_context():
     lr_weights = configs["lr"]
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params, flipping_params = get_model_parameters_and_masks(MODEL)
+    weight_bias_params, flow_params, flipping_params = get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.Adam(lr=lr_weights, params=weight_bias_params, weight_decay=0)
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 

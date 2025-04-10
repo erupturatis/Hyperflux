@@ -3,7 +3,7 @@ from typing import List
 
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, ConfigsLayerLinear, \
-    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, \
+    get_flow_params_loss, get_layer_composite_flow_params_statistics, \
     LayerPrimitive, LayerComposite, get_layers_primitive, get_remaining_parameters_loss_masks_importance_separated
 from src.infrastructure.constants import FULLY_CONNECTED_LAYER, N_SCALER
 from src.mnist_lenet300.model_attributes import LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES, \
@@ -39,14 +39,14 @@ class ModelLenet300(LayerComposite):
         return pruned_ts/total, present_ts * N_SCALER
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
+        total, sigmoid = get_flow_params_loss(self)
         return sigmoid / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def get_parameters_pruning_statistics(self) -> any:
-        return get_layer_composite_pruning_statistics(self)
+        return get_layer_composite_flow_params_statistics(self)
 
     def forward(self, x, inference=False):
         return forward_pass_lenet300(self, x, inference)

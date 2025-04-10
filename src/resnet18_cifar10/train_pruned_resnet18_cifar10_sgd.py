@@ -12,7 +12,7 @@ from src.infrastructure.others import get_device, get_model_sparsity_percent
 from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler
-from src.infrastructure.training_common import get_model_parameters_and_masks
+from src.infrastructure.training_common import get_model_flow_params_and_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 
 def initialize_model():
@@ -52,7 +52,7 @@ def initialize_training_context():
     lr_weights_finetuning = 0.0001
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
+    weight_bias_params, flow_params, _ = get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
     optimizer_flow_mask = torch.optim.SGD(lr=lr_flow_params, params=flow_params, weight_decay=0, momentum=0.9)
 
@@ -102,7 +102,7 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-sparsity_configs = {
+training_configs = {
     "pruning_end": 400,
     "regrowing_end": 600,
     "target_sparsity": 0.5,
@@ -117,7 +117,7 @@ def train_cifar10_resnet18_sparse_model_sgd():
     initialize_model()
     initialize_training_context()
     initialize_stages_context()
-    wandb_initalize(experiment=Experiment.RESNET18CIFAR10, type=Tags.TRAIN_PRUNING, configs=sparsity_configs)
+    wandb_initalize(experiment=Experiment.RESNET18CIFAR10, type=Tags.TRAIN_PRUNING, configs=training_configs)
     initialize_dataset_context()
     initalize_training_display()
 

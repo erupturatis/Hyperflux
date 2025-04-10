@@ -20,11 +20,7 @@ class TrainingContextBaselineTrain:
 
 @dataclass
 class TrainingContextPrunedTrainArgs:
-    lr_weights_reset: float
-    lr_flow_params_reset: float
-
     l0_gamma_scaler: float
-
     optimizer_weights: torch.optim.Optimizer
     optimizer_flow_mask: torch.optim.Optimizer
 
@@ -40,16 +36,6 @@ class TrainingContextPrunedTrain:
 
     def set_gamma(self, gamma: float) -> None:
         self.params.l0_gamma_scaler = gamma
-
-    def reset_param_groups_to_defaults(self) -> None:
-        for param_group in self.params.optimizer_weights.param_groups:
-            param_group['lr'] = self.params.lr_weights_reset
-
-        for param_group in self.params.optimizer_flow_mask.param_groups:
-            param_group['lr'] = self.params.lr_flow_params_reset
-
-        self.params.l0_gamma_scaler = 0
-
 
 @dataclass
 class TrainingContextSparsityCurveArgs:

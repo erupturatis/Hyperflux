@@ -18,8 +18,8 @@ from src.infrastructure.layers import (
     LayerComposite,
     LayerPrimitive,
     get_layers_primitive,
-    get_remaining_parameters_loss_masks_importance,
-    get_layer_composite_pruning_statistics,
+    get_flow_params_loss,
+    get_layer_composite_flow_params_statistics,
     ConfigsLayerConv2,
     ConfigsLayerLinear,
     get_parameters_total_count
@@ -81,14 +81,14 @@ class VGG19Cifar10(LayerComposite):
             setattr(self, name, layer)
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, remaining = get_remaining_parameters_loss_masks_importance(self)
+        total, remaining = get_flow_params_loss(self)
         return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def get_parameters_pruning_statistics(self) -> any:
-        return get_layer_composite_pruning_statistics(self)
+        return get_layer_composite_flow_params_statistics(self)
 
     def get_parameters_total_count(self) -> int:
         total = get_parameters_total_count(self)

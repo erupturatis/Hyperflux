@@ -10,8 +10,8 @@ from src.common_files_experiments.vanilla_attributes_resnet50 import RESNET50_VA
     RESNET50_VANILLA_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LAYER, FULLY_CONNECTED_LAYER, BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
-    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_remaining_parameters_loss_masks_importance, \
-    get_layers_primitive, get_layer_composite_pruning_statistics
+    ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_flow_params_loss, \
+    get_layers_primitive, get_layer_composite_flow_params_statistics
 from src.resnet50_imagenet1k.resnet50_imagenet_attributes import RESNET50_IMAGENET_REGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_IMAGENET_UNREGISTERED_LAYERS_ATTRIBUTES
 
@@ -83,11 +83,11 @@ class Resnet50Imagenet(LayerComposite):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
+        total, sigmoid = get_flow_params_loss(self)
         return sigmoid / total
 
     def get_parameters_pruning_statistics(self) -> any:
-        return get_layer_composite_pruning_statistics(self)
+        return get_layer_composite_flow_params_statistics(self)
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)

@@ -13,7 +13,7 @@ from src.infrastructure.others import get_device, get_model_sparsity_percent
 from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler
-from src.infrastructure.training_common import get_model_parameters_and_masks
+from src.infrastructure.training_common import get_model_flow_params_and_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
 
@@ -54,7 +54,7 @@ def initialize_training_context():
     lr_weights_finetuning = 0.0001
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params, _ = get_model_parameters_and_masks(MODEL)
+    weight_bias_params, flow_params, _ = get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
@@ -71,12 +71,12 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = sparsity_configs["pruning_end"]
-    regrowing_end = sparsity_configs["regrowing_end"]
+    pruning_end = training_configs["pruning_end"]
+    regrowing_end = training_configs["regrowing_end"]
     regrowth_stage_length = regrowing_end - pruning_end
 
-    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=sparsity_configs["target_sparsity"], epochs_target=pruning_end)
-    scheduler_decay_after_pruning = sparsity_configs["lr_flow_params_decay_regrowing"]
+    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=training_configs["target_sparsity"], epochs_target=pruning_end)
+    scheduler_decay_after_pruning = training_configs["lr_flow_params_decay_regrowing"]
 
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
     scheduler_weights_lr_during_regrowth = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-7)
@@ -103,7 +103,7 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-sparsity_configs = {
+training_configs = {
     "pruning_end": 400,
     "regrowing_end": 600,
     "target_sparsity": 0.35,
@@ -119,7 +119,7 @@ def train_resnet18_cifar10_sparse_model_adam():
     initialize_model()
     initialize_training_context()
     initialize_stages_context()
-    wandb_initalize(Experiment.RESNET18CIFAR10, type=Tags.TRAIN_PRUNING, configs=sparsity_configs,other_tags=["ADAM"])
+    wandb_initalize(Experiment.RESNET18CIFAR10, type=Tags.TRAIN_PRUNING, configs=training_configs, other_tags=["ADAM"])
     initialize_dataset_context()
     initalize_training_display()
 

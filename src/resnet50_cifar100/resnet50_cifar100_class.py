@@ -1,10 +1,9 @@
 from typing import List
 import torch
 import torch.nn as nn
-
 from src.common_files_experiments.forward_functions import forward_pass_resnet50_cifars
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
-from src.infrastructure.parameters_mask_processors import get_weight_decay_all_
+from src.infrastructure.parameters_mask_processors import get_weights_params_decay_all_
 from src.resnet50_cifar100.resnet50_cifar100_attributes import RESNET50_CIFAR100_UNREGISTERED_LAYERS_ATTRIBUTES, \
     RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES, RESNET50_CIFAR100_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, \
     RESNET50_CIFAR100_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
@@ -12,7 +11,7 @@ from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LA
     BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, get_layers_primitive, \
-    get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, \
+    get_flow_params_loss, get_layer_composite_flow_params_statistics, \
     get_weight_decay_only_for_present, get_weight_decay_only_for_all
 
 
@@ -94,14 +93,14 @@ class Resnet50Cifar100(LayerComposite):
         return weights * weight_decay / 2
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, sigmoid = get_remaining_parameters_loss_masks_importance(self)
-        return sigmoid / total
+        total, flow_params_values = get_flow_params_loss(self)
+        return flow_params_values / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def get_parameters_pruning_statistics(self) -> any:
-        return get_layer_composite_pruning_statistics(self)
+        return get_layer_composite_flow_params_statistics(self)
 
     def forward(self, x):
         return forward_pass_resnet50_cifars(

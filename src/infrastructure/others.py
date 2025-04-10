@@ -11,7 +11,9 @@ def get_random_id():
     return random_id
 
 def get_device():
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("mps" if torch.mps.is_available() else "cpu")
+    return device
 
 def get_root_folder() -> str:
     """Return the absolute path to the project root."""
@@ -38,7 +40,7 @@ def save_array_experiment(filename, arr):
 
 
 def get_model_sparsity_percent(model) -> float:
-    total, remaining = model.get_parameters_pruning_statistics()
+    total, remaining = model.get_flow_params_statistics_abstract()
     percent = remaining / total * 100
     return round_float(percent.item())
 

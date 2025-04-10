@@ -5,11 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing_extensions import TypedDict
-from src.infrastructure.configs_layers import MaskPruningFunction, MaskFlipFunction, get_parameters_pruning, \
-    get_parameters_pruning_statistics, configs_get_layers_initialization, get_parameters_pruning_separated
-from src.infrastructure.parameters_mask_processors import get_parameters_pruning_sigmoid_steep, get_parameters_total, \
-    get_weight_decay_only_present_, get_weight_decay_all_
-from src.infrastructure.mask_functions import MaskPruningFunctionSigmoid, MaskPruningFunctionSigmoidDebugging
+from src.infrastructure.configs_layers import MaskPruningFunction,  get_flow_params_loss_abstract, \
+    get_flow_params_statistics_abstract, configs_get_layers_initialization
+from src.infrastructure.parameters_mask_processors import get_weights_params_total_, \
+    get_weights_params_decay_only_present_, get_weights_params_decay_all_
+from src.infrastructure.mask_functions import MaskPruningFunctionConstant
 from src.infrastructure.others import get_device
 import math
 from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, \
@@ -21,17 +21,6 @@ class ConfigsNetworkMasksImportance(TypedDict):
     weights_training_enabled: bool
 
 class LayerPrimitive(nn.Module, ABC):
-    # @abstractmethod
-    # def get_remaining_parameters_loss(self) -> torch.Tensor:
-    #     pass
-
-    # @abstractmethod
-    # def get_pruned_percentage(self) -> float:
-    #     pass
-    #
-    # @abstractmethod
-    # def get_flipped_percentage(self) -> float:
-    #     pass
     pass
 
 class LayerComposite(nn.Module, ABC):
@@ -39,72 +28,22 @@ class LayerComposite(nn.Module, ABC):
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         pass
 
-    # @abstractmethod
-    # def get_remaining_parameters_loss(self) -> any:
-    #     pass
-    #
-    # @abstractmethod
-    # def get_parameters_pruning_statistics(self) -> any:
-    #     pass
-
-def get_parameters_probabilities_statistics(layer: LayerPrimitive) -> tuple[int, int, int]:
-    if not hasattr(layer, WEIGHTS_PRUNING_ATTR):
-        raise ValueError("Layer does not have pruning probabilities attribute.")
-
-    # Retrieve pruning probabilities
-    prune_probs = getattr(layer, WEIGHTS_PRUNING_ATTR)
-    base_probs = getattr(layer, WEIGHTS_BASE_ATTR)
-    flip_probs = getattr(layer, WEIGHTS_FLIPPING_ATTR)
-
-    probabilities = torch.stack([base_probs, flip_probs, prune_probs], dim=-1)
-    pruned_count = torch.sum(torch.argmax(probabilities, dim=-1) == 2).item()
-    flipped_count = torch.sum(torch.argmax(probabilities, dim=-1) == 1).item()
-    base_count = torch.sum(torch.argmax(probabilities, dim=-1) == 0).item()
-
-    return base_count, flipped_count, pruned_count
-
-def get_layer_composite_pruning_statistics_probabilities(self: LayerComposite) -> tuple[int, int, int]:
-    layers = get_layers_primitive(self)
-
-    base_total = 0
-    flipped_total = 0
-    pruned_total = 0
-
-    for layer in layers:
-        base, flip, pruned = get_parameters_probabilities_statistics(layer)
-        base_total += base
-        flipped_total += flip
-        pruned_total += pruned
-
-    return  base_total, flipped_total, pruned_total
-
-def get_layer_composite_pruning_statistics(self: LayerComposite) -> tuple[float, float]:
+def get_layer_composite_flow_params_statistics(self: LayerComposite) -> tuple[float, float]:
     layers = get_layers_primitive(self)
     total = 0
     remaining = 0
     for layer in layers:
-        layer_total, layer_remaining = get_parameters_pruning_statistics(layer)
+        layer_total, layer_remaining = get_flow_params_statistics_abstract(layer)
         total += layer_total
         remaining += layer_remaining
 
     return total, remaining
 
-def get_remaining_parameters_loss_steep(self: LayerComposite) -> tuple[float, torch.Tensor]:
-    layers: List[LayerPrimitive] = get_layers_primitive(self)
-    total = 0
-    sigmoids = torch.tensor(0, device=get_device(), dtype=torch.float)
-    for layer in layers:
-        layer_total, layer_sigmoid = get_parameters_pruning_sigmoid_steep(layer)
-        total += layer_total
-        sigmoids += layer_sigmoid
-
-    return total, sigmoids
-
 def get_parameters_total_count(self: LayerComposite) -> int:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
     total = 0
     for layer in layers:
-        layer_total = get_parameters_total(layer)
+        layer_total = get_weights_params_total_(layer)
         total += layer_total
 
     return total
@@ -114,7 +53,7 @@ def get_weight_decay_only_for_all(self: LayerComposite) -> torch.Tensor:
     total = 0
     weights = torch.tensor(0, device=get_device(), dtype=torch.float)
     for layer in layers:
-        decay_params = get_weight_decay_all_(layer)
+        decay_params = get_weights_params_decay_all_(layer)
         weights += decay_params
 
     return weights
@@ -124,34 +63,18 @@ def get_weight_decay_only_for_present(self: LayerComposite) -> torch.Tensor:
     total = 0
     weights = torch.tensor(0, device=get_device(), dtype=torch.float)
     for layer in layers:
-        decay_params = get_weight_decay_only_present_(layer)
+        decay_params = get_weights_params_decay_only_present_(layer)
         weights += decay_params
 
     return weights
 
-
-def get_remaining_parameters_loss_masks_importance_separated(self: LayerComposite) -> tuple[float, torch.Tensor, torch.Tensor]:
-    layers: List[LayerPrimitive] = get_layers_primitive(self)
-
-    total = 0
-    pruned_ts_aggregated = torch.tensor(0, device=get_device(), dtype=torch.float)
-    present_ts_aggregated = torch.tensor(0, device=get_device(), dtype=torch.float)
-
-    for layer in layers:
-        layer_total, pruned_ts, present_ts = get_parameters_pruning_separated(layer)
-        total += layer_total
-        pruned_ts_aggregated += pruned_ts
-        present_ts_aggregated += present_ts
-
-    return total, pruned_ts_aggregated, present_ts_aggregated
-
-
-def get_remaining_parameters_loss_masks_importance(self: LayerComposite) -> tuple[float, torch.Tensor]:
+def get_flow_params_loss(self: LayerComposite) -> tuple[float, torch.Tensor]:
     layers: List[LayerPrimitive] = get_layers_primitive(self)
     total = 0
     activations = torch.tensor(0, device=get_device(), dtype=torch.float)
+
     for layer in layers:
-        layer_total, layer_remaining = get_parameters_pruning(layer)
+        layer_total, layer_remaining = get_flow_params_loss_abstract(layer)
         total += layer_total
         activations += layer_remaining
 
@@ -178,7 +101,6 @@ def accumulate_flops(flops_dense, flops_sparse):
 
 def get_accumulated_flops():
     return accumulator
-
 
 @dataclass
 class ConfigsLayerLinear:
@@ -246,7 +168,7 @@ class LayerLinearMaskImportance(LayerPrimitive):
             bias = getattr(self, BIAS_ATTR)
 
         if self.mask_pruning_enabled:
-            mask_changes = MaskPruningFunctionSigmoid.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
+            mask_changes = MaskPruningFunctionConstant.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
             masked_weight = masked_weight * mask_changes
 
         return F.linear(input, masked_weight, bias)

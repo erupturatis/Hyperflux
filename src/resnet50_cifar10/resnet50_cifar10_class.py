@@ -11,7 +11,7 @@ from src.infrastructure.constants import N_SCALER, PRUNED_MODELS_PATH, CONV2D_LA
     BATCH_NORM_2D_LAYER
 from src.infrastructure.layers import LayerComposite, ConfigsNetworkMasksImportance, LayerConv2MaskImportance, \
     ConfigsLayerConv2, LayerLinearMaskImportance, ConfigsLayerLinear, LayerPrimitive, \
-    get_layers_primitive, get_layer_composite_pruning_statistics, get_remaining_parameters_loss_masks_importance
+    get_layers_primitive, get_layer_composite_flow_params_statistics, get_flow_params_loss
 
 
 class Resnet50Cifar10(LayerComposite):
@@ -81,14 +81,14 @@ class Resnet50Cifar10(LayerComposite):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, remaining =  get_remaining_parameters_loss_masks_importance(self)
+        total, remaining =  get_flow_params_loss(self)
         return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def get_parameters_pruning_statistics(self) -> any:
-        return get_layer_composite_pruning_statistics(self)
+        return get_layer_composite_flow_params_statistics(self)
 
     def forward(self, x):
         return forward_pass_resnet50_cifars(

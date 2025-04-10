@@ -1,13 +1,13 @@
 matplotlib~=3.9.2
 scikit-learn
 opencv-python
-torch~=2.5.0+cu124
+# torch~=2.5.0+cu124
 wandb~=0.18.5
 kornia~=0.7.4
 datasets~=3.2.0
-numpy~=2.1.2
-scipy~=1.14.1
-torchvision~=0.20.0+cu124
-torch
+numpy #~=2.1.2
+scipy #~=1.14.1
+# torchvision~=0.20.0+cu124
+# torch
 pillow~=11.0.0
 fonttools~=4.54.1

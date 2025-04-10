@@ -1,4 +1,3 @@
-WEIGHTS_FLIPPING_ATTR = 'mask_flipping'
 WEIGHTS_PRUNING_ATTR = 'mask_pruning'
 WEIGHTS_BASE_ATTR = 'mask_base'
 

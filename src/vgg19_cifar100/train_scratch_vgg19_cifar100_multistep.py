@@ -17,7 +17,7 @@ from src.infrastructure.others import get_device, get_model_sparsity_percent, ge
 from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureScheduler
-from src.infrastructure.training_common import get_model_parameters
+from src.infrastructure.training_common import get_model_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 
 def initialize_model():
@@ -54,7 +54,7 @@ def initialize_training_context():
     global training_context
 
     lr = 0.1
-    weight_bias_params = get_model_parameters(MODEL)
+    weight_bias_params = get_model_weights_params(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4 ,nesterov=True)
 
     training_context = TrainingContextBaselineTrain(

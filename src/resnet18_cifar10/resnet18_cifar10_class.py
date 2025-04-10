@@ -10,7 +10,7 @@ from src.resnet18_cifar10.resnet18_cifar10_attributes import \
     RESNET18_CIFAR10_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.infrastructure.constants import CONV2D_LAYER, FULLY_CONNECTED_LAYER, N_SCALER, PRUNED_MODELS_PATH
 from src.infrastructure.layers import LayerConv2MaskImportance, ConfigsNetworkMasksImportance, LayerLinearMaskImportance, LayerComposite, LayerPrimitive, \
-    get_layers_primitive, get_remaining_parameters_loss_masks_importance, get_layer_composite_pruning_statistics, ConfigsLayerConv2, \
+    get_layers_primitive, get_flow_params_loss, get_layer_composite_flow_params_statistics, ConfigsLayerConv2, \
     ConfigsLayerLinear, get_parameters_total_count
 
 
@@ -71,14 +71,14 @@ class Resnet18Cifar10(LayerComposite):
 
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
-        total, remaining =  get_remaining_parameters_loss_masks_importance(self)
+        total, remaining =  get_flow_params_loss(self)
         return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
 
     def get_parameters_pruning_statistics(self) -> any:
-        return get_layer_composite_pruning_statistics(self)
+        return get_layer_composite_flow_params_statistics(self)
 
     def get_parameters_total_count(self) -> int:
         total = get_parameters_total_count(self)
