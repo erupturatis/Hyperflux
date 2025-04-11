@@ -24,7 +24,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar100(configs_network_masks).to(get_device())
-    MODEL.load(training_configs["resume"], BASELINE_MODELS_PATH)
+    # MODEL.load(training_configs["resume"], BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -77,11 +77,11 @@ def initialize_stages_context():
 
     stages_context = StagesContextPrunedTrain(
         StagesContextPrunedTrainArgs(
-            pruning_epoch_end=pruning_end,
-            scheduler_gamma=pruning_scheduler,
-
             scheduler_flow_params_lr= scheduler_flow_params_lr,
             scheduler_weights_params_lr=scheduler_weights_lr,
+            scheduler_gamma=pruning_scheduler,
+
+            pruning_epoch_end=pruning_end,
         )
     )
 
@@ -100,13 +100,13 @@ training_configs = {
     "weights_lr": 0.1,
     "weight_decay": 5e-4,
     "steps_weights_lr": [120, 140],
-    "steps_flow_lr": [80, 100],
+    "steps_flow_lr": [80, 100, 120, 140],
     "notes": '''
     Simplified setup
     '''
 }
 
-def train_resnet50_cifar100_sparse_model(sparsity_configs_aux):
+def train_resnet50_cifar100_sparse_model_steplr(sparsity_configs_aux):
     global training_configs
     global MODEL, epoch_global
 

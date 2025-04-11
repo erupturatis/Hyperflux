@@ -12,7 +12,7 @@ from src.infrastructure.parameters_mask_processors import get_weights_params_tot
 from src.infrastructure.mask_functions import MaskPruningFunctionConstant
 from src.infrastructure.others import get_device
 import math
-from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR, \
+from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR,  \
     WEIGHTS_BASE_ATTR, get_flow_params_init
 
 

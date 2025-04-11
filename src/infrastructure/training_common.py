@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import torch
 
-from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR, WEIGHTS_FLIPPING_ATTR
+from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR
 if TYPE_CHECKING:
     from src.infrastructure.layers import LayerComposite
 

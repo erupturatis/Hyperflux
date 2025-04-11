@@ -64,9 +64,10 @@ class StagesContextPrunedTrain:
         self.sparsity_percent = sparsity_percent
 
     def step(self, training_context: TrainingContextPrunedTrain):
-
         self.args.scheduler_weights_params_lr.step()
+        self.args.scheduler_flow_params_lr.step()
         self.args.scheduler_gamma.step(self.epoch, self.sparsity_percent)
+
         gamma = self.args.scheduler_gamma.get_multiplier()
         if self.epoch >= self.args.pruning_epoch_end:
             gamma = 0

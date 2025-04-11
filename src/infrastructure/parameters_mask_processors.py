@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 import torch
-from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_ATTR, WEIGHTS_FLIPPING_ATTR, get_flow_params_init
+from src.infrastructure.constants import WEIGHTS_PRUNING_ATTR, WEIGHTS_ATTR, get_flow_params_init
 
 if TYPE_CHECKING:
     from src.infrastructure.layers import  LayerPrimitive
