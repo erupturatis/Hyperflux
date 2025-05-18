@@ -109,6 +109,7 @@ def train_resnet50_cifar10_sparse_model(
 ):
     global MODEL, epoch_global, training_configs
     sparsity_configs = sparsity_configs_aux
+    training_configs = sparsity_configs_aux
 
     configs_layers_initialization_all_kaiming_relu()
     config_adam_setup()
