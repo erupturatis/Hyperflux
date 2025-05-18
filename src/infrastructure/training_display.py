@@ -1,10 +1,8 @@
 from src.infrastructure.configs_general import VERBOSE_BATCHES
 from src.infrastructure.dataset_context.dataset_context import DatasetContextAbstract
 from typing import List, TYPE_CHECKING
-from src.infrastructure.others import round_float, get_model_sparsity_percent
+from src.infrastructure.others import round_float, get_custom_model_sparsity_percent
 from dataclasses import dataclass
-
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain
 
 if TYPE_CHECKING:
     from src.infrastructure.layers import LayerComposite
@@ -44,7 +42,7 @@ class TrainingDisplay:
             batch_size = context.get_batch_size()
             model = self.args.model
             epoch = self.args.get_epoch()
-            sparsity = get_model_sparsity_percent(model)
+            sparsity = get_custom_model_sparsity_percent(model)
 
             loss_string = ""
             for idx, loss_name in enumerate(self.args.average_losses_names):

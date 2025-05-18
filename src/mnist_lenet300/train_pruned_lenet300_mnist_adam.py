@@ -1,23 +1,22 @@
 import torch
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-import numpy as np
-import torch.nn as nn
 from .model_class import ModelLenet300
-import wandb
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
 from src.infrastructure.constants import LR_FLOW_PARAMS_ADAM, LR_FLOW_PARAMS_ADAM_RESET, get_lr_flow_params, \
     get_lr_flow_params_reset, config_adam_setup, PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
     dataset_context_configs_cifar10, dataset_context_configs_mnist
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
-from src.infrastructure.others import get_device, get_model_sparsity_percent
-from src.infrastructure.schedulers import PressureScheduler
-from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs
+from src.infrastructure.others import get_device, get_custom_model_sparsity_percent
+from src.infrastructure.schedulers import PressureSchedulerPolicy1
+from src.infrastructure.stages_context.stages_context import  \
+    StagesContextPrunedTrain, StagesContextPrunedTrainArgs
 from src.infrastructure.training_common import get_model_flow_params_and_weights_params
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, TrainingContextPrunedTrainArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from ..common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
+from ..infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
+    TrainingContextPrunedTrainArgs
 
 
 def initialize_model():
@@ -59,7 +58,7 @@ def initialize_training_context():
     lr_weights = lr_weights_finetuning
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params, flipping_params = get_model_flow_params_and_weights_params(MODEL)
+    weight_bias_params, flow_params= get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.Adam(lr=lr_weights, params=weight_bias_params, weight_decay=0)
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
@@ -83,7 +82,7 @@ def initialize_stages_context():
 
     regrowth_stage_length = regrowing_end - pruning_end
 
-    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=0.30, epochs_target=pruning_end)
+    pruning_scheduler = PressureSchedulerPolicy1(pressure_exponent_constant=1.5, sparsity_target=0.30, epochs_target=pruning_end)
     flow_params_lr_decay_after_pruning = 0.95
 
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-3)
@@ -145,12 +144,12 @@ def train_pruned_lenet300_mnist_adam():
             epoch=get_epoch()
         )
 
-        stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
+        stages_context.update_context(epoch_global, get_custom_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
 
 
     MODEL.save(
-        name=f"lenet300_sparsity{get_model_sparsity_percent(MODEL)}_acc{acc}",
+        name=f"lenet300_sparsity{get_custom_model_sparsity_percent(MODEL)}_acc{acc}",
         folder=PRUNED_MODELS_PATH
     )
     wandb_finish()

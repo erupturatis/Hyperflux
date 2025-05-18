@@ -1,25 +1,24 @@
 import torch
-from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline, \
-    train_mixed_baseline_weight_decay
+from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
     PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
-from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs, \
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
+    dataset_context_configs_cifar100
+from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrainSetup2, StagesContextPrunedTrainArgsSetup2, \
     StagesContextBaselineTrain, StagesContextBaselineTrainArgs
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
-    TrainingContextPrunedTrainArgs, TrainingContextBaselineTrain, TrainingContextBaselineTrainArgs
+from src.infrastructure.training_context.training_context import TrainingContextPrunedTrainSetup2, \
+    TrainingContextPrunedTrainArgsSetup2, TrainingContextBaselineTrain, TrainingContextBaselineTrainArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
-from src.infrastructure.others import get_device, get_model_sparsity_percent, get_random_id
+from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, get_random_id
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-from src.infrastructure.schedulers import PressureScheduler
+from src.infrastructure.schedulers import PressureSchedulerPolicy1
 from src.infrastructure.training_common import get_model_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from src.resnet50_cifar100.resnet50_cifar100_class import Resnet50Cifar100
-
 
 def initialize_model():
     global MODEL
@@ -56,7 +55,7 @@ def initialize_training_context():
 
     lr = 0.1
     weight_bias_params = get_model_weights_params(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=5e-4)
+    optimizer_weights = torch.optim.SGD(lr=lr, params=weight_bias_params, momentum=0.9, weight_decay=5e-4, nesterov=True)
 
     training_context = TrainingContextBaselineTrain(
         TrainingContextBaselineTrainArgs(
@@ -67,8 +66,8 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    training_end = 200
-    scheduler_weights_lr_during_training = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=training_end, eta_min=1e-5)
+    training_end = 160
+    scheduler_weights_lr_during_training = torch.optim.lr_scheduler.MultiStepLR(training_context.get_optimizer_weights(), milestones=[int(training_end/ 2), int(training_end * 3 / 4)], last_epoch=-1)
 
     stages_context = StagesContextBaselineTrain(
         StagesContextBaselineTrainArgs(
@@ -85,7 +84,7 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-def train_resnet50_cifar100_from_scratch():
+def train_resnet50_cifar100_from_scratch_multistep():
     global MODEL, epoch_global
     configs_layers_initialization_all_kaiming_relu()
 

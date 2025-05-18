@@ -3,10 +3,8 @@ from torch.amp import GradScaler, autocast
 import torch.nn as nn
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetContextAbstract
 from src.infrastructure.layers import LayerComposite
-from src.infrastructure.others import get_model_sparsity_percent
-from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
+from src.infrastructure.others import get_custom_model_sparsity_percent
 from typing import List
-
 from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve
 from src.infrastructure.training_display import TrainingDisplay
 
@@ -31,7 +29,7 @@ def test_curves(model: 'LayerComposite', dataset_context: DatasetContextAbstract
     test_loss /= total_data_len
     accuracy = 100.0 * correct / total_data_len
 
-    remain_percent = get_model_sparsity_percent(model)
+    remain_percent = get_custom_model_sparsity_percent(model)
 
     print(
         f"\nTest set: Average loss: {test_loss:.4f}, "
@@ -71,7 +69,7 @@ def train_mixed_curves(model: 'LayerComposite', training_context: TrainingContex
 
         training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])
         if iter_count % BATCH_RECORD_FREQ == 0:
-            sparsity_levels_recording.append(get_model_sparsity_percent(model))
+            sparsity_levels_recording.append(get_custom_model_sparsity_percent(model))
             iter_count = 0
 
     return sparsity_levels_recording

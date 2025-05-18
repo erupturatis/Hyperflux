@@ -1,18 +1,17 @@
-import torch
 from src.common_files_experiments.generate_sparsity_curves_commons import test_curves, train_mixed_curves
+import torch
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5
-from src.infrastructure.constants import get_lr_flow_params, config_sgd_setup, BASELINE_RESNET18_CIFAR10
+from src.infrastructure.constants import config_adam_setup, get_lr_flow_params, BASELINE_MODELS_PATH, config_sgd_setup
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
+from src.infrastructure.others import get_device, save_array_experiment, get_custom_model_sparsity_percent
 from src.infrastructure.stages_context.stages_context import StagesContextSparsityCurve, StagesContextSparsityCurveArgs
-from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve, \
-    TrainingContextSparsityCurveArgs
+from src.infrastructure.training_common import get_model_flow_params_and_weights_params
+from src.infrastructure.training_context.training_context import TrainingContextSparsityCurveArgs, \
+    TrainingContextSparsityCurve
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
-from src.infrastructure.others import get_device, get_model_sparsity_percent, save_array_experiment
-from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10, ConfigsModelBaseResnet18
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from src.infrastructure.training_common import get_model_flow_params_and_weights_params
-
+from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
 
 def initialize_model():
     global MODEL
@@ -20,9 +19,8 @@ def initialize_model():
         mask_pruning_enabled=True,
         weights_training_enabled=True,
     )
-    configs_model_base_resnet18 = ConfigsModelBaseResnet18(num_classes=10)
-    MODEL = Resnet18Cifar10(configs_model_base_resnet18, configs_network_masks).to(get_device())
-    MODEL.load(BASELINE_RESNET18_CIFAR10)
+    MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
+    MODEL.load("Change here", BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -50,7 +48,7 @@ def initialize_training_context():
     lr_weights_finetuning = 0.0001
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params, _ = get_model_flow_params_and_weights_params(MODEL)
+    weight_bias_params, flow_params = get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
     optimizer_flow_mask = torch.optim.SGD(lr=lr_flow_params, params=flow_params, weight_decay=0, momentum=0.9)
 
@@ -74,7 +72,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: Resnet18Cifar10
+MODEL: Resnet50Cifar10
 training_context: TrainingContextSparsityCurve
 dataset_context: DatasetSmallContext
 stages_context: StagesContextSparsityCurve
@@ -91,16 +89,16 @@ def _init_data_arrays():
     global sparsity_levels_recording
     sparsity_levels_recording = []
 
-def run_cifar10_resnet18_sgd_sparsity_curve(arg:float, power_start:int, power_end:int):
+def run_cifar10_resnet50_sgd_sparsity_curve(arg:float, power_start:int, power_end:int):
     global PRESSURE, sparsity_levels_recording
     for pw in range(power_start, power_end+1):
         PRESSURE = arg ** pw
         _init_data_arrays()
-        _run_cifar10_resnet18_sgd()
-        save_array_experiment(f"cifar10_resnet18_sgd_{PRESSURE}.json", sparsity_levels_recording)
+        _run_cifar10_resnet50_sgd()
+        save_array_experiment(f"cifar10_resnet50_sgd_{PRESSURE}.json", sparsity_levels_recording)
 
 
-def _run_cifar10_resnet18_sgd():
+def _run_cifar10_resnet50_sgd():
     global MODEL, epoch_global, sparsity_levels_recording
     configs_layers_initialization_all_kaiming_sqrt5()
     config_sgd_setup()
@@ -128,5 +126,5 @@ def _run_cifar10_resnet18_sgd():
             dataset_context=dataset_context,
         )
 
-        stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
+        stages_context.update_context(epoch_global, get_custom_model_sparsity_percent(MODEL))
         stages_context.step(training_context)

@@ -1,24 +1,23 @@
 import torch
-from src.vgg19_cifar100.vgg19_cifar100_class import VGG19Cifar100
-from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline
+from src.vgg19_cifar10.vgg19_cifar10_class import VGG19Cifar10
+from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline, \
+    train_mixed_baseline_debug
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
     PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
-from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs, \
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
+from src.infrastructure.stages_context.stages_context import \
     StagesContextBaselineTrain, StagesContextBaselineTrainArgs
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
-    TrainingContextPrunedTrainArgs, TrainingContextBaselineTrain, TrainingContextBaselineTrainArgs
+from src.infrastructure.training_context.training_context import \
+    TrainingContextBaselineTrain, TrainingContextBaselineTrainArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
-from src.infrastructure.others import get_device, get_model_sparsity_percent, get_random_id
-from src.resnet18_cifar10.resnet18_cifar10_class import Resnet18Cifar10
-from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-from src.infrastructure.schedulers import PressureScheduler
+from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, get_random_id
 from src.infrastructure.training_common import get_model_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
+
 
 def initialize_model():
     global MODEL
@@ -27,7 +26,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
 
-    MODEL = VGG19Cifar100(configs_network_masks).to(get_device())
+    MODEL = VGG19Cifar10(configs_network_masks).to(get_device())
 
 def get_epoch() -> int:
     global epoch_global
@@ -47,7 +46,7 @@ def initalize_training_display():
 
 def initialize_dataset_context():
     global dataset_context
-    dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR100, configs=dataset_context_configs_cifar100())
+    dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_cifar10())
 
 
 def initialize_training_context():
@@ -76,7 +75,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: VGG19Cifar100
+MODEL: VGG19Cifar10
 training_context: TrainingContextBaselineTrain
 dataset_context: DatasetSmallContext
 stages_context: StagesContextBaselineTrain
@@ -84,14 +83,14 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-def train_vgg19_cifar100_from_scratch_multistep():
+def train_vgg19_cifar10_from_scratch_multistep():
     global MODEL, epoch_global
     configs_layers_initialization_all_kaiming_relu()
 
     initialize_model()
     initialize_training_context()
     initialize_stages_context()
-    wandb_initalize(experiment=Experiment.VGG19CIFAR100, type=Tags.BASELINE)
+    wandb_initalize(experiment=Experiment.VGG19CIFAR10, type=Tags.BASELINE)
     initialize_dataset_context()
     initalize_training_display()
 
@@ -115,8 +114,8 @@ def train_vgg19_cifar100_from_scratch_multistep():
         stages_context.step(training_context)
 
     MODEL.save(
-        name=f"vgg19_cifar100_accuracy{acc}%_{get_random_id()}",
-        folder=BASELINE_MODELS_PATH
+        name= f"vgg19_cifar10_accuracy{acc}%_{get_random_id()}",
+        folder= BASELINE_MODELS_PATH
     )
 
     print("Training complete")

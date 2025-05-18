@@ -5,7 +5,7 @@ from src.resnet18_cifar10.resnet18_cifar10_attributes import RESNET18_CIFAR10_ST
 from src.common_files_experiments.test_existing_model import test_existing_model
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, \
     dataset_context_configs_cifar10, dataset_context_configs_mnist
-from src.infrastructure.others import prefix_path_with_root, get_device, get_sparsity
+from src.infrastructure.others import prefix_path_with_root, get_device, get_raw_model_sparsity_percent
 from torch import nn
 
 from src.mnist_lenet300.model_attributes import LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
@@ -40,7 +40,7 @@ def run_mnist_lenet300_existing_model(model_name:str, folder: str):
 
     model.load_state_dict(state_dict)
     model = model.to(get_device())
-    get_sparsity(model, LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING)
+    get_raw_model_sparsity_percent(model, LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING)
 
     dataset_context = DatasetSmallContext(dataset=DatasetSmallType.MNIST, configs=dataset_context_configs_mnist())
     num_epochs = 10

@@ -3,20 +3,20 @@ from src.common_files_experiments.train_pruned_commons import train_mixed_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
-    PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
+    PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
-from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
-    TrainingContextPrunedTrainArgs
+from src.infrastructure.stages_context.stages_context import \
+    StagesContextPrunedTrain, StagesContextPrunedTrainArgs
+from src.infrastructure.training_context.training_context import  \
+    TrainingContextPrunedTrain, TrainingContextPrunedTrainArgs
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
-from src.infrastructure.others import get_device, get_model_sparsity_percent, get_random_id
+from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, get_random_id, TrainingConfigsWithResume
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, CosineAnnealingWarmRestarts
-from src.infrastructure.schedulers import PressureScheduler
+from src.infrastructure.schedulers import PressureSchedulerPolicy1, PruningSchedulerOld, PruningSchedulerPolicy2Curve2
 from src.infrastructure.training_common import get_model_flow_params_and_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from src.resnet50_cifar100.resnet50_cifar100_class import Resnet50Cifar100
-
 
 def initialize_model():
     global MODEL
@@ -55,7 +55,7 @@ def initialize_training_context():
     lr_weights_finetuning = training_configs["start_lr_pruning"]
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params, _ = get_model_flow_params_and_weights_params(MODEL)
+    weight_bias_params, flow_params  = get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=training_configs["weight_decay"])
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
 
@@ -76,7 +76,7 @@ def initialize_stages_context():
     regrowing_end = training_configs["regrowing_end"]
     regrowth_stage_length = regrowing_end - pruning_end
 
-    pruning_scheduler = PressureScheduler(pressure_exponent_constant=1.5, sparsity_target=training_configs["target_sparsity"], epochs_target=pruning_end, step_size=0.2)
+    pruning_scheduler = PressureSchedulerPolicy1(pressure_exponent_constant=1.5, sparsity_target=training_configs["target_sparsity"], epochs_target=pruning_end, step_size=0.2)
     scheduler_decay_after_pruning = training_configs["lr_flow_params_decay_regrowing"]
 
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=training_configs["end_lr_pruning"])
@@ -103,24 +103,12 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-training_configs = {
-    "pruning_end":0,
-    "regrowing_end":0,
-    "target_sparsity": 100,
-    "lr_flow_params_decay_regrowing": 0.8,
-    "start_lr_pruning": 1e-2,
-    "end_lr_pruning": 1e-2/5,
-    "reset_lr_pruning": 1e-2/10,
-    "end_lr_regrowth": 1e-4,
-    "reset_lr_flow_params_scaler": 0,
-    "notes": '''
-    testing overnight
-    '''
-}
+training_configs: TrainingConfigsWithResume
 
-def train_resnet50_cifar100_sparse_model(sparsity_configs_aux):
+def train_resnet50_cifar100_sparse_model(sparsity_configs_aux: TrainingConfigsWithResume):
     global training_configs
     sparsity_configs = sparsity_configs_aux
+    training_configs = sparsity_configs_aux
     global MODEL, epoch_global
 
     configs_layers_initialization_all_kaiming_relu()
@@ -136,11 +124,6 @@ def train_resnet50_cifar100_sparse_model(sparsity_configs_aux):
     acc = 0
     id = get_random_id()
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
-        if epoch == 1:
-            MODEL.save(
-                name= f"resnet50_cifar100_before_sparsity_id{id}",
-                folder= PRUNED_MODELS_PATH
-            )
         epoch_global = epoch
         dataset_context.init_data_split()
         train_mixed_pruned(
@@ -155,11 +138,11 @@ def train_resnet50_cifar100_sparse_model(sparsity_configs_aux):
             epoch=get_epoch()
         )
 
-        stages_context.update_context(epoch_global, get_model_sparsity_percent(MODEL))
+        stages_context.update_context(epoch_global, get_custom_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
 
     MODEL.save(
-        name= f"resnet50_cifar100_sparsity{get_model_sparsity_percent(MODEL)}_acc{acc}_id{id}",
+        name= f"resnet50_cifar100_sparsity{get_custom_model_sparsity_percent(MODEL)}_acc{acc}_id{id}",
         folder= PRUNED_MODELS_PATH
     )
     print("Training complete")

@@ -1,6 +1,5 @@
 import torch
 from typing import List
-
 from src.common_files_experiments.load_save import save_model_weights, load_model_weights
 from src.infrastructure.layers import ConfigsNetworkMasksImportance, LayerLinearMaskImportance, ConfigsLayerLinear, \
     get_flow_params_loss, get_layer_composite_flow_params_statistics, \
@@ -10,9 +9,9 @@ from src.mnist_lenet300.model_attributes import LENET300_MNIST_REGISTERED_LAYERS
     LENET300_CUSTOM_TO_STANDARD_LAYER_NAME_MAPPING, LENET300_STANDARD_TO_CUSTOM_LAYER_NAME_MAPPING
 from src.mnist_lenet300.model_functions import forward_pass_lenet300
 
-class ModelLenet300(LayerComposite):
+class ModelLenet300Bottleneck(LayerComposite):
     def __init__(self, config_network_mask: ConfigsNetworkMasksImportance):
-        super(ModelLenet300, self).__init__()
+        super(ModelLenet300Bottleneck, self).__init__()
         self.registered_layers = []
 
         for layer_attr in LENET300_MNIST_REGISTERED_LAYERS_ATTRIBUTES:
@@ -32,11 +31,13 @@ class ModelLenet300(LayerComposite):
                 raise ValueError(f"Unsupported registered layer type: {type_}")
 
             setattr(self, name, layer)
-            self.registered_layers.append(layer)
+            if name == "fc3":
+                self.registered_layers.append(layer)
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_flow_params_loss(self)
-        return sigmoid / total
+        # act / total params, bottleneck reduces total but we need to use the same divider
+        return sigmoid / 266200
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)

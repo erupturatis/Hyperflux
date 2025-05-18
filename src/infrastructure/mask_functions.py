@@ -14,6 +14,6 @@ class MaskPruningFunctionConstant(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         mask, _ = ctx.saved_tensors
-        grad_mask_param = grad_output * 1 * GRADIENT_IDENTITY_SCALER
+        grad_mask_param = grad_output * GRADIENT_IDENTITY_SCALER
 
         return grad_mask_param

@@ -3,9 +3,10 @@ import time
 import torch.nn as nn
 from src.infrastructure.dataset_context.dataset_context import DatasetContextAbstract
 from src.infrastructure.layers import LayerComposite, get_accumulated_flops
-from src.infrastructure.others import get_model_sparsity_percent
+from src.infrastructure.others import get_custom_model_sparsity_percent, get_device
 from torch.amp import GradScaler, autocast
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain
+from src.infrastructure.training_context.training_context import  \
+    TrainingContextPrunedTrain
 from src.infrastructure.training_display import TrainingDisplay
 from src.infrastructure.wandb_functions import wandb_snapshot
 
@@ -154,7 +155,7 @@ def test_pruned_imagenet(model: nn.Module, model_module: any, dataset_context: D
     test_loss /= total_data_len
     accuracy = 100.0 * correct / total_data_len
 
-    remain_percent = get_model_sparsity_percent(model_module)
+    remain_percent = get_custom_model_sparsity_percent(model_module)
 
     print(
         f"\nTest set: Average loss: {test_loss:.4f}, "
@@ -168,6 +169,7 @@ def test_pruned_imagenet(model: nn.Module, model_module: any, dataset_context: D
 
 def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
     model.train()
+    model.to(get_device())
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer_weights = training_context.get_optimizer_weights()
@@ -199,7 +201,7 @@ def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbs
     print("PERCENTAGE", acc["counter_sparse"] / acc["counter_dense"] * 100 )
 
 
-def test_pruned(model: nn.Module, dataset_context: DatasetContextAbstract, epoch: int):
+def test_pruned(model: nn.Module, dataset_context: DatasetContextAbstract, epoch: int, aux = None):
     model.eval()
     criterion = nn.CrossEntropyLoss(reduction="sum")
 
@@ -219,7 +221,7 @@ def test_pruned(model: nn.Module, dataset_context: DatasetContextAbstract, epoch
     test_loss /= total_data_len
     accuracy = 100.0 * correct / total_data_len
 
-    remain_percent = get_model_sparsity_percent(model)
+    remain_percent = get_custom_model_sparsity_percent(model)
 
     print(
         f"\nTest set: Average loss: {test_loss:.4f}, "
@@ -228,5 +230,5 @@ def test_pruned(model: nn.Module, dataset_context: DatasetContextAbstract, epoch
     print(
         f"Remaining parameters: {remain_percent:.2f}%"
     )
-    wandb_snapshot(epoch=epoch, accuracy=accuracy, test_loss=test_loss, sparsity=remain_percent)
+    wandb_snapshot(epoch=epoch, accuracy=accuracy, test_loss=test_loss, sparsity=100-remain_percent, others=aux)
     return accuracy

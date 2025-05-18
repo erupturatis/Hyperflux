@@ -5,12 +5,12 @@ from src.infrastructure.configs_general import VERBOSE_SCHEDULER
 from src.infrastructure.constants import SCHEDULER_MESSAGE
 from src.infrastructure.others import prefix_path_with_root
 
-class PressureScheduler:
-    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float = 0.3):
+class PressureSchedulerPolicy1:
+    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float = 0.3, aggresivity: int = 6):
         self.gamma = 0
 
         self.step_size = step_size
-        self.pruning_target = sparsity_target
+        self.remaining_params_target = 100-sparsity_target
         self.epochs_target = epochs_target
         self.sparsity_target = sparsity_target
         self.recorded_states = []
@@ -20,10 +20,10 @@ class PressureScheduler:
 
         # Empirically found formulas, work well for any setup
         late_aggressivity = epochs_target / 2
-        aggressivity_transition = 6 / epochs_target
+        aggressivity_transition = aggresivity / epochs_target
 
         self.trajectory_calculator = TrajectoryCalculator(
-            pruning_target=self.pruning_target,
+            pruning_target=self.remaining_params_target,
             epochs_target=self.epochs_target,
             late_aggresivity=late_aggressivity,
             aggresivity_transition=aggressivity_transition
@@ -34,6 +34,9 @@ class PressureScheduler:
             return self.trajectory_calculator.get_expected_pruning_at_epoch(epoch)
 
     def step(self, epoch: int, current_sparsity: float) -> None:
+        if epoch >= self.epochs_target:
+            return
+
         expected_sparsity = self._get_expected_sparsity(epoch)
 
         if VERBOSE_SCHEDULER:
@@ -50,6 +53,7 @@ class PressureScheduler:
         else:
             # Ease up presssure
             self.gamma -= self.step_size + self.inertia_negative
+            # self.gamma /= 2
             self.inertia_negative += self.step_size/4
             self.inertia_positive = 0
 
@@ -110,6 +114,7 @@ def expected_pruning(epochs_target, start_decrease, end_decrease, aggressivity_t
 
 class TrajectoryCalculator:
     def __init__(self, pruning_target, epochs_target, late_aggresivity, aggresivity_transition):
+
         """
         Initializes the TrajectoryCalculator with the desired pruning parameters.
         Parameters:
@@ -191,3 +196,165 @@ class TrajectoryCalculator:
             late_aggressivity=self.late_aggressivity
         )
 
+
+
+class PruningSchedulerOld:
+    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float):
+        self.baseline = 0
+        self.pressure_exponent_constant = pressure_exponent_constant
+        self.pruning_target = 100 - sparsity_target
+        print("SELFT PRUNING target and sparsity ", self.pruning_target, sparsity_target)
+        self.epochs_target = epochs_target
+        self.streak = 0
+        self.step_size = step_size
+
+        self.recorded_states = []
+
+    def _get_previous_decrease(self) -> float:
+        """
+        Get the percentage decrease from the previous state to the current state
+        """
+        if len(self.recorded_states) < 2:
+            return -1
+
+        if len(self.recorded_states) == 2:
+            return self.recorded_states[-1] / self.recorded_states[-2]
+
+        return ((self.recorded_states[-1] / self.recorded_states[-2]) + (self.recorded_states[-2] / self.recorded_states[-3]))/ 2
+
+    def _get_expected_percentage_decrease(self) -> float:
+        """
+        current * (percentage ** remaining_epochs) = desired
+        percentage = (desired / current) ** (1 / remaining_epochs)
+        """
+        remaining_epochs = self.epochs_target - len(self.recorded_states)
+        current_parameters = self.recorded_states[-1]
+        return (self.pruning_target / current_parameters) ** (1 / remaining_epochs)
+
+
+    def get_remaining_epochs(self) -> int:
+        return self.epochs_target - len(self.recorded_states)
+
+    def step(self, current_epoch:int, current_sparsity: float) -> None:
+        """
+        Attempts to predict the final number of weights that will remain after the pruning process, given current pace
+
+        Formula for decreases
+        params * decrease = pruned params
+        So 0.8 is more aggressive than 0.9
+        """
+        self.recorded_states.append(current_sparsity)
+
+        if self.get_remaining_epochs() <= 0:
+            self.baseline = 0
+            return None
+
+        current_decrease = self._get_previous_decrease()
+        if current_decrease == -1:
+            print("Not enough data to predict")
+            return None
+
+        expected_decrease = self._get_expected_percentage_decrease()
+        remaining_epochs = self.epochs_target - len(self.recorded_states)
+
+        print(f"Current decrease: {current_decrease * 100:.2f}%, Expected decrease: {expected_decrease * 100:.2f}%")
+        if current_decrease > expected_decrease:
+            print("Baseline increased !!")
+            # expected deviation
+            self.baseline += self.step_size + self.streak
+            self.streak += self.step_size * 0.1
+        else:
+            print("Baseline decreased !!")
+            self.baseline -= self.step_size/2
+            self.streak = 0
+
+    def get_multiplier(self) -> int:
+        return self.baseline ** self.pressure_exponent_constant
+
+class PruningSchedulerPolicy2Curve2:
+    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float):
+        self.baseline = 0
+        self.pressure_exponent_constant = pressure_exponent_constant
+        self.pruning_target = 100 - sparsity_target
+        self.epochs_target = epochs_target
+        self.streak = 0
+        self.step_size = step_size
+
+        self.recorded_states = []
+
+    def _get_previous_decrease(self) -> float:
+        """
+        Get the percentage decrease from the previous state to the current state
+        """
+        if len(self.recorded_states) < 2:
+            return -1
+
+        if len(self.recorded_states) == 2:
+            return self.recorded_states[-1] / self.recorded_states[-2]
+
+        return ((self.recorded_states[-1] / self.recorded_states[-2]) + (self.recorded_states[-2] / self.recorded_states[-3]))/ 2
+
+    def _get_expected_percentage_decrease(self) -> float:
+        remaining_epochs = self.epochs_target - len(self.recorded_states)
+        if remaining_epochs < 1:
+            return 1
+
+        current_parameters = self.recorded_states[-1]
+        target_parameters = self.pruning_target
+
+        late_aggressivity = remaining_epochs / 2
+        aggresivity = 6
+        aggressivity_transition = aggresivity / remaining_epochs
+
+        target_relative_to_current = target_parameters / current_parameters*100
+        new_trajectory = TrajectoryCalculator(
+            pruning_target=target_relative_to_current,
+            epochs_target=remaining_epochs,
+            late_aggresivity=late_aggressivity,
+            aggresivity_transition=aggressivity_transition
+        )
+
+        expected_percentage_decrease = new_trajectory.get_expected_pruning_at_epoch(1) / 100
+        return expected_percentage_decrease
+
+
+    def get_remaining_epochs(self) -> int:
+        return self.epochs_target - len(self.recorded_states)
+
+    def step(self, current_epoch:int, current_sparsity: float) -> None:
+        """
+        Attempts to predict the final number of weights that will remain after the pruning process, given current pace
+
+        Formula for decreases
+        params * decrease = pruned params
+        So 0.8 is more aggressive than 0.9
+        """
+        self.recorded_states.append(current_sparsity)
+
+        if self.get_remaining_epochs() <= 0:
+            self.baseline = 0
+            return None
+
+        current_decrease = self._get_previous_decrease()
+        if current_decrease == -1:
+            print("Not enough data to predict")
+            return None
+
+        expected_decrease = self._get_expected_percentage_decrease()
+        remaining_epochs = self.epochs_target - len(self.recorded_states)
+
+        print(f"Current decrease: {current_decrease * 100:.2f}%, Expected decrease: {expected_decrease * 100:.2f}%")
+        if current_decrease > expected_decrease:
+            print("Baseline increased !!")
+            # expected deviation
+            self.baseline += self.step_size + self.streak
+            self.streak += self.step_size * 0.1
+        else:
+            print("Baseline decreased !!")
+            self.baseline -= self.step_size/2
+            self.streak = 0
+            if self.baseline < 0:
+                self.baseline =0
+
+    def get_multiplier(self) -> int:
+        return self.baseline ** self.pressure_exponent_constant

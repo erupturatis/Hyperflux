@@ -12,18 +12,10 @@ FULLY_CONNECTED_LAYER = 'fully_connected'
 
 PRUNED_MODELS_PATH = '/networks_pruned'
 BASELINE_MODELS_PATH = '/networks_baseline'
+IMAGENET_PATH = "/todo"
 
 DATA_PATH = '/data'
-IMAGENET_PATH = "/home/developer/workspace/not_ok/data/imagenet"
 EXPERIMENTS_RESULTS_PATH = '/experiments_outputs'
-
-BASELINE_RESNET50_IMAGENET = "baseline_imagenet.pth"
-BASELINE_RESNET50_CIFAR10 = "todo"
-BASELINE_VGG19_CIFAR10 = "Todo"
-BASELINE_VGG19_CIFAR100 = "Todo"
-BASELINE_RESNET18_CIFAR10 = "resnet18_cifar10_trained_94.75%"
-BASELINE_RESNET18_CIFAR100 = "resnet18_cifar100_trained_94.75%"
-BASELINE_LENET300_MNIST = "lenet300_mnist_98.3%"
 
 LR_FLOW_PARAMS = {
     "value": 0.0
@@ -34,6 +26,8 @@ LR_FLOW_PARAMS_RESET = {
 FLOW_PARAMS_INITIALIZATION = {
     "value": 0.0
 }
+
+INITIAL_LR = 0.1
 
 def config_sgd_setup():
     global LR_FLOW_PARAMS, LR_FLOW_PARAMS_RESET, LR_FLOW_PARAMS_ADAM_RESET, LR_FLOW_PARAMS_ADAM, FLOW_PARAMS_INITIALIZATION

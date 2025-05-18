@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Tuple
 import kornia.augmentation as K
 from abc import ABC, abstractmethod
-
 from src.infrastructure.configs_general import train_validation_split
 from src.infrastructure.constants import DATA_PATH, IMAGENET_PATH
 from src.infrastructure.dataset_context.data_preprocessing import cifar10_preprocess, mnist_preprocess, \

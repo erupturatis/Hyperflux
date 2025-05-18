@@ -5,14 +5,13 @@ import os
 import uuid
 from src.infrastructure.constants import EXPERIMENTS_RESULTS_PATH
 
-
 def get_random_id():
     random_id = str(uuid.uuid4())
     return random_id
 
 def get_device():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = torch.device("mps" if torch.mps.is_available() else "cpu")
+    # device = torch.device("mps" if torch.mps.is_available() else "cpu")
     return device
 
 def get_root_folder() -> str:
@@ -39,14 +38,14 @@ def save_array_experiment(filename, arr):
         json.dump(arr, file)
 
 
-def get_model_sparsity_percent(model) -> float:
-    total, remaining = model.get_flow_params_statistics_abstract()
+def get_custom_model_sparsity_percent(model) -> float:
+    total, remaining = model.get_parameters_pruning_statistics()
     percent = remaining / total * 100
     return round_float(percent.item())
 
 from torch import nn
 
-def get_sparsity(model: nn.Module, standard_to_custom_attributes: Dict):
+def get_raw_model_sparsity_percent(model: nn.Module, standard_to_custom_attributes: Dict):
     total_weights = 0
     nonzero_weights = 0
 
@@ -71,3 +70,19 @@ def get_sparsity(model: nn.Module, standard_to_custom_attributes: Dict):
     print(f"Sparsity (% of non-zero weights): {sparsity:.2f}%")
 
     return sparsity
+
+from typing import TypedDict
+
+class TrainingConfigsWithResume(TypedDict):
+    pruning_end: int
+    regrowing_end: int
+    target_sparsity: float
+    lr_flow_params_decay_regrowing: float
+    start_lr_pruning: float
+    end_lr_pruning: float
+    reset_lr_pruning: float
+    end_lr_regrowth: float
+    reset_lr_flow_params_scaler: float
+    weight_decay: float
+    resume: str
+    notes: str

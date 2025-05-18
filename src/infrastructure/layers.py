@@ -15,7 +15,6 @@ import math
 from src.infrastructure.constants import WEIGHTS_ATTR, BIAS_ATTR, WEIGHTS_PRUNING_ATTR,  \
     WEIGHTS_BASE_ATTR, get_flow_params_init
 
-
 class ConfigsNetworkMasksImportance(TypedDict):
     mask_pruning_enabled: bool
     weights_training_enabled: bool
