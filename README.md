@@ -41,13 +41,13 @@ python entry.py \
 | `--weight_decay`                   | float   | No       | N/A                                        | Weight decay parameter. |
 
 
-You can either use one of the stable versions in our code for training the network or provide you own hyperparameters
+You can either use one of the stable versions in our code for training the network or provide your own hyperparameters
 For reproducing the results in the tables,
-we recommend running each network with stable_version2, although stable_version1 should work too. Make sure to
+we recommend running each network with stable_version2, although stable_version1 works too. Make sure to
 have the proper baselines preloaded
 
 
-**Note that calculations in the method adjust the input sparsity such that after regrowth, it will reach the target sparsity. So you will reach sparsities lower than mentioed in the CLI**
+**Note that calculations in the method adjust the input sparsity such that after regrowth, it will reach the target sparsity. So you will initally reach sparsities lower than mentioed in the CLI**
 
 To run ResNet50 CIFAR10 as an example we can use the following.
 ```sh
