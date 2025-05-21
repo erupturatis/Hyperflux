@@ -8,7 +8,7 @@ from src.common_files_experiments.train_pruned_commons import train_mixed_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
-    PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH, BASELINE_VGG19_CIFAR100
+    PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
@@ -20,14 +20,14 @@ from src.infrastructure.training_common import get_model_flow_params_and_weights
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 
 def initialize_model():
-    global MODEL
+    global MODEL, training_configs
     configs_network_masks = ConfigsNetworkMasksImportance(
         mask_pruning_enabled=True,
         weights_training_enabled=True,
     )
     MODEL = VGG19Cifar100(configs_network_masks).to(get_device())
-    if "resume" in configs_network_masks:
-        MODEL.load(configs_network_masks["resume"], BASELINE_MODELS_PATH)
+    if "resume" in training_configs:
+        MODEL.load(training_configs["resume"], BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -109,6 +109,7 @@ training_configs: TrainingConfigsWithResume
 def train_vgg19_cifar100_sparse_model(sparsity_configs_aux: TrainingConfigsWithResume):
     global MODEL, epoch_global, training_configs
     sparsity_configs = sparsity_configs_aux
+    training_configs = sparsity_configs_aux
 
     configs_layers_initialization_all_kaiming_relu()
     config_adam_setup()

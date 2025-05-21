@@ -1,7 +1,6 @@
 matplotlib~=3.9.2
 scikit-learn
 opencv-python
-# torch~=2.5.0+cu124
 wandb~=0.18.5
 kornia~=0.7.4
 datasets~=3.2.0

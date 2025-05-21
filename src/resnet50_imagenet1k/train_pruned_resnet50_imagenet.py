@@ -16,7 +16,8 @@ from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, TrainingConfigsWithResume
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.schedulers import PressureSchedulerPolicy1
-from src.infrastructure.training_common import get_model_flow_params_and_weights_params
+from src.infrastructure.training_common import get_model_flow_params_and_weights_params, \
+    get_model_flow_params_and_weights_params_bn_separate
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from torch import nn
 
@@ -71,9 +72,18 @@ def initialize_training_context():
     lr_weights_finetuning = training_configs["start_lr_pruning"]
     lr_flow_params = get_lr_flow_params()
 
-    weight_bias_params, flow_params = get_model_flow_params_and_weights_params(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=training_configs["weight_decay"])
+    weight_params, flow_params, no_decay_params = get_model_flow_params_and_weights_params_bn_separate(MODEL)
+    # optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=training_configs["weight_decay"])
+    optimizer_weights = torch.optim.SGD(
+        [
+            { "params": weight_params,     "weight_decay": training_configs["weight_decay"]},  # conv/linear weights
+            { "params": no_decay_params,   "weight_decay": 0.0          },  # biases & norm‑affines
+        ],
+        lr=lr_weights_finetuning,
+        momentum=0.9,
+    )
     optimizer_flow_mask = torch.optim.Adam(lr=lr_flow_params, params=flow_params, weight_decay=0)
+
 
     training_context = TrainingContextPrunedTrain(
         TrainingContextPrunedTrainArgs(

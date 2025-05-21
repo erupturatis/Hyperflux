@@ -4,15 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
 def sparsity_per_layer(state_dict_path):
-    """
-    Extracts sparsity information from a PyTorch state dictionary.
-
-    Args:
-        state_dict_path (str): Path to the state dictionary file.
-
-    Returns:
-        tuple: Contains lists of total parameters, remaining parameters, and layer names.
-    """
     stateDict = torch.load(state_dict_path)
     layer_total = []
     layer_remaining = []
@@ -91,14 +82,5 @@ def plot_histogram_sparsity(sparsity_percentage, layers):
     plt.tight_layout()
 
     plt.legend()
-    #plt.savefig("sparsity_per_layer_vgg19_cifar10_sparsity0.5168_acc93.45.pdf",format='pdf')
     plt.show()
 
-if __name__ == "__main__":
-    # "Hyperflows\networks_pruned\resnet50_cifar10_sparsity0.2502_acc92.81"
-    #"C:\Users\Statia 1\Desktop\AlexoaieAntonio\xai_paper_v9\Hyperflows\networks_pruned\resnet50_cifar100_sparsity1.903_acc75.67"
-    state_dict_path = r"Hyperflows\networks_pruned\vgg19_cifar10_sparsity0.5168_acc93.45"
-    layer_total, layer_remaining, layers = sparsity_per_layer(state_dict_path)
-    sparsity_percentage = [ ((rem / total)) * 100 for rem, total in zip(layer_remaining, layer_total) ]
-   
-    plot_histogram_sparsity(sparsity_percentage, layers)
