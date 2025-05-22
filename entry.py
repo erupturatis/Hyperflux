@@ -74,14 +74,6 @@ def resnet50_imagenet_90_sparsity_experiment():
     train_resnet50_imagenet_sparse_model(defaults)
 
 def resnet50_cifar100_sparsity_experiment(final_sparsity: float):
-    print(f"Running ResNet50 CIFAR-100 Sparsity Experiment for {final_sparsity}% final sparsity...")
-    # This calculation means 'final_sparsity' is the percentage of weights removed.
-    # So, (100 - final_sparsity) is the percentage of weights remaining.
-    # The term (100 - final_sparsity) * 11.5/13 is the percentage of weights remaining BEFORE regrowth.
-    # target_sparsity for the algorithm is 100 - (percentage of weights remaining BEFORE regrowth).
-    calculated_target_sparsity = 100 - (100 - final_sparsity) * (11.5 / 13.0)
-    print(f"Input final_sparsity: {final_sparsity}%. Calculated target_sparsity for pruning phase: {calculated_target_sparsity:.2f}%")
-
     defaults: TrainingConfigsWithResume = {
         "pruning_end": 100,
         "regrowing_end": 160,
@@ -90,19 +82,15 @@ def resnet50_cifar100_sparsity_experiment(final_sparsity: float):
         "end_lr_pruning": INITIAL_LR / 30,
         "reset_lr_pruning": INITIAL_LR / 100,
         "end_lr_regrowth": INITIAL_LR / 1000,
-        "reset_lr_flow_params_scaler": 5,
+        "reset_lr_flow_params_scaler": 1,
         "weight_decay": 5e-4,
-        "target_sparsity": calculated_target_sparsity,
+        "target_sparsity": final_sparsity,
         "resume": "resnet50_cifar100_accuracy78.54%", # Ensure this baseline file exists
         "notes": f"ResNet50 CIFAR-100 {final_sparsity}% final sparsity"
     }
     train_resnet50_cifar100_sparse_model(defaults)
 
 def resnet50_cifar10_sparsity_experiment(final_sparsity: float):
-    print(f"Running ResNet50 CIFAR-10 Sparsity Experiment for {final_sparsity}% final sparsity...")
-    calculated_target_sparsity = 100 - (100 - final_sparsity) * (11.5 / 13.0)
-    print(f"Input final_sparsity: {final_sparsity}%. Calculated target_sparsity for pruning phase: {calculated_target_sparsity:.2f}%")
-
     defaults: TrainingConfigsWithResume = {
         "pruning_end": 100,
         "regrowing_end": 160,
@@ -111,19 +99,15 @@ def resnet50_cifar10_sparsity_experiment(final_sparsity: float):
         "end_lr_pruning": INITIAL_LR / 30,
         "reset_lr_pruning": INITIAL_LR / 100,
         "end_lr_regrowth": INITIAL_LR / 1000,
-        "reset_lr_flow_params_scaler": 5,
+        "reset_lr_flow_params_scaler": 1,
         "weight_decay": 5e-4,
-        "target_sparsity": calculated_target_sparsity,
+        "target_sparsity": final_sparsity,
         "resume": "resnet50_cifar10_accuracy94.64%", # Ensure this baseline file exists
         "notes": f"ResNet50 CIFAR-10 {final_sparsity}% final sparsity"
     }
     train_resnet50_cifar10_sparse_model(defaults)
 
 def vgg19_cifar10_sparsity_experiment(final_sparsity: float):
-    print(f"Running VGG19 CIFAR-10 Sparsity Experiment for {final_sparsity}% final sparsity...")
-    calculated_target_sparsity = 100 - (100 - final_sparsity) * (11.5 / 13.0)
-    print(f"Input final_sparsity: {final_sparsity}%. Calculated target_sparsity for pruning phase: {calculated_target_sparsity:.2f}%")
-
     defaults: TrainingConfigsWithResume = {
         "pruning_end": 100,
         "regrowing_end": 160,
@@ -132,19 +116,15 @@ def vgg19_cifar10_sparsity_experiment(final_sparsity: float):
         "end_lr_pruning": INITIAL_LR / 30,
         "reset_lr_pruning": INITIAL_LR / 100,
         "end_lr_regrowth": INITIAL_LR / 1000,
-        "reset_lr_flow_params_scaler": 5,
+        "reset_lr_flow_params_scaler": 1,
         "weight_decay": 5e-4,
-        "target_sparsity": calculated_target_sparsity,
+        "target_sparsity": final_sparsity,
         "resume": "vgg19_cifar10_accuracy93.5%", # Ensure this baseline file exists
         "notes": f"VGG19 CIFAR-10 {final_sparsity}% final sparsity"
     }
     train_vgg19_cifar10_sparse_model(defaults)
 
 def vgg19_cifar100_sparsity_experiment(final_sparsity: float):
-    print(f"Running VGG19 CIFAR-100 Sparsity Experiment for {final_sparsity}% final sparsity...")
-    calculated_target_sparsity = 100 - (100 - final_sparsity) * (11.5 / 13.0)
-    print(f"Input final_sparsity: {final_sparsity}%. Calculated target_sparsity for pruning phase: {calculated_target_sparsity:.2f}%")
-
     defaults: TrainingConfigsWithResume = {
         "pruning_end": 100,
         "regrowing_end": 160,
@@ -155,7 +135,7 @@ def vgg19_cifar100_sparsity_experiment(final_sparsity: float):
         "end_lr_regrowth": INITIAL_LR / 1000,
         "reset_lr_flow_params_scaler": 5,
         "weight_decay": 5e-4,
-        "target_sparsity": calculated_target_sparsity,
+        "target_sparsity": final_sparsity,
         "resume": "vgg19_cifar100_accuracy73.51%", # Ensure this baseline file exists
         "notes": f"VGG19 CIFAR-100 {final_sparsity}% final sparsity"
     }
