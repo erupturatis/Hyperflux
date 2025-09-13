@@ -12,7 +12,7 @@ from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDis
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, TrainingConfigsWithResume
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, CosineAnnealingWarmRestarts
-from src.infrastructure.schedulers import PressureSchedulerPolicy1
+from src.infrastructure.schedulers import PressureSchedulerPolicyNeuralPruningLaw, get_populated_values, PressureSchedulerPolicy1
 from src.infrastructure.training_common import get_model_flow_params_and_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
@@ -77,7 +77,7 @@ def initialize_stages_context():
     regrowing_end = training_configs["regrowing_end"]
     regrowth_stage_length = regrowing_end - pruning_end
 
-    pruning_scheduler = PressureSchedulerPolicy1(pressure_exponent_constant=1.5, sparsity_target=training_configs["target_sparsity"], epochs_target=pruning_end, step_size=0.2)
+    pruning_scheduler = PressureSchedulerPolicy1(pressure_exponent_constant=1.5, sparsity_target=training_configs["target_sparsity"], epochs_target=pruning_end, step_size=0.1, aggresivity=3)
     scheduler_decay_after_pruning = training_configs["lr_flow_params_decay_regrowing"]
 
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=training_configs["end_lr_pruning"])
@@ -99,14 +99,14 @@ def initialize_stages_context():
 MODEL: Resnet50Cifar10
 training_context: TrainingContextPrunedTrain
 dataset_context: DatasetSmallContext
-stages_context: StagesContextPrunedTrain
+stages_context: PressureSchedulerPolicy1
 training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
 training_configs: TrainingConfigsWithResume
 
-def train_resnet50_cifar10_sparse_model(
+def train_resnet50_cifar10_L0_cont_registering(
         sparsity_configs_aux: TrainingConfigsWithResume
 ):
     global MODEL, epoch_global, training_configs
@@ -124,9 +124,9 @@ def train_resnet50_cifar10_sparse_model(
     initalize_training_display()
 
     acc = 0
-    thresholds = []
-    remaining_params = []
-    pruned_epochs = []
+    epochs = []
+    remainings = []
+    saliencies = []
     accuracies = []
 
     for epoch in range(1, training_configs["pruning_end"] + 1):
@@ -143,9 +143,38 @@ def train_resnet50_cifar10_sparse_model(
             model=MODEL,
             epoch=get_epoch()
         )
+        stages_context.args.scheduler_gamma.acc = acc
 
         stages_context.update_context(epoch_global, get_custom_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
+
+        if epoch % 10 == 0: 
+            # values = get_populated_values()
+            # epochs = values["epochs"]
+            # remaining = values["remaining"]
+            # saliency = values["saliency"]
+            # acc = values["accuracy"]
+
+            epochs.append(epoch)
+            remainings.append(get_custom_model_sparsity_percent(MODEL))
+            saliencies.append(training_context.params.l0_gamma_scaler)
+            accuracies.append(acc)
+
+            print(epochs)
+            print(remainings)
+            print(saliencies)
+            print(accuracies)
+            pass
+  
+        # values = get_populated_values()
+        save_dict_to_csv({
+            "Saliency": saliencies, 
+            "Remaining": remainings,
+            "Accuracy": accuracies,
+            "Epochs": epochs
+        },
+        filename="L0r50c10Continuous.csv" 
+        )
 
     MODEL.save(
         name= f"resnet50_cifar10_sparsity{get_custom_model_sparsity_percent(MODEL)}_acc{acc}",

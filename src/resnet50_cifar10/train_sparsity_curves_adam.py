@@ -21,7 +21,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
-    MODEL.load("Change here", BASELINE_MODELS_PATH)
+    MODEL.load("resnet50_cifar10_accuracy94.91%", "networks_baseline")
 
 def get_epoch() -> int:
     global epoch_global
@@ -63,7 +63,7 @@ def initialize_training_context():
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = 300
+    pruning_end = 150
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
 
     stages_context = StagesContextSparsityCurve(

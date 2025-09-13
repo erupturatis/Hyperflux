@@ -4,7 +4,7 @@ from src.infrastructure.dataset_context.dataset_context import DatasetContextAbs
 from src.infrastructure.layers import LayerComposite
 from src.infrastructure.others import get_custom_model_sparsity_percent
 from torch.amp import GradScaler, autocast
-from src.infrastructure.training_context.training_context import TrainingContextPrunedTrainSetup2, \
+from src.infrastructure.training_context.training_context import \
     TrainingContextBaselineTrain
 from src.infrastructure.training_display import TrainingDisplay
 from src.infrastructure.wandb_functions import wandb_snapshot, wandb_snapshot_baseline

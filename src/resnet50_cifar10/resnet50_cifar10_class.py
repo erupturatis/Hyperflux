@@ -85,7 +85,8 @@ class Resnet50Cifar10(LayerComposite):
         return remaining / total
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
-        return get_layers_primitive(self)
+        layers: list[LayerPrimitive] = get_layers_primitive(self)
+        return layers
 
     def get_parameters_pruning_statistics(self) -> any:
         return get_layer_composite_flow_params_statistics(self)

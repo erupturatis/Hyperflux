@@ -5,6 +5,74 @@ from src.infrastructure.configs_general import VERBOSE_SCHEDULER
 from src.infrastructure.constants import SCHEDULER_MESSAGE
 from src.infrastructure.others import prefix_path_with_root
 
+populated_values = { 
+    "epochs": [], 
+    "remaining": [], 
+    "saliency": [],
+    "accuracy": []
+}
+
+def get_populated_values() -> list: 
+    return populated_values
+
+class PressureSchedulerPolicyNeuralPruningLaw:
+    def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float = 0.3, aggresivity: int = 6):
+        self.gamma = 0
+
+        self.step_size = step_size
+        self.remaining_params_target = 100-sparsity_target
+        self.epochs_target = epochs_target
+        self.sparsity_target = sparsity_target
+        self.recorded_states = []
+        self.inertia_positive = 0
+        self.inertia_negative = 0
+        self.EXP = pressure_exponent_constant
+
+        # Empirically found formulas, work well for any setup
+        late_aggressivity = epochs_target / 2
+        aggressivity_transition = aggresivity / epochs_target
+
+        self.trajectory_calculator = TrajectoryCalculator(
+            pruning_target=self.remaining_params_target,
+            epochs_target=self.epochs_target,
+            late_aggresivity=late_aggressivity,
+            aggresivity_transition=aggressivity_transition
+        )
+
+    def _get_expected_sparsity(self, epoch:int) -> float:
+        if epoch <= self.epochs_target:
+            return self.trajectory_calculator.get_expected_pruning_at_epoch(epoch)
+
+    def step(self, epoch: int, current_sparsity: float) -> None:
+        if epoch >= self.epochs_target:
+            return
+
+        expected_sparsity = self._get_expected_sparsity(epoch)
+
+        if VERBOSE_SCHEDULER:
+            print(SCHEDULER_MESSAGE + "Current params", current_sparsity , "Expected params", expected_sparsity )
+
+        if current_sparsity > expected_sparsity:
+            # network has too many params, prune more aggresive
+            populated_values["epochs"].append(epoch)
+            populated_values["remaining"].append(current_sparsity)
+            populated_values["saliency"].append(self.gamma)
+            populated_values["accuracy"].append(self.acc)
+            # expected deviation
+            self.gamma += self.step_size + self.inertia_positive
+            self.inertia_positive += self.step_size/4
+            self.inertia_negative = 0
+            if VERBOSE_SCHEDULER:
+                print(SCHEDULER_MESSAGE + "SCHEDULER::Increasing pressure ", self.gamma)
+        else:
+            self.inertia_positive = 0
+            if VERBOSE_SCHEDULER:
+                print(SCHEDULER_MESSAGE + "SCHEDULER::Decreasing pressure ", self.gamma)
+
+    def get_multiplier(self) -> int:
+        return self.gamma ** self.EXP
+    
+
 class PressureSchedulerPolicy1:
     def __init__(self, pressure_exponent_constant: float, sparsity_target: float, epochs_target: int, step_size:float = 0.3, aggresivity: int = 6):
         self.gamma = 0

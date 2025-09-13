@@ -4,7 +4,7 @@ from src.common_files_experiments.train_pruned_commons import train_mixed_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
-    PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
+    PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
 from src.infrastructure.stages_context.stages_context import \
     StagesContextBaselineTrain, StagesContextBaselineTrainArgs

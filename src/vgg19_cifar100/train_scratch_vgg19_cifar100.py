@@ -5,7 +5,7 @@ from src.common_files_experiments.train_pruned_commons import train_mixed_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
-    PRUNED_MODELS_PATH, BASELINE_RESNET18_CIFAR10, BASELINE_MODELS_PATH
+    PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
 from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
 from src.infrastructure.stages_context.stages_context import \
     StagesContextBaselineTrain, StagesContextBaselineTrainArgs
@@ -14,7 +14,6 @@ from src.infrastructure.training_context.training_context import \
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, get_random_id
-from src.infrastructure.schedulers import PressureSchedulerPolicy1
 from src.infrastructure.training_common import get_model_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 

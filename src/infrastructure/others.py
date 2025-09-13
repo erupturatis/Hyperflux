@@ -86,3 +86,13 @@ class TrainingConfigsWithResume(TypedDict):
     weight_decay: float
     resume: str
     notes: str
+
+
+class TrainingConfigsIMP(TypedDict):
+    training_end: int
+    target_sparsity: float
+    start_lr_pruning: float
+    end_lr_pruning: float
+    weight_decay: float
+    resume: str
+    notes: str

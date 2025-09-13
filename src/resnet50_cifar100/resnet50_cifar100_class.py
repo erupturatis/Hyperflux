@@ -22,7 +22,6 @@ class Resnet50Cifar100(LayerComposite):
 
         # Hardcoded activations
         self.relu = nn.ReLU(inplace=True)
-        print(RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES)
 
         # Initialize registered layers
         for layer_attr in RESNET50_CIFAR100_REGISTERED_LAYERS_ATTRIBUTES:

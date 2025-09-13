@@ -19,6 +19,7 @@ class Experiment(Enum):
 
 class Tags(Enum):
     BASELINE = "baseline"
+    IMP = "IMP"
     TRAIN_PRUNING = "train_pruning"
 
 
