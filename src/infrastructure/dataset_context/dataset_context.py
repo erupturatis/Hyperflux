@@ -10,7 +10,8 @@ import torch
 from src.infrastructure.others import get_device
 import torch.nn as nn
 from dataclasses import dataclass
-from datasets import load_dataset
+import os
+from datasets import load_dataset, DownloadMode, DownloadConfig
 import numpy as np
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
@@ -314,7 +315,13 @@ class DatasetImageNetContext(DatasetContextAbstract):
         self.configs = configs
         self.batch_training_index = 0
         self.batch_test_index = 0
-        self.dataset = load_dataset("ILSVRC/imagenet-1k", cache_dir=cache_dir)
+        self.dataset = load_dataset(
+                        "ILSVRC/imagenet-1k",
+                        cache_dir=os.environ["HF_DATASETS_CACHE"],
+                        download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS,  # reuse any shard that exists
+                        revision="07900defe1ccf3404ea7e5e876a64ca41192f6c07406044771544ef1505831e8",
+                        download_config=DownloadConfig(local_files_only=False, resume_download=True),
+                    )
 
         self.train_dataset = _ImageNetHFDataset(self.dataset['train'], split='train')
         self.val_dataset = _ImageNetHFDataset(self.dataset['validation'], split='val')

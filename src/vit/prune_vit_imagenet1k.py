@@ -94,7 +94,7 @@ def initialize_model():
     print(f"Number of available CUDA devices: {torch.cuda.device_count()}")
     MODEL = MODEL.to(get_device())
     if torch.cuda.device_count() > 1:
-        MODEL = nn.DataParallel(MODEL, device_ids=[0, 1, 2])
+        MODEL = nn.DataParallel(MODEL, device_ids=[0, 1])
         MODEL_MODULE = MODEL.module
     else:
         MODEL_MODULE = MODEL
@@ -121,7 +121,7 @@ def initalize_training_display():
 def initialize_dataset_context():
     global dataset_context
     configs = DatasetImageNetContextConfigs(
-        batch_size=128,
+        batch_size=512,
     )
     dataset_context = DatasetImageNetContext(configs)
 
