@@ -47,7 +47,6 @@ def vit_imagenet_sparsity_experiment(final_sparsity: float):
 
 
 if __name__ == "__main__":
-#     login(token="os.environ.get("HF_TOKEN")")
 #     dataset = load_dataset(
 #     "ILSVRC/imagenet-1k",
 #     cache_dir=os.environ["HF_DATASETS_CACHE"],
