@@ -17,7 +17,7 @@ def run_imagenet_resnet50_existing_model(model_name:str, folder: str):
     model = model.to(get_device())
 
     configs = DatasetImageNetContextConfigs(batch_size=128 * 4)
-    dataset_context = DatasetImageNetContext(configs=configs)
+    dataset_context = DatasetImageNetContext(configs=configs, cache_dir = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/imagenet")
 
     num_epochs = 10
     for epoch in range(1, num_epochs):

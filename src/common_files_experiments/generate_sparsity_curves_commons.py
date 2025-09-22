@@ -5,7 +5,7 @@ from src.infrastructure.dataset_context.dataset_context import DatasetSmallConte
 from src.infrastructure.layers import LayerComposite
 from src.infrastructure.others import get_custom_model_sparsity_percent
 from typing import List
-from src.infrastructure.training_context.training_context import TrainingContextSparsityCurve
+from src.infrastructure.training_context.training_context import TrainingContextNPLHL0
 from src.infrastructure.training_display import TrainingDisplay
 
 
@@ -39,7 +39,7 @@ def test_curves(model: 'LayerComposite', dataset_context: DatasetContextAbstract
         f"Remaining parameters: {remain_percent:.2f}%"
     )
 
-def train_mixed_curves(model: 'LayerComposite', training_context: TrainingContextSparsityCurve, dataset_context: DatasetContextAbstract, PRESSURE:float, training_display: TrainingDisplay, sparsity_levels_recording: List[float], BATCH_RECORD_FREQ: int) -> List[float]:
+def train_mixed_curves(model: 'LayerComposite', training_context: TrainingContextNPLHL0, dataset_context: DatasetContextAbstract, PRESSURE:float, training_display: TrainingDisplay, sparsity_levels_recording: List[float], BATCH_RECORD_FREQ: int) -> List[float]:
     model.train()
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)

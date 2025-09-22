@@ -53,12 +53,13 @@ class TrainingContextPrunedTrain:
 
 
 @dataclass
-class TrainingContextSparsityCurveArgs:
+class TrainingContextNPLHL0Args:
     optimizer_weights: torch.optim.Optimizer
     optimizer_flow_mask: torch.optim.Optimizer
+    l0_gamma_scaler: float
 
-class TrainingContextSparsityCurve:
-    def __init__(self, params: TrainingContextSparsityCurveArgs):
+class TrainingContextNPLHL0:
+    def __init__(self, params: TrainingContextNPLHL0Args):
         self.params = params
 
     def get_optimizer_weights(self) -> torch.optim.Optimizer:
@@ -66,6 +67,9 @@ class TrainingContextSparsityCurve:
 
     def get_optimizer_flow_mask(self) -> torch.optim.Optimizer:
         return self.params.optimizer_flow_mask
+    
+    def set_gamma(self, gamma: float) -> None:
+        self.params.l0_gamma_scaler = gamma
 
 
 @dataclass

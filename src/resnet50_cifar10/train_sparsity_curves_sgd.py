@@ -6,8 +6,8 @@ from src.infrastructure.dataset_context.dataset_context import DatasetSmallConte
 from src.infrastructure.others import get_device, save_array_experiment, get_custom_model_sparsity_percent
 from src.infrastructure.stages_context.stages_context import StagesContextSparsityCurve, StagesContextSparsityCurveArgs
 from src.infrastructure.training_common import get_model_flow_params_and_weights_params
-from src.infrastructure.training_context.training_context import TrainingContextSparsityCurveArgs, \
-    TrainingContextSparsityCurve
+from src.infrastructure.training_context.training_context import TrainingContextNPLHL0Args, \
+    TrainingContextNPLHL0
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -52,8 +52,8 @@ def initialize_training_context():
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
     optimizer_flow_mask = torch.optim.SGD(lr=lr_flow_params, params=flow_params, weight_decay=0, momentum=0.9)
 
-    training_context = TrainingContextSparsityCurve(
-        TrainingContextSparsityCurveArgs(
+    training_context = TrainingContextNPLHL0(
+        TrainingContextNPLHL0Args(
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
         )
@@ -73,7 +73,7 @@ def initialize_stages_context():
     )
 
 MODEL: Resnet50Cifar10
-training_context: TrainingContextSparsityCurve
+training_context: TrainingContextNPLHL0
 dataset_context: DatasetSmallContext
 stages_context: StagesContextSparsityCurve
 training_display: TrainingDisplay

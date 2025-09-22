@@ -12,7 +12,7 @@ FULLY_CONNECTED_LAYER = 'fully_connected'
 
 PRUNED_MODELS_PATH = '/networks_pruned'
 BASELINE_MODELS_PATH = '/networks_baseline'
-IMAGENET_PATH = "/todo"
+IMAGENET_PATH = '/home/developer/workspace/AntonioWork/old_versions/not_ok/data/imagenet'
 
 DATA_PATH = '/data'
 EXPERIMENTS_RESULTS_PATH = '/experiments_outputs'

@@ -1,11 +1,12 @@
 import torch
+from src.vgg19_cifar100.vgg19_cifar100_class import VGG19Cifar100
 from src.common_files_experiments.train_model_scratch_commons import train_mixed_baseline, test_baseline
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned
 from src.infrastructure.configs_layers import configs_layers_initialization_all_kaiming_sqrt5, \
     configs_layers_initialization_all_kaiming_relu
 from src.infrastructure.constants import config_adam_setup, get_lr_flow_params_reset, get_lr_flow_params, \
     PRUNED_MODELS_PATH, BASELINE_MODELS_PATH
-from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar10
+from src.infrastructure.dataset_context.dataset_context import DatasetSmallContext, DatasetSmallType, dataset_context_configs_cifar100
 from src.infrastructure.stages_context.stages_context import \
     StagesContextBaselineTrain, StagesContextBaselineTrainArgs
 from src.infrastructure.training_context.training_context import \
@@ -13,12 +14,10 @@ from src.infrastructure.training_context.training_context import \
 from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDisplay
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, get_random_id
-from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-from src.infrastructure.schedulers import PressureSchedulerPolicy1
 from src.infrastructure.training_common import get_model_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
-from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
-from src.infrastructure.others import get_device, TrainingConfigsIMP
+from src.infrastructure.others import TrainingConfigsNPLHIMP
+from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
 from src.infrastructure.layers import prune_model_globally, calculate_pruning_epochs
 from src.infrastructure.read_write import save_dict_to_csv
 
@@ -29,7 +28,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
 
-    MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
+    MODEL = VGG19Cifar100(configs_network_masks).to(get_device())
     if "resume" in training_configs:
         MODEL.load(training_configs["resume"], BASELINE_MODELS_PATH)
 
@@ -51,14 +50,15 @@ def initalize_training_display():
 
 def initialize_dataset_context():
     global dataset_context
-    dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_cifar10())
+    dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR100, configs=dataset_context_configs_cifar100())
+
 
 def initialize_training_context():
     global training_context
 
     lr = training_configs["start_lr_pruning"]
     weight_bias_params = get_model_weights_params(MODEL)
-    optimizer_weights = torch.optim.SGD(lr=lr, params=weight_bias_params, momentum=0.9, weight_decay=training_configs["weight_decay"], nesterov=True)
+    optimizer_weights = torch.optim.SGD(lr=lr, params= weight_bias_params, momentum=0.9, weight_decay=training_configs["weight_decay"] ,nesterov=True)
 
     training_context = TrainingContextBaselineTrain(
         TrainingContextBaselineTrainArgs(
@@ -79,7 +79,7 @@ def initialize_stages_context():
         )
     )
 
-MODEL: Resnet50Cifar10
+MODEL: VGG19Cifar100
 training_context: TrainingContextBaselineTrain
 dataset_context: DatasetSmallContext
 stages_context: StagesContextBaselineTrain
@@ -87,18 +87,17 @@ training_display: TrainingDisplay
 epoch_global: int = 0
 BATCH_PRINT_RATE = 100
 
-training_configs: TrainingConfigsIMP
+training_configs: TrainingConfigsNPLHIMP
 
-def train_resnet50_cifar10_IMP(conf: TrainingConfigsIMP):
+def train_vgg19_cifar100_IMP(conf: TrainingConfigsNPLHIMP):
     global MODEL, epoch_global, training_configs
-
     training_configs = conf
     configs_layers_initialization_all_kaiming_relu()
 
     initialize_model()
     initialize_training_context()
     initialize_stages_context()
-    wandb_initalize(experiment=Experiment.RESNET50CIFAR10, type=Tags.IMP)
+    wandb_initalize(experiment=Experiment.VGG19CIFAR100, type=Tags.BASELINE)
     initialize_dataset_context()
     initalize_training_display()
 
@@ -117,11 +116,11 @@ def train_resnet50_cifar10_IMP(conf: TrainingConfigsIMP):
     remaining_params = []
     pruned_epochs = []
     accuracies = []
+    epochs = []
 
     for epoch in range(1, training_configs["training_end"] + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-
         train_mixed_baseline(
             model=MODEL,
             dataset_context=dataset_context,
@@ -136,7 +135,7 @@ def train_resnet50_cifar10_IMP(conf: TrainingConfigsIMP):
 
         stages_context.update_context(epoch_global)
         stages_context.step(training_context)
-        
+
         if epoch in epochs_to_prune: 
             val = prune_model_globally(MODEL, pruning_rate)
             rem = get_custom_model_sparsity_percent(MODEL)
@@ -149,20 +148,21 @@ def train_resnet50_cifar10_IMP(conf: TrainingConfigsIMP):
             print(remaining_params)
             print(pruned_epochs)
             print(accuracies)
-    
-    save_dict_to_csv({
-        "Epoch": epochs_to_prune, 
-        "SaliencyIMP": thresholds, 
-        "RemainingParams": remaining_params,
-        "Accuracy": accuracies
-    },
-    filename="impr50c10.csv" 
-    )
 
-    # MODEL.save(
-    #     name=f"resnet50_cifar10_accuracy{acc}%_{get_random_id()}",
-    #     folder=BASELINE_MODELS_PATH
-    # )
+        
+        save_dict_to_csv({
+            "Epoch": pruned_epochs, 
+            "Saliency": thresholds, 
+            "Remaining": remaining_params,
+            "Accuracy": accuracies
+        },
+        filename="IMPvgg19c100.csv" 
+        )
+
+    MODEL.save(
+        name=f"vgg19_cifar100_accuracy{acc}%_{get_random_id()}",
+        folder=BASELINE_MODELS_PATH
+    )
 
     print("Training complete")
     wandb_finish()

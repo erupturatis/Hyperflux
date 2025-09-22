@@ -10,7 +10,7 @@ import torch.nn as nn
 from dataclasses import dataclass
 from src.infrastructure.schedulers import PressureSchedulerPolicy1
 from src.infrastructure.training_context.training_context import \
-    TrainingContextBaselineTrain, TrainingContextPrunedTrain, TrainingContextSparsityCurve
+    TrainingContextBaselineTrain, TrainingContextPrunedTrain, TrainingContextNPLHL0
 
 
 @dataclass
@@ -62,7 +62,7 @@ class StagesContextSparsityCurve:
         self.epoch = epoch
         self.sparsity_percent = sparsity_percent
 
-    def step(self, training_context: TrainingContextSparsityCurve):
+    def step(self, training_context: TrainingContextNPLHL0):
         if VERBOSE_STAGES:
             print("Learning rates init, Weights:", training_context.get_optimizer_weights().param_groups[0]['lr'], " Flow mask:", training_context.get_optimizer_flow_mask().param_groups[0]['lr'])
 
@@ -175,3 +175,32 @@ class StagesContextBottleneckTrain:
             training_context.set_gamma(newgm)
             print("SET NEW PRESSURE TO -----------------", newgm)
 
+
+
+
+
+
+
+
+@dataclass
+class StagesContextNPLHTrainArgs:
+    scheduler_gamma: PressureSchedulerPolicy1
+    pruning_epoch_end: int
+
+class StagesContextNPLHTrain:
+    def __init__(self, args: StagesContextNPLHTrainArgs):
+        self.epoch = 1
+        self.sparsity_percent = 100
+        self.args = args
+
+    def update_context(self, epoch: int, sparsity_percent: float):
+        self.epoch = epoch
+        self.sparsity_percent = sparsity_percent
+
+    def step(self, training_context: TrainingContextPrunedTrain):
+        self.args.scheduler_gamma.step(self.epoch, self.sparsity_percent)
+        gamma = self.args.scheduler_gamma.get_multiplier()
+        if VERBOSE_STAGES:
+            print("Gamma:", gamma)
+
+        training_context.set_gamma(gamma)

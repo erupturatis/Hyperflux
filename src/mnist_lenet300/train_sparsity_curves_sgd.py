@@ -17,8 +17,8 @@ from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDis
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish
 from ..common_files_experiments.generate_sparsity_curves_commons import train_mixed_curves, test_curves
 from ..infrastructure.stages_context.stages_context import StagesContextSparsityCurve, StagesContextSparsityCurveArgs
-from ..infrastructure.training_context.training_context import TrainingContextSparsityCurve, \
-    TrainingContextSparsityCurveArgs
+from ..infrastructure.training_context.training_context import TrainingContextNPLHL0, \
+    TrainingContextNPLHL0Args
 
 
 def initialize_model():
@@ -64,8 +64,8 @@ def initialize_training_context():
     optimizer_flow_mask = torch.optim.SGD(lr=lr_flow_params, params=flow_params, weight_decay=0, momentum=0.9)
 
     # reset weights are applied after pruning and before regrowth, they are the starting point for the regrowth schedulers
-    training_context = TrainingContextSparsityCurve(
-        TrainingContextSparsityCurveArgs(
+    training_context = TrainingContextNPLHL0(
+        TrainingContextNPLHL0Args(
             optimizer_weights=optimizer_weights,
             optimizer_flow_mask=optimizer_flow_mask
         )
@@ -86,7 +86,7 @@ def initialize_stages_context():
 
 
 MODEL: ModelLenet300
-training_context: TrainingContextSparsityCurve
+training_context: TrainingContextNPLHL0
 dataset_context: DatasetSmallContext
 stages_context: StagesContextSparsityCurve
 training_display: TrainingDisplay

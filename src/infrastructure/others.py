@@ -88,11 +88,22 @@ class TrainingConfigsWithResume(TypedDict):
     notes: str
 
 
-class TrainingConfigsIMP(TypedDict):
+class TrainingConfigsNPLHIMP(TypedDict):
     training_end: int
     target_sparsity: float
     start_lr_pruning: float
     end_lr_pruning: float
+    weight_decay: float
+    resume: str
+    notes: str
+
+class TrainingConfigsNPLHL0(TypedDict):
+    pruning_end: int
+    exponent_start: float
+    exponent_end: float
+    base: float
+    epochs_raise: int
+    learning_rate: float
     weight_decay: float
     resume: str
     notes: str

@@ -65,8 +65,8 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('--file', '-f', type=str, required=True, help="Path to the input CSV file.")
-    parser.add_argument('--saliency_col', '-sa', type=str, default='magnitude_threshold', help="Name of the column for the saliency score.")
-    parser.add_argument('--remaining_col', '-sp', type=str, default='remaining_weights_percentage', help="Name of the column for the remaining weights percentage.")
+    parser.add_argument('--saliency_col', '-sa', type=str, default='Saliency', help="Name of the column for the saliency score.")
+    parser.add_argument('--remaining_col', '-sp', type=str, default='Remaining', help="Name of the column for the remaining weights percentage.")
     args = parser.parse_args()
 
     # --- Plot Styling Configuration ---

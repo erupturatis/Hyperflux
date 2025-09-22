@@ -133,6 +133,27 @@ class PressureSchedulerPolicy1:
 
     def get_multiplier(self) -> int:
         return self.gamma ** self.EXP
+    
+
+class PressureSchedulerPolicyMeasurements:
+    def __init__(self, exponent_start: int, exponent_end: int, base: float, epochs_raise: int = 50):
+        self.gamma = 0
+        self.exponent_start = exponent_start 
+        self.exponent_end = exponent_end 
+        self.epochs_raise = epochs_raise 
+        self.base = base 
+        self.gamma = self.base
+        self.EXP = exponent_start
+
+
+    def step(self, epoch: int, *args) -> None:
+        if not epoch % self.epochs_raise == 0:
+            return
+
+        self.EXP += 1
+
+    def get_multiplier(self) -> int:
+        return self.gamma ** self.EXP
 
 import math
 def cosine_function(epoch, period=60):

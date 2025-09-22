@@ -1,4 +1,4 @@
-Epoch,Saliency,Remaining_Percentage,Accuracy
+Epoch,Saliency,Remaining,Accuracy
 7,2.478973406758178e-12,90.0000,92.1200
 11,7.846620922458136e-12,81.0015,92.6100
 15,2.1806280739444794e-11,72.9029,92.4200

@@ -204,8 +204,9 @@ if __name__ == "__main__":
     # Example: To run the main function from your original new code, you would call these directly.
     # For CLI usage, the main() function above will handle dispatch.
     # Original main calls:
-    # resnet50_cifar100_sparsity_experiment(98)
+    resnet50_cifar100_sparsity_experiment(98)
     # resnet50_cifar10_sparsity_experiment(98)
     # vgg19_cifar10_sparsity_experiment(98)
     # vgg19_cifar100_sparsity_experiment(98)
-    main()
+
+    # main()
