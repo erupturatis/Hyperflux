@@ -1,9 +1,9 @@
 import argparse
 import sys
-from src.infrastructure.constants import INITIAL_LR # Assuming this is correctly defined in your project
-from src.infrastructure.others import TrainingConfigsWithResume, TrainingConfigsNPLHIMP # Assuming this is correctly defined
-from Hyperflux.src.resnet50_cifar10.train_NPLH_IMP_resnet50_cifar10 import train_resnet50_cifar10_IMP
-from EugenWork.Hyperflux.src.vgg19_cifar100.train_NPLH_IMP_vgg19_cifar100 import train_vgg19_cifar100_IMP
+from src.infrastructure.constants import INITIAL_LR 
+from src.infrastructure.others import TrainingConfigsNPLHIMP 
+from src.resnet50_cifar10.train_NPLH_IMP_resnet50_cifar10 import train_resnet50_cifar10_IMP
+from src.vgg19_cifar100.train_NPLH_IMP_vgg19_cifar100 import train_vgg19_cifar100_IMP
 from src.resnet50_cifar10.train_NPLH_L0_resnet50_cifar10 import train_resnet50_cifar10_L0_cont_registering
 
 def traing_r50c10_IMP(): 
@@ -33,9 +33,9 @@ def train_vgg19_c100_IMP():
 
 def resnet50_cifar10_NPLH_L0():
    train_resnet50_cifar10_L0_cont_registering({ 
-      "pruning_end": 900,
+      "pruning_end": 1000,
       "exponent_start":-10,
-      "exponent_end":8,
+      "exponent_end":10,
       "base":2, 
       "epochs_raise":50,
       "learning_rate": INITIAL_LR / 10,
@@ -45,4 +45,4 @@ def resnet50_cifar10_NPLH_L0():
    })
 
 if __name__ == "__main__":
-   pass
+   traing_r50c10_IMP()

@@ -14,7 +14,6 @@ from src.infrastructure.training_display import TrainingDisplay, ArgsTrainingDis
 from src.infrastructure.layers import ConfigsNetworkMasksImportance
 from src.infrastructure.others import get_device, get_custom_model_sparsity_percent, get_random_id
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR
-from src.infrastructure.schedulers import PressureSchedulerPolicy1
 from src.infrastructure.training_common import get_model_weights_params
 from src.infrastructure.wandb_functions import wandb_initalize, wandb_finish, Experiment, Tags
 from src.resnet50_cifar10.resnet50_cifar10_class import Resnet50Cifar10
@@ -150,14 +149,14 @@ def train_resnet50_cifar10_IMP(conf: TrainingConfigsNPLHIMP):
             print(pruned_epochs)
             print(accuracies)
     
-    save_dict_to_csv({
-        "Epoch": epochs_to_prune, 
-        "SaliencyIMP": thresholds, 
-        "RemainingParams": remaining_params,
-        "Accuracy": accuracies
-    },
-    filename="impr50c10.csv" 
-    )
+        save_dict_to_csv({
+            "Epoch": pruned_epochs, 
+            "SaliencyIMP": thresholds, 
+            "RemainingParams": remaining_params,
+            "Accuracy": accuracies
+        },
+        filename="impr50c10.csv" 
+        )
 
     # MODEL.save(
     #     name=f"resnet50_cifar10_accuracy{acc}%_{get_random_id()}",
