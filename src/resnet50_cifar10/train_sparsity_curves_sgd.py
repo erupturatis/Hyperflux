@@ -20,7 +20,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = Resnet50Cifar10(configs_network_masks).to(get_device())
-    MODEL.load("Change here", BASELINE_MODELS_PATH)
+    MODEL.load("resnet50_cifar10_accuracy94.91%", BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -42,10 +42,10 @@ def initialize_dataset_context():
     global dataset_context
     dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_cifar10())
 
+lr_weights_finetuning = 1e-3
 def initialize_training_context():
     global training_context
 
-    lr_weights_finetuning = 0.0001
     lr_flow_params = get_lr_flow_params()
 
     weight_bias_params, flow_params = get_model_flow_params_and_weights_params(MODEL)
@@ -55,15 +55,16 @@ def initialize_training_context():
     training_context = TrainingContextNPLHL0(
         TrainingContextNPLHL0Args(
             optimizer_weights=optimizer_weights,
-            optimizer_flow_mask=optimizer_flow_mask
+            optimizer_flow_mask=optimizer_flow_mask, 
+            l0_gamma_scaler=PRESSURE
         )
     )
 
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = 300
-    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
+    pruning_end = 1000
+    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=lr_weights_finetuning)
 
     stages_context = StagesContextSparsityCurve(
         StagesContextSparsityCurveArgs(
@@ -95,7 +96,7 @@ def run_cifar10_resnet50_sgd_sparsity_curve(arg:float, power_start:int, power_en
         PRESSURE = arg ** pw
         _init_data_arrays()
         _run_cifar10_resnet50_sgd()
-        save_array_experiment(f"cifar10_resnet50_sgd_{PRESSURE}.json", sparsity_levels_recording)
+        save_array_experiment(f"cifar10_resnet50_sgd_highlr_{PRESSURE}.json", sparsity_levels_recording)
 
 
 def _run_cifar10_resnet50_sgd():
@@ -112,19 +113,20 @@ def _run_cifar10_resnet50_sgd():
     for epoch in range(1, stages_context.args.epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-        sparsity_levels_recording = train_mixed_curves(
+        train_mixed_curves(
             dataset_context=dataset_context,
             model=MODEL,
             training_context=training_context,
             PRESSURE=PRESSURE,
             BATCH_RECORD_FREQ=BATCH_RECORD_FREQ,
             training_display=training_display,
-            sparsity_levels_recording=sparsity_levels_recording
+            sparsity_levels_recording=[]
         )
         test_curves(
             model=MODEL,
             dataset_context=dataset_context,
         )
 
+        sparsity_levels_recording.append(get_custom_model_sparsity_percent(MODEL))
         stages_context.update_context(epoch_global, get_custom_model_sparsity_percent(MODEL))
         stages_context.step(training_context)

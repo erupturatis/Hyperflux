@@ -1,6 +1,6 @@
 import torch
 from src.common_files_experiments.train_pruned_commons import train_mixed_pruned, test_pruned, \
-    train_mixed_pruned_imagenet, test_pruned_imagenet
+    train_mixed_pruned_imagenet, test_pruned_imagenet, train_mixed_pruned_imagenet_IMP
 from src.infrastructure.stages_context.stages_context import StagesContextPrunedTrain, StagesContextPrunedTrainArgs
 from src.infrastructure.training_context.training_context import TrainingContextPrunedTrain, \
     TrainingContextPrunedTrainArgs
@@ -26,7 +26,6 @@ from src.infrastructure.others import get_device, TrainingConfigsNPLHIMP
 from src.infrastructure.layers import prune_model_globally, calculate_pruning_epochs
 from src.infrastructure.read_write import save_dict_to_csv
 
-
 def initialize_model():
     global MODEL, MODEL_MODULE, training_configs
     configs_network_masks = ConfigsNetworkMasksImportance(
@@ -41,7 +40,7 @@ def initialize_model():
     print("LOADED IMAGENET")
     MODEL = MODEL.to(get_device())
     if torch.cuda.device_count() > 1:
-        MODEL = nn.DataParallel(MODEL, device_ids=[0,1,2,3])
+        MODEL = nn.DataParallel(MODEL, device_ids=[0,1,2])
         MODEL_MODULE = MODEL.module
     else:
         # IF YOU USE A SINGLE GPU, JUST UNCOMMENT THE FOLLOWING !! AND REMOVE THE nn.DataParallel from above
@@ -152,10 +151,10 @@ def train_resnet50_imagenet_NPLH_IMP(sparsity_configs_aux: TrainingConfigsNPLHIM
 
     acc = 0
     for epoch in range(1, training_configs["training_end"] + 1):
-      
+    
         epoch_global = epoch
         dataset_context.init_data_split()
-        train_mixed_pruned_imagenet(
+        train_mixed_pruned_imagenet_IMP(
             dataset_context=dataset_context,
             training_context=training_context,
             model=MODEL,
@@ -173,8 +172,8 @@ def train_resnet50_imagenet_NPLH_IMP(sparsity_configs_aux: TrainingConfigsNPLHIM
         stages_context.step(training_context)
 
         if epoch in epochs_to_prune: 
-            val = prune_model_globally(MODEL, pruning_rate)
-            rem = get_custom_model_sparsity_percent(MODEL)
+            val = prune_model_globally(MODEL_MODULE, pruning_rate)
+            rem = get_custom_model_sparsity_percent(MODEL_MODULE)
             thresholds.append(val)
             remaining_params.append(rem)
             pruned_epochs.append(epoch)
@@ -185,9 +184,9 @@ def train_resnet50_imagenet_NPLH_IMP(sparsity_configs_aux: TrainingConfigsNPLHIM
             print(pruned_epochs)
             print(accuracies)
 
-            MODEL_MODULE.save(f"/resnet50_imagenet_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}")
+            MODEL_MODULE.save(f"/resnet50_imagenet_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}", "networks_pruned")
             MODEL_MODULE.save_entire_dict(f"/resnet50_entire_imagenet_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}")
-    
+        
         save_dict_to_csv({
             "Epoch": pruned_epochs, 
             "Saliency": thresholds, 

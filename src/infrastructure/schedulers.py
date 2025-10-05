@@ -147,6 +147,7 @@ class PressureSchedulerPolicyMeasurements:
 
 
     def step(self, epoch: int, *args) -> None:
+        print(epoch, self.epochs_raise)
         if not epoch % self.epochs_raise == 0:
             return
 

@@ -43,11 +43,10 @@ def initialize_dataset_context():
     global dataset_context
     dataset_context = DatasetSmallContext(dataset=DatasetSmallType.CIFAR10, configs=dataset_context_configs_cifar10())
 
-
+lr_weights_finetuning = 1e-3
 def initialize_training_context():
     global training_context
-
-    lr_weights_finetuning = 0.0001
+    
     lr_flow_params = get_lr_flow_params()
     weight_bias_params, flow_params = get_model_flow_params_and_weights_params(MODEL)
     optimizer_weights = torch.optim.SGD(lr=lr_weights_finetuning, params= weight_bias_params, momentum=0.9, weight_decay=0)
@@ -56,15 +55,16 @@ def initialize_training_context():
     training_context = TrainingContextNPLHL0(
         TrainingContextNPLHL0Args(
             optimizer_weights=optimizer_weights,
-            optimizer_flow_mask=optimizer_flow_mask
+            optimizer_flow_mask=optimizer_flow_mask,
+            l0_gamma_scaler=PRESSURE
         )
     )
 
 def initialize_stages_context():
     global stages_context, training_context
 
-    pruning_end = 150
-    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=1e-7)
+    pruning_end = 1000
+    scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=pruning_end, eta_min=lr_weights_finetuning)
 
     stages_context = StagesContextSparsityCurve(
         StagesContextSparsityCurveArgs(
@@ -95,7 +95,7 @@ def generate_cifar10_resnet50_adam_sparsity_curve(arg:float, power_start:int, po
         PRESSURE = arg ** pw
         _init_data_arrays()
         _run_cifar10_resnet50_adam()
-        save_array_experiment(f"cifar10_resnet50_adam_{PRESSURE}.json", sparsity_levels_recording)
+        save_array_experiment(f"cifar10_resnet50_adam_highlr_{PRESSURE}.json", sparsity_levels_recording)
 
 def _run_cifar10_resnet50_adam():
     global MODEL, epoch_global, sparsity_levels_recording
@@ -112,20 +112,21 @@ def _run_cifar10_resnet50_adam():
         epoch_global = epoch
         dataset_context.init_data_split()
 
-        sparsity_levels_recording = train_mixed_curves(
+        train_mixed_curves(
             dataset_context=dataset_context,
             model=MODEL,
             training_context=training_context,
             PRESSURE=PRESSURE,
             BATCH_RECORD_FREQ=BATCH_RECORD_FREQ,
             training_display=training_display,
-            sparsity_levels_recording=sparsity_levels_recording
+            sparsity_levels_recording=[]
         )
         test_curves(
             model=MODEL,
             dataset_context=dataset_context,
         )
 
+        sparsity_levels_recording.append(get_custom_model_sparsity_percent(MODEL))
         stages_context.update_context(epoch_global, get_custom_model_sparsity_percent(MODEL))
         stages_context.step(training_context)
 

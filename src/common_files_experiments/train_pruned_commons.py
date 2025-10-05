@@ -74,6 +74,64 @@ def train_mixed_pruned_separated(model: LayerComposite, dataset_context: Dataset
         training_display.record_losses([loss_data.item(), loss_pruned_weights.item()])
 
 
+def train_mixed_pruned_imagenet_IMP(model: LayerComposite, model_module : any, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
+    model.train()
+
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer_weights = training_context.get_optimizer_weights()
+
+    scaler = GradScaler('cuda')
+    epoch_start_time = time.time()
+    batch_count = 0
+
+
+    while dataset_context.any_data_training_available():
+
+        iteration_start = time.time()
+        data_load_start = time.time()
+        data, target = dataset_context.get_training_data_and_labels()
+        data_load_end = time.time()
+
+        zero_grad_start = time.time()
+        optimizer_weights.zero_grad()
+        zero_grad_end = time.time()
+
+
+        fwd_start = time.time()
+        with autocast('cuda'):
+            output = model(data)
+            loss_data = criterion(output, target)
+            loss = loss_data
+        fwd_end = time.time()
+
+        bwd_start = time.time()
+        scaler.scale(loss).backward()
+        scaler.step(optimizer_weights)
+        scaler.update()
+        bwd_end = time.time()
+        log_start = time.time()
+        training_display.record_losses([loss_data.item()])
+        log_end = time.time()
+
+        iteration_end = time.time()
+        if iteration_end - iteration_start > 2.0:
+            print(f"\n--- Batch {batch_count} Timings ---")
+            print(f"Data load time:       {data_load_end - data_load_start:.4f} s")
+            print(f"Zero grad time:       {zero_grad_end - zero_grad_start:.4f} s")
+            print(f"Forward pass time:    {fwd_end - fwd_start:.4f} s")
+            print(f"Backward pass time:   {bwd_end - bwd_start:.4f} s")
+            print(f"Logging time:         {log_end - log_start:.4f} s")
+            print(f"Iteration time:       {iteration_end - iteration_start:.4f} s")
+            print("----------------------------------")
+
+        batch_count += 1
+
+
+    total_epoch_time = time.time() - epoch_start_time
+    print(f"==> Finished epoch with {batch_count} batches. Epoch time: {total_epoch_time:.2f} s")
+
+
+
 def train_mixed_pruned_imagenet(model: LayerComposite, model_module : any, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
     model.train()
 

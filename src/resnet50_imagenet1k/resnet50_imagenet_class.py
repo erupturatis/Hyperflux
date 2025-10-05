@@ -123,7 +123,7 @@ class Resnet50Imagenet(LayerComposite):
             skip_array=[]
         )
 
-    def load(self, path: str, folder):
+    def load(self, path: str, folder: str):
         load_model_weights(
             model=self,
             model_name=path,

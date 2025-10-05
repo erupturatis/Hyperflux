@@ -12,7 +12,7 @@ def power_law_model(x, c, alpha):
     """
     A power-law model: S(γ) = c * γ^(-α)
     This describes a linear relationship in a log-log plot.
-    S: Sparsity (Remaining %)
+    S: Density (Remaining %)
     γ: Saliency
     """
     return c * (x ** -alpha)
@@ -63,7 +63,7 @@ def main():
     """
     # --- Argument Parsing ---
     parser = argparse.ArgumentParser(
-        description="Plot sparsity vs. saliency, highlighting a specific region and fitting a power-law curve.",
+        description="Plot Density vs. saliency, highlighting a specific region and fitting a power-law curve.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('--file', '-f', type=str, required=True, help="Path to the input CSV file.")
@@ -74,13 +74,13 @@ def main():
     # --- USER CONFIGURATIONS ---
     # Set the percentage boundaries (r1, r2) for the three regions.
     # Region 1: (r1, 100%]
-    # Region 2: (r2, r1]   <-- This is the region of interest for the fit
+    # Region 2: (r2, r1]    <-- This is the region of interest for the fit
     # Region 3: [0, r2]
     R1_PERCENT = 50.0
-    R2_PERCENT = 0.5
+    R2_PERCENT = 1
 
     # --- Plot Styling Configuration ---
-    AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_FONT_SIZE, TITLE_FONT_SIZE, MARKER_SIZE = 16, 14, 12, 18, 60
+    AXIS_LABEL_SIZE, TICK_LABEL_SIZE, LEGEND_FONT_SIZE, TITLE_FONT_SIZE, MARKER_SIZE = 24, 18, 16, 18, 60
 
     # --- Data Loading ---
     saliency_scores, remaining_percentages = read_pruning_data(args.file, args.saliency_col, args.remaining_col)
@@ -97,24 +97,24 @@ def main():
     region3_mask = (remaining_percentages <= R2_PERCENT)
 
     # --- Curve Fitting (Power-Law on Region 2) ---
-    # Filter data for Region 2: saliency and sparsity must be positive for log scale fitting
+    # Filter data for Region 2: saliency and density must be positive for log scale fitting
     fit_mask = (saliency_scores > 0) & (remaining_percentages > 0) & region2_mask
 
-    threshold_curve, sparsity_curve = None, None
+    threshold_curve, density_curve = None, None
     if np.sum(fit_mask) < 2:
         print(f"Warning: Not enough valid data points in Region 2 (between {R2_PERCENT}% and {R1_PERCENT}%) for curve fitting. Need at least 2 points.")
     else:
         saliency_fit = saliency_scores[fit_mask]
-        sparsity_fit = remaining_percentages[fit_mask]
+        density_fit = remaining_percentages[fit_mask]
         
         try:
             # --- MODIFIED SECTION: Fit in log space ---
             log_saliency = np.log(saliency_fit)
-            log_sparsity = np.log(sparsity_fit)
+            log_density = np.log(density_fit)
 
             # Fit the linear model to the log-transformed data
-            p0 = [np.log(sparsity_fit[0]), -1.0] # Initial guess for [b, m]
-            popt_log, _ = curve_fit(linear_model_log, log_saliency, log_sparsity, p0=p0)
+            p0 = [np.log(density_fit[0]), -1.0] # Initial guess for [b, m]
+            popt_log, _ = curve_fit(linear_model_log, log_saliency, log_density, p0=p0)
             b_fit, m_fit = popt_log
 
             # Convert linear fit parameters back to power-law parameters
@@ -130,19 +130,20 @@ def main():
             min_saliency = saliency_fit.min()
             max_saliency = saliency_fit.max()
             threshold_curve = np.logspace(np.log10(min_saliency), np.log10(max_saliency), 200)
-            sparsity_curve = power_law_model(threshold_curve, c_fit, alpha_fit)
+            density_curve = power_law_model(threshold_curve, c_fit, alpha_fit)
 
         except Exception as e:
             print(f"Curve fitting failed: {e}")
 
     # --- Plotting ---
-    plt.style.use('seaborn-v0_8-whitegrid')
+    plt.style.use('seaborn-v0_8-whitegrid') # Using seaborn style
     plt.figure(figsize=(10, 7))
+
 
     # Plot the three regions with different styles
     # Region 1 (semi-transparent)
     plt.scatter(saliency_scores[region1_mask], remaining_percentages[region1_mask],
-                s=MARKER_SIZE, label=f"Region 1 (> {R1_PERCENT}%)", color='gray', alpha=0.4, zorder=3)
+                s=MARKER_SIZE, label=f"Region 1 (> {R1_PERCENT}%)", color='green', alpha=0.4, zorder=3)
 
     # Region 2 (main focus)
     plt.scatter(saliency_scores[region2_mask], remaining_percentages[region2_mask],
@@ -150,30 +151,45 @@ def main():
 
     # Region 3 (semi-transparent)
     plt.scatter(saliency_scores[region3_mask], remaining_percentages[region3_mask],
-                s=MARKER_SIZE, label=f"Region 3 (< {R2_PERCENT}%)", color='gray', alpha=0.4, zorder=3)
+                s=MARKER_SIZE, label=f"Region 3 (< {R2_PERCENT}%)", color='red', alpha=0.4, zorder=3)
 
     # Plot the fitted curve if it was successfully generated
     if threshold_curve is not None:
-        plt.plot(threshold_curve, sparsity_curve, linestyle='-', linewidth=2.5,
-                 label=f"Power-Law Fit (Region 2)\n$S = {c_fit:.2f} \\cdot \\gamma^{{-{alpha_fit:.2f}}}$",
+        plt.plot(threshold_curve, density_curve, linestyle='-', linewidth=2.5,
+                 label=f"Power-Law Fit",
                  color='red', alpha=0.8, zorder=10)
 
     # --- Axes and Labels ---
     plt.xscale('log')
     plt.yscale('log')
     
-    xlabel = args.saliency_col.replace('_', ' ').title()
-    ylabel = "Remaining Weights (%)"
+    xlabel = "Pressure (Hyperflux)"
+    ylabel = "Density (%)"
     plt.xlabel(xlabel, fontsize=AXIS_LABEL_SIZE)
     plt.ylabel(ylabel, fontsize=AXIS_LABEL_SIZE)
-    plt.title(f"Sparsity vs. {xlabel}", fontsize=TITLE_FONT_SIZE, pad=20)
     
-    plt.gca().yaxis.set_major_formatter(FuncFormatter(lambda y, _: f'{y:g}%'))
+    # Get the current axes to customize it
+    ax = plt.gca()
+    y_tick_locations = [100, 10, 1, 0.1, 0.01]
+
+    # 2. Set these as the major ticks for the y-axis.
+    ax.set_yticks(y_tick_locations)
+    
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: f'{y:g}%'))
     plt.tick_params(axis='both', which='major', labelsize=TICK_LABEL_SIZE)
-    plt.legend(fontsize=LEGEND_FONT_SIZE)
+
+    # --- MANUAL BORDER OVERRIDE ---
+    # This block manually sets the border properties after the style is applied.
+    for spine in ax.spines.values():
+        spine.set_edgecolor('black')
+        spine.set_linewidth(1.2) 
+        spine.set_visible(True)
+    # --- END OF OVERRIDE ---
+
+    plt.legend(loc='upper right',fontsize=LEGEND_FONT_SIZE)
     plt.tight_layout()
 
-    plot_filename = "sparsity_vs_saliency_regional_fit.pdf"
+    plot_filename = "density_vs_saliency_regional_fit.pdf"
     plt.savefig(plot_filename, bbox_inches='tight', dpi=300)
     print(f"\nPlot successfully saved to {os.path.abspath(plot_filename)}")
     plt.show()
