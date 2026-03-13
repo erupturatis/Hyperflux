@@ -1,9 +1,4 @@
 import os
-
-os.environ["HF_DATASETS_CACHE"] = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/imagenet"
-os.environ["HF_HOME"] = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/os.environ.get("HF_TOKEN")"
-os.environ["HF_MODULES_CACHE"] = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/os.environ.get("HF_TOKEN")/modules"
-
 from src.vit.prune_vit_cifar100 import train_vit_cifar100_sparse_model
 from src.vit.prune_vit_imagenet1k import train_vit_imagenet_sparse_model
 import torch
@@ -32,13 +27,9 @@ def vit_cifar100_sparsity_experiment(target_sparsity: float):
 
 
 def vit_imagenet_sparsity_experiment(final_sparsity: float):
-    # Allow passing either a fraction (0-1) representing remaining density
-    # or a percentage (0-100) representing desired sparsity.
     if final_sparsity <= 1:
-        # treat as fraction of remaining weights (e.g. 0.1 => 10% remaining => 90% sparsity)
         target_percent = 100 - final_sparsity * 100
     else:
-        # treat as percentage sparsity already (e.g. 90 => 90% sparsity)
         target_percent = final_sparsity
 
     defaults: TrainingConfigsWithResume = {
@@ -55,21 +46,13 @@ def vit_imagenet_sparsity_experiment(final_sparsity: float):
         "notes": f"Running imagenet1k aiming for ~{target_percent}% sparsity (remaining {100 - target_percent}%)",
     }
     print("Starting ViT ImageNet sparsity experiment with the following target sparsity:")
-    # print configs
     for key, value in defaults.items():
         print(f"  {key}: {value}")
     train_vit_imagenet_sparse_model(defaults)
 
 
 if __name__ == "__main__":
-#     dataset = load_dataset(
-#     "ILSVRC/imagenet-1k",
-#     cache_dir=os.environ["HF_DATASETS_CACHE"],
-#     download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS,  # reuse any shard that exists
-#     revision="07900defe1ccf3404ea7e5e876a64ca41192f6c07406044771544ef1505831e8",
-#     download_config=DownloadConfig(local_files_only=False, resume_download=True),
 
-# )
     vit_imagenet_sparsity_experiment(final_sparsity=0.1)
     # vit_cifar100_sparsity_experiment(target_sparsity=0)   
 
