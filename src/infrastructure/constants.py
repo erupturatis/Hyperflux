@@ -10,7 +10,7 @@ BATCH_NORM_2D_LAYER = 'batch_norm_2d'
 DROPOUT_LAYER = 'dropout'
 FULLY_CONNECTED_LAYER = 'fully_connected'
 
-PRUNED_MODELS_PATH = '/networks_pruned'
+PRUNED_MODELS_PATH = '/home/developer/workspace/AntonioWork/aistats/Hyperflux/networks_pruned'
 BASELINE_MODELS_PATH = '/networks_baseline'
 IMAGENET_PATH = '/home/developer/workspace/AntonioWork/old_versions/not_ok/data/imagenet'
 
@@ -25,7 +25,7 @@ LR_FLOW_PARAMS_RESET = {
     "value": 0.0
 }
 FLOW_PARAMS_INITIALIZATION = {
-    "value": 0.0
+    "value": 0.2
 }
 
 INITIAL_LR = 0.1

@@ -165,15 +165,18 @@ def test_pruned_imagenet(model: nn.Module, model_module: any, dataset_context: D
         f"Remaining parameters: {remain_percent:.2f}%"
     )
     wandb_snapshot(epoch=epoch, accuracy=accuracy, test_loss=test_loss, sparsity=remain_percent)
+    model.train()  # Restore training mode
     return accuracy
 
-def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay):
+def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbstract, training_context: TrainingContextPrunedTrain, training_display: TrainingDisplay, pruning_on: bool = True):
     model.train()
     model.to(get_device())
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer_weights = training_context.get_optimizer_weights()
-    optimizer_pruning = training_context.get_optimizer_flow_mask()
+    optimizer_pruning = None
+    if pruning_on:
+        optimizer_pruning = training_context.get_optimizer_flow_mask()
 
     scaler = GradScaler('cuda')
 
@@ -181,17 +184,23 @@ def train_mixed_pruned(model: LayerComposite, dataset_context: DatasetContextAbs
         data, target = dataset_context.get_training_data_and_labels()
 
         optimizer_weights.zero_grad()
-        optimizer_pruning.zero_grad()
+        if pruning_on and optimizer_pruning is not None:
+            optimizer_pruning.zero_grad()
 
         with autocast('cuda'):
             output = model(data)
-            loss_remaining_weights = model.get_remaining_parameters_loss() * training_context.params.l0_gamma_scaler
             loss_data = criterion(output, target)
-            loss = loss_remaining_weights + loss_data
+            if pruning_on:
+                loss_remaining_weights = model.get_remaining_parameters_loss() * training_context.params.l0_gamma_scaler
+                loss = loss_remaining_weights + loss_data
+            else:
+                loss_remaining_weights = torch.tensor(0.0, device=output.device)
+                loss = loss_data
 
         scaler.scale(loss).backward()
         scaler.step(optimizer_weights)
-        scaler.step(optimizer_pruning)
+        if pruning_on and optimizer_pruning is not None:
+            scaler.step(optimizer_pruning)
         scaler.update()
 
         training_display.record_losses([loss_data.item(), loss_remaining_weights.item()])

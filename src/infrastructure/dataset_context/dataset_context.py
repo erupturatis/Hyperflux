@@ -28,7 +28,9 @@ from src.infrastructure.others import get_device
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 from PIL import Image
-
+from torchvision.transforms.autoaugment import RandAugment
+import math
+import random
 ############################################################################
 # CIFAR10, CIFAR100, MNIST
 ############################################################################
@@ -220,7 +222,7 @@ class DatasetSmallContext(DatasetContextAbstract):
         data = self.train_data[batch].to(get_device(), non_blocking=True)
         target = self.train_labels[batch].to(get_device(), non_blocking=True)
         data = self.configs.augmentations(data)
-
+        
         return data, target
 
     # TESTING
@@ -253,15 +255,17 @@ class DatasetSmallContext(DatasetContextAbstract):
 # ImageNet
 ############################################################################
 
-_resnet50_imagenet_train_transforms = transforms.Compose([
+_vit_imagenet_train_transforms = transforms.Compose([
     transforms.RandomResizedCrop(224, interpolation=InterpolationMode.BILINEAR),
     transforms.RandomHorizontalFlip(p=0.5),
+    # RandAugment(num_ops=2, magnitude=9), 
+    RandAugment(num_ops=2, magnitude=5),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225])
 ])
 
-_resnet50_imagenet_val_transforms = transforms.Compose([
+_vit_imagenet_val_transforms = transforms.Compose([
     transforms.Resize(256, interpolation=InterpolationMode.BILINEAR),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
@@ -275,7 +279,7 @@ class _ImageNetHFDataset(Dataset):
     def __init__(self, hf_data, split='train', max_retries=5):
         self.hf_data = hf_data
         self.split = split
-        self.transform = _resnet50_imagenet_train_transforms if split == 'train' else _resnet50_imagenet_val_transforms
+        self.transform = _vit_imagenet_train_transforms if split == 'train' else _vit_imagenet_val_transforms
         self.max_retries = max_retries
         self.corrupted_count = 0  
 
@@ -304,6 +308,9 @@ class _ImageNetHFDataset(Dataset):
 @dataclass
 class DatasetImageNetContextConfigs:
     batch_size: int
+    mixup_alpha: float = 0.2
+    cutmix_alpha: float = 1.0
+    use_mixup_cutmix: bool = True
 
 class DatasetImageNetContext(DatasetContextAbstract):
     def __init__(self, configs: DatasetImageNetContextConfigs, cache_dir: str = IMAGENET_PATH):
@@ -374,7 +381,11 @@ class DatasetImageNetContext(DatasetContextAbstract):
 
         data = data.to(get_device(), non_blocking=True)
         target = target.to(get_device(), non_blocking=True)
-
+        if self.configs.use_mixup_cutmix:
+            data, target = apply_mixup_cutmix(data, target,
+                mixup_alpha=self.configs.mixup_alpha,
+                cutmix_alpha=self.configs.cutmix_alpha,
+            )
         return data, target
 
     # --------------------- TESTING ---------------------
@@ -400,3 +411,42 @@ class DatasetImageNetContext(DatasetContextAbstract):
 
     def get_batch_size(self) -> int:
         return self.configs.batch_size
+    
+
+
+NUM_CLASSES_IMAGENET = 1000
+
+def _rand_bbox(H, W, lam):
+    cut_h = int(H * math.sqrt(1.0 - lam))
+    cut_w = int(W * math.sqrt(1.0 - lam))
+    cx, cy = np.random.randint(W), np.random.randint(H)
+    x1 = max(cx - cut_w // 2, 0);  x2 = min(cx + cut_w // 2, W)
+    y1 = max(cy - cut_h // 2, 0);  y2 = min(cy + cut_h // 2, H)
+    return x1, y1, x2, y2
+
+def _to_onehot(y, num_classes, dtype):
+    y_oh = torch.zeros(y.size(0), num_classes, device=y.device, dtype=dtype)
+    y_oh.scatter_(1, y.unsqueeze(1), 1.0)
+    return y_oh
+
+def _mixup(x, y_oh, alpha):
+    lam = float(np.random.beta(alpha, alpha))
+    idx = torch.randperm(x.size(0), device=x.device)
+    return lam * x + (1 - lam) * x[idx], lam * y_oh + (1 - lam) * y_oh[idx]
+
+def _cutmix(x, y_oh, alpha):
+    lam = float(np.random.beta(alpha, alpha))
+    B, C, H, W = x.shape
+    idx = torch.randperm(B, device=x.device)
+    x1, y1, x2, y2 = _rand_bbox(H, W, lam)
+    mixed = x.clone()
+    mixed[:, :, y1:y2, x1:x2] = x[idx, :, y1:y2, x1:x2]
+    lam = 1.0 - (x2 - x1) * (y2 - y1) / (W * H)
+    return mixed, lam * y_oh + (1 - lam) * y_oh[idx]
+
+def apply_mixup_cutmix(x, y, num_classes=NUM_CLASSES_IMAGENET, mixup_alpha=0.2, cutmix_alpha=1.0):
+    y_oh = _to_onehot(y, num_classes, x.dtype)
+    if random.random() < 0.5:
+        return _mixup(x, y_oh, mixup_alpha)
+    else:
+        return _cutmix(x, y_oh, cutmix_alpha)

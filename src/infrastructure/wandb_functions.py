@@ -16,6 +16,9 @@ class Experiment(Enum):
     VGG19CIFAR100 = "vgg19_cifar100"
 
     RESNET50IMAGENET = "resnet50_imagenet"
+    DEITTINY16IMAGENET = "deitiny16_imagenet"
+    DEITBASE16IMAGENET = "deitbase16_imagenet"
+    
 
 class Tags(Enum):
     BASELINE = "baseline"

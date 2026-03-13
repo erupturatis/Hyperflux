@@ -52,6 +52,7 @@ from src.infrastructure.wandb_functions import (
 )
 from torch import nn
 from src.vit.prunable_vit import VisionTransformerPrunable
+import torchvision.models as models
 
 MODEL: VisionTransformerPrunable
 MODEL_MODULE: any
@@ -72,32 +73,53 @@ def initialize_model():
         weights_training_enabled=True,
     )
 
+    # Deit_Base/16
+    # MODEL = VisionTransformerPrunable(
+    #     configs_network_masks=configs_network_masks,
+    #     img_size=224,
+    #     patch_size=16,
+    #     in_chans=3,
+    #     num_classes=1000,
+    #     embed_dim=768,  #ViT-Base/16
+    #     depth=12,
+    #     num_heads=12,
+    #     mlp_ratio=4.0,
+    #     qkv_bias=True,
+    #     drop_rate=0.1,
+    #     attn_drop_rate=0.1,
+    #     drop_path_rate=0.1,
+    # )
+    # Deit_Tiny/16
     MODEL = VisionTransformerPrunable(
         configs_network_masks=configs_network_masks,
         img_size=224,
         patch_size=16,
         in_chans=3,
         num_classes=1000,
-        embed_dim=384,  # DeiT-S style; bump to 768 for ViT-B if desired
+        embed_dim=192,   # was 768
         depth=12,
-        num_heads=6,
+        num_heads=3,     # was 12
         mlp_ratio=4.0,
         qkv_bias=True,
         drop_rate=0.1,
         attn_drop_rate=0.1,
         drop_path_rate=0.1,
-    )
-
-    if "resume" in training_configs:
-        MODEL.load(training_configs["resume"], BASELINE_MODELS_PATH)
+        )
+    MODEL.load_weights()
+    
 
     print(f"Number of available CUDA devices: {torch.cuda.device_count()}")
-    MODEL = MODEL.to(get_device())
-    if torch.cuda.device_count() > 1:
-        MODEL = nn.DataParallel(MODEL, device_ids=[0, 1])
+    
+    # Wrap with DataParallel BEFORE moving to device
+    # Use all 3 GPUs to spread batch 512: 512/3 = ~170 per GPU (vs 256 on 2 GPUs)
+    if torch.cuda.device_count() >= 3:
+        MODEL = nn.DataParallel(MODEL, device_ids=[0, 1, 2])
+        MODEL = MODEL.to('cuda:0')
         MODEL_MODULE = MODEL.module
     else:
+        MODEL = MODEL.to(get_device())
         MODEL_MODULE = MODEL
+
 
 
 def get_epoch() -> int:
@@ -121,7 +143,8 @@ def initalize_training_display():
 def initialize_dataset_context():
     global dataset_context
     configs = DatasetImageNetContextConfigs(
-        batch_size=512,
+        batch_size=1024,
+        use_mixup_cutmix = False,
     )
     dataset_context = DatasetImageNetContext(configs)
 
@@ -134,11 +157,13 @@ def initialize_training_context():
 
     weight_bias_params, flow_params = get_model_flow_params_and_weights_params(MODEL)
 
-    optimizer_weights = torch.optim.SGD(
+    # this matches typical ViT-B/ImageNet training recipes
+    optimizer_weights = torch.optim.AdamW(
         lr=lr_weights_finetuning,
         params=weight_bias_params,
-        momentum=0.9,
         weight_decay=training_configs["weight_decay"],
+        betas=(0.9, 0.999),
+        eps=1e-8,
     )
     optimizer_flow_mask = torch.optim.Adam(
         lr=lr_flow_params, params=flow_params, weight_decay=0
@@ -207,24 +232,23 @@ def train_vit_imagenet_sparse_model(sparsity_configs_aux: TrainingConfigsWithRes
     config_adam_setup()
 
     initialize_model()
-    print("LOADED SUCCESS")
     initialize_training_context()
     initialize_stages_context()
-
+    # CHANGE 
     wandb_initalize(
-        Experiment.RESNET50IMAGENET,
+        Experiment.DEITTINY16IMAGENET,
         type=Tags.TRAIN_PRUNING,
         configs=sparsity_configs,
         other_tags=["ADAM"],
     )
-    # MODEL_MODULE.save_entire_dict("initialisation_vit_imagenet")
     initialize_dataset_context()
     initalize_training_display()
-
+    MODEL_MODULE.save_weights(f"{PRUNED_MODELS_PATH}/vit_tiny_imagenet_initial_weights.pth")
     acc = 0
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
+       
         train_mixed_pruned_imagenet(
             dataset_context=dataset_context,
             training_context=training_context,
@@ -243,12 +267,7 @@ def train_vit_imagenet_sparse_model(sparsity_configs_aux: TrainingConfigsWithRes
             epoch_global, get_custom_model_sparsity_percent(MODEL_MODULE)
         )
         stages_context.step(training_context)
-        # if epoch % 5 == 1:
-        #     MODEL_MODULE.save(f"/resnet50_imagenet_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}")
-        #     MODEL_MODULE.save_entire_dict(f"/resnet50_entire_imagenet_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE)}_acc{acc}_{epoch}")
+        MODEL_MODULE.save_weights(f"{PRUNED_MODELS_PATH}/vit_tiny_imagenet_epoch{epoch}_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE):.2f}_acc{acc:.2f}.pth")
 
-    MODEL_MODULE.save(
-        f"/resnet50_imagenet_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE)}_acc{acc}"
-    )
     print("Training complete")
     wandb_finish()

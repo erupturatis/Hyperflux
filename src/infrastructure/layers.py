@@ -170,7 +170,7 @@ class LayerLinearMaskImportance(LayerPrimitive):
         # if self.mask_pruning_enabled:
         #     mask_changes = MaskPruningFunctionConstant.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
         #     masked_weight = masked_weight * mask_changes
-
+    # TODO NOTE
         mask_changes = MaskPruningFunctionConstant.apply(getattr(self, WEIGHTS_PRUNING_ATTR))
         masked_weight = masked_weight * mask_changes
 

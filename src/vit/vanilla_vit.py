@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from functools import partial
 
-"""Ignore, used only for reference"""
+
 
 
 def to_2tuple(x):

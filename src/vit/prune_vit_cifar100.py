@@ -48,10 +48,10 @@ from src.infrastructure.wandb_functions import (
 from src.vit.prunable_vit import VisionTransformerPrunable
 
 
-def initialize_model():
+def initialize_model(mask_pruning_enabled: bool = True):
     global MODEL, training_configs
     configs_network_masks = ConfigsNetworkMasksImportance(
-        mask_pruning_enabled=True,
+        mask_pruning_enabled=mask_pruning_enabled,
         weights_training_enabled=True,
     )
     MODEL = VisionTransformerPrunable(
@@ -187,8 +187,9 @@ def train_vit_cifar100_sparse_model(sparsity_configs_aux: TrainingConfigsWithRes
 
     configs_layers_initialization_all_kaiming_relu()
     config_adam_setup()
-
-    initialize_model()
+    mask_pruning_enabled = True if sparsity_configs["target_sparsity"] > 0 else False
+    print(f"Mask pruning enabled: {mask_pruning_enabled}")
+    initialize_model(mask_pruning_enabled=mask_pruning_enabled)
     initialize_training_context()
     initialize_stages_context()
     wandb_initalize(
@@ -209,7 +210,8 @@ def train_vit_cifar100_sparse_model(sparsity_configs_aux: TrainingConfigsWithRes
             dataset_context=dataset_context,
             training_context=training_context,
             model=MODEL,
-            training_display=training_display,
+            training_display=training_display,\
+            pruning_on=mask_pruning_enabled,
         )
         acc = test_pruned(
             dataset_context=dataset_context, model=MODEL, epoch=get_epoch()

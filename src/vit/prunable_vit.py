@@ -2,6 +2,7 @@ from typing import List, Optional
 import math
 import torch
 import torch.nn as nn
+import torchvision.models as models
 from src.infrastructure.layers import (
     LayerComposite,
     ConfigsNetworkMasksImportance,
@@ -241,7 +242,8 @@ class VisionTransformerPrunable(LayerComposite):
             # mlp fc1/fc2
             self.registered_layers.append(blk.mlp.fc1)
             self.registered_layers.append(blk.mlp.fc2)
-        # NOTE: head/classifier kept dense (not registered). Register it if you want to prune head:
+        # self.registered_layers.append(self.head)
+        # NOTE TODO IMPORTANT: head/classifier kept dense (not registered). Register it if you want to prune head:
 
     def get_remaining_parameters_loss(self) -> torch.Tensor:
         total, sigmoid = get_flow_params_loss(self)
@@ -252,7 +254,199 @@ class VisionTransformerPrunable(LayerComposite):
 
     def get_layers_primitive(self) -> List[LayerPrimitive]:
         return get_layers_primitive(self)
+    
+    # def load_weights(self):
+    #     """Load pretrained ViT-B/16 weights from torchvision into this model."""
+    #     import re
 
+    #     pretrained_weights = models.ViT_B_16_Weights.IMAGENET1K_V1
+    #     pretrained_sd = pretrained_weights.get_state_dict(progress=True)
+    #     model_sd = self.state_dict()
+
+    #     def build_pretrained_key(model_key: str) -> Optional[str]:
+    #         k = model_key
+
+    #         # Strip pruning-related suffixes early — these have no pretrained counterpart
+    #         if "pruning" in k:
+    #             return None
+
+    #         # cls_token / pos_embed
+    #         if k == "cls_token":
+    #             return "class_token"
+    #         if k == "pos_embed":
+    #             return "encoder.pos_embedding"
+
+    #         # patch embedding
+    #         if k.startswith("patch_embed.proj."):
+    #             suffix = k[len("patch_embed.proj."):]          # weight / bias
+    #             return f"conv_proj.{suffix}"
+
+    #         # final norm
+    #         if k.startswith("norm."):
+    #             suffix = k[len("norm."):]
+    #             return f"encoder.ln.{suffix}"
+
+    #         # classifier head
+    #         if k.startswith("head."):
+    #             suffix = k[len("head."):]
+    #             return f"heads.head.{suffix}"
+
+    #         # transformer blocks
+    #         m = re.match(r"^blocks\.(\d+)\.(.*)", k)
+    #         if m:
+    #             idx, rest = m.group(1), m.group(2)
+    #             prefix = f"encoder.layers.encoder_layer_{idx}"
+
+    #             # norm layers
+    #             if rest.startswith("norm1."):
+    #                 return f"{prefix}.ln_1.{rest[len('norm1.'):]}"
+    #             if rest.startswith("norm2."):
+    #                 return f"{prefix}.ln_2.{rest[len('norm2.'):]}"
+
+    #             # attention qkv  (.weights -> in_proj_weight, .bias -> in_proj_bias)
+    #             if rest == "attn.qkv.weights":
+    #                 return f"{prefix}.self_attention.in_proj_weight"
+    #             if rest == "attn.qkv.bias":
+    #                 return f"{prefix}.self_attention.in_proj_bias"
+
+    #             # attention output proj  (.weights -> out_proj.weight)
+    #             if rest == "attn.proj.weights":
+    #                 return f"{prefix}.self_attention.out_proj.weight"
+    #             if rest == "attn.proj.bias":
+    #                 return f"{prefix}.self_attention.out_proj.bias"
+
+    #             # MLP
+    #             if rest == "mlp.fc1.weights":
+    #                 return f"{prefix}.mlp.linear_1.weight"
+    #             if rest == "mlp.fc1.bias":
+    #                 return f"{prefix}.mlp.linear_1.bias"
+    #             if rest == "mlp.fc2.weights":
+    #                 return f"{prefix}.mlp.linear_2.weight"
+    #             if rest == "mlp.fc2.bias":
+    #                 return f"{prefix}.mlp.linear_2.bias"
+
+    #         return None  # unmapped key
+
+    #     mapped_sd = {}
+    #     missing_in_pretrained = []
+    #     shape_mismatches = []
+
+    #     for model_key in model_sd.keys():
+    #         pretrained_key = build_pretrained_key(model_key)
+
+    #         if pretrained_key is None:
+    #             # pruning params or intentionally skipped — keep current init
+    #             continue
+
+    #         if pretrained_key not in pretrained_sd:
+    #             missing_in_pretrained.append((model_key, pretrained_key))
+    #             continue
+
+    #         pretrained_tensor = pretrained_sd[pretrained_key]
+    #         model_tensor = model_sd[model_key]
+
+    #         if pretrained_tensor.shape != model_tensor.shape:
+    #             shape_mismatches.append(
+    #                 (model_key, pretrained_key, model_tensor.shape, pretrained_tensor.shape)
+    #             )
+    #             continue
+
+    #         mapped_sd[model_key] = pretrained_tensor
+
+    #     # Load matched weights (strict=False so pruning params etc. stay as-is)
+    #     missing_keys, unexpected_keys = self.load_state_dict(mapped_sd, strict=False)
+
+    #     # ---- diagnostics ----
+    #     print(f"Loaded {len(mapped_sd)} tensors from pretrained weights.")
+
+    #     if shape_mismatches:
+    #         print(f"\nShape mismatches ({len(shape_mismatches)}) — skipped:")
+    #         for mk, pk, ms, ps in shape_mismatches:
+    #             print(f"  {mk!r} (model {ms}) vs {pk!r} (pretrained {ps})")
+
+    #     if missing_in_pretrained:
+    #         print(f"\nModel keys with no pretrained mapping ({len(missing_in_pretrained)}):")
+    #         for mk, pk in missing_in_pretrained:
+    #             print(f"  {mk!r} -> looked for {pk!r}")
+
+    #     untouched = set(model_sd.keys()) - set(mapped_sd.keys())
+    #     pruning_untouched = [k for k in untouched if "pruning" in k]
+    #     other_untouched = [k for k in untouched if "pruning" not in k]
+    #     print(f"\nUntouched pruning params: {len(pruning_untouched)}")
+    #     if other_untouched:
+    #         print(f"Other untouched keys ({len(other_untouched)}):")
+    #         for k in other_untouched:
+    #             print(f"  {k!r}")
+    def load_weights(self):
+        import re
+
+        checkpoint = torch.load(
+            '/home/developer/workspace/AntonioWork/aistats/Hyperflux/networks_baseline/deit_tiny_patch16_224-a1311bcf.pth',
+            map_location='cpu'
+        )
+        pretrained_sd = checkpoint['model']  # DeiT checkpoints are stored under 'model' key
+        model_sd = self.state_dict()
+
+        def build_pretrained_key(model_key: str):
+            k = model_key
+            if "pruning" in k:
+                return None
+            if k == "cls_token":            return "cls_token"
+            if k == "pos_embed":            return "pos_embed"
+            if k.startswith("patch_embed.proj."):
+                return k
+            if k.startswith("norm."):       return k
+            if k.startswith("head."):       return k
+            m = re.match(r"^blocks\.(\d+)\.(.*)", k)
+            if m:
+                idx, rest = m.group(1), m.group(2)
+                prefix = f"blocks.{idx}"
+                if rest.startswith("norm1."): return f"{prefix}.norm1.{rest[len('norm1.'):]}"
+                if rest.startswith("norm2."): return f"{prefix}.norm2.{rest[len('norm2.'):]}"
+                if rest == "attn.qkv.weights":  return f"{prefix}.attn.qkv.weight"
+                if rest == "attn.qkv.bias":     return f"{prefix}.attn.qkv.bias"
+                if rest == "attn.proj.weights": return f"{prefix}.attn.proj.weight"
+                if rest == "attn.proj.bias":    return f"{prefix}.attn.proj.bias"
+                if rest == "mlp.fc1.weights":   return f"{prefix}.mlp.fc1.weight"
+                if rest == "mlp.fc1.bias":      return f"{prefix}.mlp.fc1.bias"
+                if rest == "mlp.fc2.weights":   return f"{prefix}.mlp.fc2.weight"
+                if rest == "mlp.fc2.bias":      return f"{prefix}.mlp.fc2.bias"
+            return None
+
+        mapped_sd = {}
+        missing_in_pretrained = []
+        shape_mismatches = []
+
+        for model_key in model_sd.keys():
+            pretrained_key = build_pretrained_key(model_key)
+            if pretrained_key is None:
+                continue
+            if pretrained_key not in pretrained_sd:
+                missing_in_pretrained.append((model_key, pretrained_key))
+                continue
+            pretrained_tensor = pretrained_sd[pretrained_key]
+            model_tensor = model_sd[model_key]
+            if pretrained_tensor.shape != model_tensor.shape:
+                shape_mismatches.append((model_key, pretrained_key, model_tensor.shape, pretrained_tensor.shape))
+                continue
+            mapped_sd[model_key] = pretrained_tensor
+
+        self.load_state_dict(mapped_sd, strict=False)
+
+        print(f"Loaded {len(mapped_sd)} tensors from DeiT-Tiny pretrained weights.")
+        if shape_mismatches:
+            print(f"Shape mismatches ({len(shape_mismatches)}) — skipped:")
+            for mk, pk, ms, ps in shape_mismatches:
+                print(f"  {mk!r} (model {ms}) vs {pk!r} (pretrained {ps})")
+        if missing_in_pretrained:
+            print(f"Missing keys ({len(missing_in_pretrained)}):")
+            for mk, pk in missing_in_pretrained:
+                print(f"  {mk!r} -> looked for {pk!r}")
+                
+                
+    def save_weights(self, path: str):
+        torch.save(self.state_dict(), path)
+             
     # ---- init helpers
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
