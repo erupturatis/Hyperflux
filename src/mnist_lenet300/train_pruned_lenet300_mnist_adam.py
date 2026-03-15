@@ -26,7 +26,7 @@ def initialize_model():
         weights_training_enabled=True,
     )
     MODEL = ModelLenet300(configs_network_masks).to(get_device())
-    MODEL.load('lenet300_mnist_98.3%', BASELINE_MODELS_PATH)
+    # MODEL.load('lenet300_mnist_98.3%', BASELINE_MODELS_PATH)
 
 def get_epoch() -> int:
     global epoch_global
@@ -82,7 +82,7 @@ def initialize_stages_context():
 
     regrowth_stage_length = regrowing_end - pruning_end
 
-    pruning_scheduler = PressureSchedulerPolicy1(pressure_exponent_constant=1.5, sparsity_target=0.30, epochs_target=pruning_end)
+    pruning_scheduler = PressureSchedulerPolicy1(pressure_exponent_constant=1.5, sparsity_target=0.90, epochs_target=pruning_end)
     flow_params_lr_decay_after_pruning = 0.95
 
     scheduler_weights_lr_during_pruning = CosineAnnealingLR(training_context.get_optimizer_weights(), T_max=regrowth_stage_length, eta_min=1e-3)

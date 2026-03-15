@@ -101,9 +101,9 @@ def initialize_model():
         num_heads=3,     # was 12
         mlp_ratio=4.0,
         qkv_bias=True,
-        drop_rate=0.1,
-        attn_drop_rate=0.1,
-        drop_path_rate=0.1,
+        drop_rate=0.0,
+        attn_drop_rate=0.0,
+        drop_path_rate=0.0,
         )
     MODEL.load_weights()
     

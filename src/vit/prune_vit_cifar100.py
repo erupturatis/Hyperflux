@@ -65,7 +65,7 @@ def initialize_model(mask_pruning_enabled: bool = True):
         num_heads=6,
         mlp_ratio=4.0,
         qkv_bias=True,
-        drop_rate=0.1,
+        drop_rate=0,
         attn_drop_rate=0.1,
         drop_path_rate=0.1,
     ).to(get_device())
