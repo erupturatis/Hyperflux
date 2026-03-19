@@ -1,4 +1,7 @@
 import os
+os.environ["HF_DATASETS_CACHE"] = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/imagenet"
+os.environ["HF_HOME"] = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/hf_home"
+os.environ["HF_MODULES_CACHE"] = "/home/developer/workspace/AntonioWork/old_versions/not_ok/data/hf_home/modules"
 from src.vit.prune_vit_cifar100 import train_vit_cifar100_sparse_model
 from src.vit.prune_vit_imagenet1k import train_vit_imagenet_sparse_model
 from src.mnist_lenet300.train_pruned_lenet300_mnist_adam import train_pruned_lenet300_mnist_adam
@@ -34,8 +37,8 @@ def vit_imagenet_sparsity_experiment(final_sparsity: float):
         target_percent = final_sparsity
 
     defaults: TrainingConfigsWithResume = {
-        "pruning_end": 70,
-        "regrowing_end": 100,
+        "pruning_end": 100,
+        "regrowing_end": 150,
         "target_sparsity": target_percent,
         "lr_flow_params_decay_regrowing": 0.55,
         "start_lr_pruning": 0.0005,
@@ -54,6 +57,6 @@ def vit_imagenet_sparsity_experiment(final_sparsity: float):
 
 if __name__ == "__main__":
     # train_pruned_lenet300_mnist_adam()
-    vit_imagenet_sparsity_experiment(final_sparsity=0.1)
+    vit_imagenet_sparsity_experiment(final_sparsity=0.19)
     # vit_cifar100_sparsity_experiment(target_sparsity=0)   
 
