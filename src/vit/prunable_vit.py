@@ -381,7 +381,7 @@ class VisionTransformerPrunable(LayerComposite):
         import re
 
         checkpoint = torch.load(
-            '/home/developer/workspace/AntonioWork/aistats/Hyperflux/networks_baseline/deit_tiny_patch16_224-a1311bcf.pth',
+            '/home/developer/workspace/AntonioWork/aistats/Hyperflux/networks_baseline/deit_small_patch16_224-cd65a155.pth',
             map_location='cpu'
         )
         pretrained_sd = checkpoint['model']  # DeiT checkpoints are stored under 'model' key

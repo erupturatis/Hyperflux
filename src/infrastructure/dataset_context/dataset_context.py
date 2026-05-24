@@ -29,6 +29,7 @@ from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 from PIL import Image
 from torchvision.transforms.autoaugment import RandAugment
+from torchvision.transforms import RandomErasing
 import math
 import random
 ############################################################################
@@ -255,18 +256,29 @@ class DatasetSmallContext(DatasetContextAbstract):
 # ImageNet
 ############################################################################
 
+# _vit_imagenet_train_transforms = transforms.Compose([
+#     transforms.RandomResizedCrop(224, interpolation=InterpolationMode.BILINEAR),
+#     transforms.RandomHorizontalFlip(p=0.5),
+#     RandAugment(num_ops=2, magnitude=9), 
+#     # RandAugment(num_ops=2, magnitude=5),
+#     transforms.ToTensor(),
+#     transforms.Normalize(mean=[0.485, 0.456, 0.406],
+#                          std=[0.229, 0.224, 0.225])
+# ])
+
 _vit_imagenet_train_transforms = transforms.Compose([
-    transforms.RandomResizedCrop(224, interpolation=InterpolationMode.BILINEAR),
+    transforms.RandomResizedCrop(224, interpolation=InterpolationMode.BICUBIC),
     transforms.RandomHorizontalFlip(p=0.5),
-    # RandAugment(num_ops=2, magnitude=9), 
-    RandAugment(num_ops=2, magnitude=5),
+    RandAugment(num_ops=2, magnitude=9),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    RandomErasing(p=0.25, scale=(0.02, 0.33), ratio=(0.3, 3.3), value='random'),
 ])
 
 _vit_imagenet_val_transforms = transforms.Compose([
-    transforms.Resize(256, interpolation=InterpolationMode.BILINEAR),
+    # transforms.Resize(256, interpolation=InterpolationMode.BILINEAR),
+    # transforms.CenterCrop(224),
+    transforms.Resize(249, interpolation=InterpolationMode.BICUBIC),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],

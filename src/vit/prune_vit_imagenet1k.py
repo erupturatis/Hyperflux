@@ -74,37 +74,40 @@ def initialize_model():
     )
 
     # Deit_Base/16
-    # MODEL = VisionTransformerPrunable(
-    #     configs_network_masks=configs_network_masks,
-    #     img_size=224,
-    #     patch_size=16,
-    #     in_chans=3,
-    #     num_classes=1000,
-    #     embed_dim=768,  #ViT-Base/16
-    #     depth=12,
-    #     num_heads=12,
-    #     mlp_ratio=4.0,
-    #     qkv_bias=True,
-    #     drop_rate=0.1,
-    #     attn_drop_rate=0.1,
-    #     drop_path_rate=0.1,
-    # )
-    # Deit_Tiny/16
     MODEL = VisionTransformerPrunable(
         configs_network_masks=configs_network_masks,
         img_size=224,
         patch_size=16,
         in_chans=3,
         num_classes=1000,
-        embed_dim=192,   # was 768
+        embed_dim=384,  #ViT-Base/16
         depth=12,
-        num_heads=3,     # was 12
+        num_heads=6,
         mlp_ratio=4.0,
         qkv_bias=True,
         drop_rate=0.0,
         attn_drop_rate=0.0,
-        drop_path_rate=0.0,
-        )
+        drop_path_rate=0.1,
+        # drop_rate=0.1,
+        # attn_drop_rate=0.1,
+        # drop_path_rate=0.1,
+    )
+    # Deit_Tiny/16
+    # MODEL = VisionTransformerPrunable(
+    #     configs_network_masks=configs_network_masks,
+    #     img_size=224,
+    #     patch_size=16,
+    #     in_chans=3,
+    #     num_classes=1000,
+    #     embed_dim=192,   # was 768
+    #     depth=12,
+    #     num_heads=3,     # was 12
+    #     mlp_ratio=4.0,
+    #     qkv_bias=True,
+    #     drop_rate=0.0,
+    #     attn_drop_rate=0.0,
+    #     drop_path_rate=0.0,
+    #     )
     MODEL.load_weights()
     
 
@@ -144,7 +147,10 @@ def initialize_dataset_context():
     global dataset_context
     configs = DatasetImageNetContextConfigs(
         batch_size=1024,
-        use_mixup_cutmix = False,
+        use_mixup_cutmix = True,
+        mixup_alpha=0.8,
+        cutmix_alpha=1.0,
+        
     )
     dataset_context = DatasetImageNetContext(configs)
 
@@ -243,12 +249,12 @@ def train_vit_imagenet_sparse_model(sparsity_configs_aux: TrainingConfigsWithRes
     )
     initialize_dataset_context()
     initalize_training_display()
-    MODEL_MODULE.save_weights(f"{PRUNED_MODELS_PATH}/vit_tiny_imagenet_initial_weights.pth")
+    MODEL_MODULE.save_weights(f"{PRUNED_MODELS_PATH}/vit_base_imagenet_initial_weights.pth")
     acc = 0
     for epoch in range(1, stages_context.args.regrowth_epoch_end + 1):
         epoch_global = epoch
         dataset_context.init_data_split()
-       
+        
         train_mixed_pruned_imagenet(
             dataset_context=dataset_context,
             training_context=training_context,
@@ -267,7 +273,7 @@ def train_vit_imagenet_sparse_model(sparsity_configs_aux: TrainingConfigsWithRes
             epoch_global, get_custom_model_sparsity_percent(MODEL_MODULE)
         )
         stages_context.step(training_context)
-        MODEL_MODULE.save_weights(f"{PRUNED_MODELS_PATH}/vit_tiny_imagenet_epoch{epoch}_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE):.2f}_acc{acc:.2f}.pth")
+        MODEL_MODULE.save_weights(f"{PRUNED_MODELS_PATH}/vit_base_imagenet_epoch{epoch}_sparsity{get_custom_model_sparsity_percent(MODEL_MODULE):.2f}_acc{acc:.2f}.pth")
 
     print("Training complete")
     wandb_finish()

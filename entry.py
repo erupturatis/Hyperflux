@@ -41,13 +41,13 @@ def vit_imagenet_sparsity_experiment(final_sparsity: float):
         "regrowing_end": 150,
         "target_sparsity": target_percent,
         "lr_flow_params_decay_regrowing": 0.55,
-        "start_lr_pruning": 0.0005,
-        "end_lr_pruning": 0.00005,
+        "start_lr_pruning": 0.0001,
+        "end_lr_pruning": 0.00001,
         "reset_lr_pruning": 0.0005,
         "end_lr_regrowth": 0.00001,
         "reset_lr_flow_params_scaler": 3,
-        "weight_decay": 0.03,
-        "notes": f"Running imagenet1k aiming for ~{target_percent}% sparsity (remaining {100 - target_percent}%)",
+        "weight_decay": 0.05,
+        "notes": f"Running imagenet1k deit SMALL aiming for ~{target_percent}% sparsity (remaining {100 - target_percent}%)",
     }
     print("Starting ViT ImageNet sparsity experiment with the following target sparsity:")
     for key, value in defaults.items():
@@ -55,8 +55,9 @@ def vit_imagenet_sparsity_experiment(final_sparsity: float):
     train_vit_imagenet_sparse_model(defaults)
 
 
+
 if __name__ == "__main__":
     # train_pruned_lenet300_mnist_adam()
-    vit_imagenet_sparsity_experiment(final_sparsity=0.19)
+    vit_imagenet_sparsity_experiment(final_sparsity=0.095)
     # vit_cifar100_sparsity_experiment(target_sparsity=0)   
 
